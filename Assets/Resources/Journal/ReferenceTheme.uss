@@ -1,0 +1,170 @@
+.reference-skin { -unity-font-definition: url("ReferenceRegular.ttf"); color: rgb(22,20,14); }
+.reference-skin .screen-dim { background-color: rgba(15,18,11,0.24); -unity-background-scale-mode: stretch-to-fill; -unity-background-image-tint-color: rgb(225,222,213); }
+.reference-skin .journal-window {
+    width: 1280px; height: 815px; min-width: 1280px; min-height: 815px;
+    max-width: none; max-height: none; flex-shrink: 0;
+    background-color: transparent; border-width: 0; border-radius: 26px;
+    overflow: hidden;
+}
+.reference-surface { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.reference-seam { position: absolute; left: 240px; top: 27px; width: 8px; height: 762px; }
+.reference-skin .journal-sidebar { position: absolute; left: 0; top: 0; bottom: 0; width: 245px; padding: 0; border-width: 0; background-color: transparent; }
+.reference-skin .sidebar-brand, .reference-skin .sidebar-mark, .reference-skin .sidebar-hint, .reference-skin .sidebar-spacer { display: none; }
+.reference-skin .sidebar-nav { position: absolute; top: 119px; left: 8px; right: 0; }
+.reference-skin .side-button {
+    height: 132px; flex-shrink: 0; margin: 0; padding: 0 8px 0 19px;
+    border-width: 0; border-bottom-width: 1px; border-bottom-color: rgb(177,152,112);
+    border-radius: 0; background-color: transparent;
+}
+.reference-skin #upgrades-tab { height: 123px; }
+.reference-skin .nav-label { -unity-font-definition: url("ReferenceBold.ttf"); -unity-font-style: normal; font-size: 24px; letter-spacing: -0.7px; color: rgb(24,21,14); }
+.reference-skin .side-active .nav-label { color: rgb(255,246,211); }
+.reference-skin .nav-active-art { display: none; }
+.reference-skin .side-active .nav-active-art { display: flex; }
+.nav-gold-stripe { position: absolute; left: 0; top: 0; bottom: 0; width: 9px; background-color: rgb(243,196,56); display: none; }
+.side-active .nav-gold-stripe { display: flex; }
+.reference-skin .side-button:hover .nav-label { color: rgb(110,77,26); }
+.reference-skin .side-active:hover .nav-label { color: rgb(255,253,228); }
+.reference-nav-glyph { width: 52px; height: 60px; flex-shrink: 0; margin-right: 8px; }
+.reference-skin .sidebar-back { position: absolute; left: 29px; bottom: 41px; width: 194px; height: 79px; margin: 0; padding: 0; background-color: transparent; border-width: 0; border-radius: 0; }
+.reference-skin .sidebar-back:hover { opacity: 0.8; }
+.reference-skin .back-arrow, .reference-skin .back-label { display: none; }
+.reference-skin .journal-main { position: absolute; left: 267px; right: 27px; top: 22px; bottom: 15px; background-color: transparent; }
+.reference-skin .journal-header { position: absolute; left: 0; right: 0; top: 0; height: 92px; margin: 0; padding: 0; background-color: transparent; border-width: 0; }
+.reference-skin .title-stack { position: absolute; left: 2px; top: 0; height: 92px; justify-content: flex-start; }
+.reference-skin .journal-kicker { -unity-font-definition: url("ReferenceBold.ttf"); -unity-font-style: normal; color: rgb(72,83,43); font-size: 19px; letter-spacing: 0.5px; margin: 0; padding: 0; }
+.reference-skin .journal-title { -unity-font-definition: url("ReferenceBlack.ttf"); -unity-font-style: normal; font-size: 54px; letter-spacing: -1.5px; color: rgb(14,13,10); margin: 0; padding: 0; }
+.reference-skin .header-actions { position: absolute; right: -7px; top: 0; height: 78px; }
+.reference-skin .egg-balance { width: 208px; min-width: 208px; height: 72px; margin-right: 48px; padding: 0 25px; background-color: transparent; border-width: 0; border-radius: 0; }
+.reference-skin .balance-egg { width: 52px; height: 65px; margin-right: 9px; }
+/* Exchange hint under the balance brush: 1x gold egg = 5x white egg. */
+.reference-skin .egg-rate { position: absolute; left: 0; top: 71px; width: 208px; height: 30px; flex-direction: row; align-items: center; justify-content: center; }
+.reference-skin .egg-rate-text { -unity-font-definition: url("ReferenceBold.ttf"); -unity-font-style: normal; font-size: 22px; color: rgb(72,58,34); margin: 0; padding: 0; -unity-text-align: middle-center; }
+.reference-skin .egg-rate-equals { margin: 0 6px; }
+.reference-skin .egg-rate-egg { width: 23px; height: 29px; margin-left: 3px; flex-shrink: 0; }
+.reference-skin .balance-text { -unity-font-definition: url("ReferenceBlack.ttf"); -unity-font-style: normal; color: rgb(18,15,10); font-size: 36px; }
+.reference-skin .close-button { align-self: flex-start; width: 59px; height: 57px; margin: 2px 0 0 0; padding: 0; border-width: 0; border-radius: 0; background-color: transparent; }
+.reference-skin .close-button:hover { opacity: 0.75; }
+.reference-skin .journal-content { position: absolute; top: 101px; left: 0; right: 0; bottom: 41px; margin: 0; padding: 0; background-color: transparent; }
+.reference-skin .page { margin: 0; padding: 0; }
+.reference-skin .upgrade-card { height: 155px; margin: 0 0 4px 0; padding: 0 27px 0 15px; border-width: 0; border-radius: 17px; background-color: transparent; overflow: hidden; }
+.reference-skin .upgrade-art { width: 146px; height: 131px; margin-right: 25px; padding: 0; border-width: 0; border-radius: 15px; background-color: transparent; overflow: hidden; }
+.reference-skin .upgrade-details { align-self: stretch; padding-top: 15px; justify-content: flex-start; }
+.reference-skin .upgrade-name { -unity-font-definition: url("ReferenceBold.ttf"); -unity-font-style: normal; font-size: 33px; margin: 0; padding: 0; color: rgb(255,244,211); }
+.reference-skin .upgrade-description { font-size: 23px; margin-top: 7px; color: rgb(245,228,197); letter-spacing: 0.1px; }
+.reference-skin .level-row { height: 43px; margin-top: 4px; }
+.reference-skin .level-dot { width: 38px; height: 45px; margin: 0 12px 0 0; border-width: 0; border-radius: 0; background-color: transparent; }
+.reference-skin .upgrade-price { width: 192px; height: 92px; margin: 0 0 0 15px; padding: 0; border-width: 0; border-radius: 0; background-color: transparent; font-size: 36px; -unity-font-definition: url("ReferenceBold.ttf"); -unity-font-style: normal; color: rgb(249,240,208); }
+.reference-skin .upgrade-price:hover { opacity: 0.87; background-color: transparent; }
+.reference-skin .price-egg { width: 43px; height: 56px; margin-right: 10px; }
+.reference-skin .price-text { -unity-font-definition: url("ReferenceBold.ttf"); -unity-font-style: normal; color: rgb(249,240,208); font-size: 36px; }
+.reference-skin .price-max-art { display: none; }
+.reference-skin .max-price .price-normal-art { display: none; }
+.reference-skin .max-price .price-max-art { display: flex; }
+.reference-skin .max-price { color: rgb(241,232,199); background-color: transparent; }
+.reference-skin .card-scrape { display: none; }
+.reference-skin .upgrades-status { position: absolute; left: 4px; bottom: -27px; height: 20px; margin: 0; padding: 0; font-size: 14px; color: rgb(79,64,38); }
+.reference-skin .journal-footer { position: absolute; right: 4px; bottom: 0; width: 176px; height: 40px; border-width: 0; background-color: transparent; }
+.reference-skin .page-heading { height: 98px; padding: 15px 9px 0 9px; }
+.reference-skin .page-title { font-size: 31px; -unity-font-definition: url("ReferenceBold.ttf"); -unity-font-style: normal; }
+.reference-skin .page-subtitle { font-size: 18px; }
+.reference-skin .info-chip, .reference-skin .shop-balance { font-size: 15px; letter-spacing: 0; }
+.reference-skin .statistics-list { padding: 0 10px; }
+.reference-skin .stat-card { height: 105px; }
+.reference-skin .stat-name { font-size: 22px; }
+.reference-skin .stat-caption { font-size: 15px; }
+.reference-skin .stat-count { font-size: 32px; }
+.reference-skin .food-icon { width: 57px; height: 57px; font-size: 19px; }
+.reference-skin .shop-heading .page-subtitle { width: 545px; }
+.reference-skin .shop-status { font-size: 18px; margin: 8px; }
+.reference-skin .catalog-row { padding: 10px; }
+.reference-skin .pattern-card { width: 205px; height: 238px; }
+.reference-skin .reward-art { width: 112px; height: 112px; }
+.reference-skin .catalog-character { width: 95px; height: 95px; }
+.reference-skin .reward-name { font-size: 17px; }
+.reference-skin .reward-cost, .reference-skin .owned-label { font-size: 16px; }
+.reference-skin .reward-hint { font-size: 12px; }
+
+/* Upgrade cards sit on the journal paper itself; only their outline marks the card.
+   Compact sizing keeps all five cards visible without scrolling. */
+.reference-skin .upgrade-card {
+    height: 118px;
+    flex-shrink: 0;
+    margin: 0 0 8px 0;
+    padding: 0 24px 0 15px;
+    background-color: transparent;
+    border-width: 2px;
+    border-color: rgb(151, 157, 113);
+    border-left-width: 6px;
+    border-left-color: rgb(95, 119, 67);
+    border-radius: 10px;
+    align-items: center;
+}
+.reference-skin .upgrade-card > .reference-surface { display: none; }
+/* More cards than fit: the list scrolls with a thin journal-green scrollbar. */
+.reference-skin .upgrade-list { flex-grow: 1; min-height: 0; }
+.reference-skin .upgrade-list .unity-scroll-view__content-container { padding-right: 10px; }
+.reference-skin .upgrade-list .unity-scroller--vertical { width: 10px; min-width: 10px; margin: 0; border-width: 0; background-color: transparent; }
+.reference-skin .upgrade-list .unity-scroller__low-button,
+.reference-skin .upgrade-list .unity-scroller__high-button { display: none; }
+.reference-skin .upgrade-list .unity-scroller__slider { margin: 0; }
+.reference-skin .upgrade-list .unity-base-slider__tracker { background-color: rgba(120, 100, 60, 0.16); border-width: 0; border-radius: 5px; }
+.reference-skin .upgrade-list .unity-base-slider__dragger { background-color: rgb(95, 119, 67); border-width: 0; border-radius: 5px; }
+.reference-skin .upgrade-list .unity-base-slider__dragger:hover { background-color: rgb(110, 138, 76); }
+.reference-skin .upgrade-card:hover {
+    background-color: rgba(96, 78, 42, 0.06);
+    border-top-color: rgb(117, 138, 84);
+    border-bottom-color: rgb(117, 138, 84);
+    border-right-color: rgb(117, 138, 84);
+}
+.reference-skin .upgrade-art {
+    width: 100px; height: 92px;
+    margin-right: 18px;
+    border-radius: 9px;
+}
+.reference-skin .upgrade-details {
+    align-self: stretch;
+    padding-top: 8px;
+    justify-content: flex-start;
+}
+.reference-skin .upgrade-name {
+    font-size: 27px;
+    color: rgb(37, 57, 34);
+}
+.reference-skin .upgrade-description {
+    font-size: 19px;
+    margin-top: 3px;
+    color: rgb(91, 92, 66);
+}
+.reference-skin .level-row { height: 30px; margin-top: 5px; }
+.reference-skin .level-dot {
+    width: 24px; height: 29px;
+    margin: 0 10px 0 0;
+}
+.reference-skin .upgrade-price {
+    width: 150px; height: 64px;
+    margin-left: 18px;
+}
+.reference-skin .price-egg { width: 28px; height: 37px; margin-right: 7px; }
+.reference-skin .price-text { font-size: 27px; }
+
+.reference-skin .upgrade-price > .reference-surface { display: none; }
+.reference-skin .upgrade-price {
+    background-color: rgb(86, 112, 48);
+    border-width: 2px;
+    border-color: rgb(53, 75, 34);
+    border-top-color: rgb(128, 153, 76);
+    border-bottom-width: 4px;
+    border-radius: 9px;
+}
+.reference-skin .upgrade-price:hover {
+    opacity: 1;
+    background-color: rgb(103, 131, 60);
+}
+.reference-skin .max-price {
+    background-color: rgb(71, 83, 44);
+    border-top-color: rgb(117, 133, 74);
+}
+.reference-skin .max-price:hover { background-color: rgb(79, 93, 49); }
+/* Not enough eggs for the next level: still clickable to explain how many are missing. */
+.reference-skin .upgrade-price.unaffordable { opacity: 0.6; }

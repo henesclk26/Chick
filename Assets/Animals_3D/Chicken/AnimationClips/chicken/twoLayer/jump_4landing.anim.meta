@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 3d55098de490f444596d6a834deae00c
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/chicken/twoLayer/jump_4landing.anim
+  uploadId: 803608

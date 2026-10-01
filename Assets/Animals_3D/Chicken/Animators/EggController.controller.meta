@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fffb31c24584d4854bf72c01e06f406b
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/Animators/EggController.controller
+  uploadId: 803608

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 89d01f77bc6f1421391abd9a14f4a648
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/chick/oneLayer/idle.anim
+  uploadId: 803608

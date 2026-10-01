@@ -1,0 +1,155 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+// Persistent world pickup; no per-egg Update, physics simulation or lifetime timer.
+public sealed class LaidEggPresentation : MonoBehaviour
+{
+    private const float TargetHeight = .136f; // 15% smaller; shared by white and golden eggs.
+    private static readonly List<LaidEggPresentation> eggs = new();
+    private static readonly RaycastHit[] sightHits = new RaycastHit[16];
+    [SerializeField] private string eggId;
+    [SerializeField] private bool golden;
+    [SerializeField] private Vector3 groundPosition;
+    private bool collected;
+
+    public bool IsGolden => golden;
+    public int Value => golden ? 5 : 1;
+    public Vector3 GroundPosition => groundPosition;
+    public static int ActiveEggCount => eggs.Count;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetRegistry() => eggs.Clear();
+    private void OnEnable() { if (!eggs.Contains(this)) eggs.Add(this); }
+    private void OnDisable() => eggs.Remove(this);
+
+    public static LaidEggPresentation Lay(Transform chicken, bool golden)
+    {
+        if (chicken == null) return null;
+        // Drop at the same footprint occupied during the sit, not behind the character.
+        Vector3 floor = chicken.position;
+        var hits = Physics.RaycastAll(floor + Vector3.up * .2f, Vector3.down, .65f,
+            ~0, QueryTriggerInteraction.Ignore);
+        Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+        foreach (var hit in hits)
+        {
+            if (hit.transform.IsChildOf(chicken) || hit.normal.y < .5f) continue;
+            floor.y = hit.point.y;
+            break;
+        }
+        return Create(floor, chicken.eulerAngles.y, golden, Guid.NewGuid().ToString("N"));
+    }
+
+    private static LaidEggPresentation Create(Vector3 floor, float yaw, bool golden, string id)
+    {
+        // Prebuilt ovoid based on the Animals_3D topology; no runtime subdivision.
+        var prefab = Resources.Load<GameObject>("EggLaying/SoftEgg");
+        if (prefab == null) prefab = Resources.Load<GameObject>("Prefabs/egg");
+        if (prefab == null) { Debug.LogError("Missing Animals_3D egg prefab."); return null; }
+        var egg = Instantiate(prefab, floor, Quaternion.Euler(0f, yaw, 0f));
+        egg.name = golden ? "Golden Egg (Z Collect)" : "White Egg (Z Collect)";
+        foreach (var animator in egg.GetComponentsInChildren<Animator>(true)) animator.enabled = false;
+        foreach (var collider in egg.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
+        var renderers = egg.GetComponentsInChildren<Renderer>(true);
+        if (renderers.Length == 0) { Destroy(egg); return null; }
+        Bounds bounds = CombinedBounds(renderers);
+        if (bounds.size.y < .0001f) { Destroy(egg); return null; }
+        egg.transform.localScale *= TargetHeight / bounds.size.y;
+        bounds = CombinedBounds(renderers);
+        egg.transform.position += Vector3.up * (floor.y - bounds.min.y + .002f);
+        if (golden)
+        {
+            var material = Resources.Load<Material>("EggLaying/GoldenEgg");
+            if (material == null) { Destroy(egg); Debug.LogError("Missing golden egg material."); return null; }
+            foreach (var renderer in renderers)
+            {
+                var materials = renderer.sharedMaterials;
+                for (int i = 0; i < materials.Length; i++) materials[i] = material;
+                renderer.sharedMaterials = materials;
+            }
+        }
+        var pickup = egg.AddComponent<LaidEggPresentation>();
+        pickup.eggId = id;
+        pickup.golden = golden;
+        pickup.groundPosition = floor;
+        return pickup;
+    }
+
+    private static Bounds CombinedBounds(Renderer[] renderers)
+    {
+        var bounds = renderers[0].bounds;
+        for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
+        return bounds;
+    }
+
+    public static LaidEggPresentation FindNearest(Transform player, float range)
+    {
+        if (player == null) return null;
+        LaidEggPresentation nearest = null;
+        float best = range * range;
+        foreach (var egg in eggs)
+        {
+            if (egg == null || egg.collected || !egg.isActiveAndEnabled) continue;
+            float distance = (egg.groundPosition - player.position).sqrMagnitude;
+            if (distance > best || !egg.IsReachable(player, range)) continue;
+            nearest = egg;
+            best = distance;
+        }
+        return nearest;
+    }
+
+    private bool IsReachable(Transform player, float range)
+    {
+        if (player == null || (groundPosition - player.position).sqrMagnitude > range * range ||
+            Mathf.Abs(groundPosition.y - player.position.y) > .35f) return false;
+        Vector3 start = player.position + Vector3.up * .15f;
+        Vector3 delta = groundPosition + Vector3.up * .1f - start;
+        if (delta.sqrMagnitude < .0001f) return true;
+        int count = Physics.RaycastNonAlloc(start, delta.normalized, sightHits, delta.magnitude,
+            ~0, QueryTriggerInteraction.Ignore);
+        if (count == sightHits.Length) return false;
+        for (int i = 0; i < count; i++)
+            if (!sightHits[i].transform.IsChildOf(player) && !sightHits[i].transform.IsChildOf(transform) &&
+                sightHits[i].collider.GetComponentInParent<HelperChickController>() == null)
+                return false;
+        return true;
+    }
+
+    public bool TryCollect(Transform player, PlayerUpgrades wallet, float range)
+    {
+        if (collected || !isActiveAndEnabled || wallet == null || !IsReachable(player, range)) return false;
+        collected = true; // Lock before wallet callbacks, preventing double credit.
+        if (!wallet.TryCollectEgg(golden)) { collected = false; return false; }
+        gameObject.SetActive(false);
+        Destroy(gameObject);
+        return true;
+    }
+
+    public static GroundEggSaveEntry[] CaptureAll()
+    {
+        var result = new List<GroundEggSaveEntry>();
+        foreach (var egg in eggs)
+            if (egg != null && !egg.collected && egg.isActiveAndEnabled)
+                result.Add(new GroundEggSaveEntry { id = egg.eggId, golden = egg.golden,
+                    position = egg.groundPosition, yaw = egg.transform.eulerAngles.y });
+        return result.ToArray();
+    }
+
+    public static void RestoreAll(GroundEggSaveEntry[] saved)
+    {
+        foreach (var egg in eggs.ToArray())
+            if (egg != null) { egg.gameObject.SetActive(false); Destroy(egg.gameObject); }
+        eggs.Clear();
+        if (saved == null) return;
+        var ids = new HashSet<string>();
+        foreach (var entry in saved)
+        {
+            if (entry == null || !Finite(entry.position.x) || !Finite(entry.position.y) ||
+                !Finite(entry.position.z) || !Finite(entry.yaw)) continue;
+            string id = string.IsNullOrEmpty(entry.id) ? Guid.NewGuid().ToString("N") : entry.id;
+            if (ids.Add(id)) Create(entry.position, entry.yaw, entry.golden, id);
+        }
+    }
+
+    private static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
+}

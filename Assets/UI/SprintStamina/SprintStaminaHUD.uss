@@ -1,0 +1,32 @@
+/* Round sprint gauge in the lower-left corner: runner icon, green stamina ring and SHIFT key. */
+#SprintStaminaHUD {
+    position: absolute;
+    left: 30px;
+    bottom: 26px;
+    display: none;
+    opacity: 0;
+}
+.sprint-gauge {
+    width: 132px;
+    align-items: center;
+}
+.sprint-gauge__ring {
+    width: 132px;
+    height: 132px;
+}
+.sprint-gauge__key {
+    margin-top: -14px;
+    min-width: 62px;
+    height: 26px;
+    padding: 0 10px;
+    -unity-text-align: middle-center;
+    font-size: 15px;
+    -unity-font-style: bold;
+    -unity-font-definition: url("../../Resources/Journal/ReferenceBold.ttf");
+    color: rgb(38, 30, 20);
+    background-color: rgb(241, 229, 201);
+    border-width: 2px;
+    border-color: rgb(58, 42, 26);
+    border-bottom-width: 3px;
+    border-radius: 6px;
+}

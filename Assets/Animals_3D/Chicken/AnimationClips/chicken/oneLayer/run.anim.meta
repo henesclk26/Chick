@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: bdff2faea44e44307aaeccd1452ff6c5
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/chicken/oneLayer/run.anim
+  uploadId: 803608

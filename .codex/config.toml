@@ -1,0 +1,6 @@
+# Project-local direct Astra execution for Chick.
+model = "gpt-6-astra"
+model_reasoning_effort = "xhigh"
+
+[agents]
+enabled = false

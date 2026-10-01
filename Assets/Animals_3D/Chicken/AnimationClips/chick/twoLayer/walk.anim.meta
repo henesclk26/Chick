@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 719bcb47c33554f6bb313c7bdcd391f4
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/chick/twoLayer/walk.anim
+  uploadId: 803608

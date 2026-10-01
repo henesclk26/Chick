@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 133c27194d33c4942a6dd1e865bc0cca
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/chick/twoLayer/wing_flapping.anim
+  uploadId: 803608

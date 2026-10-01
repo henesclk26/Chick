@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: be304809bcd2b4be69991887120442f0
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/Resources/Prefabs/egg_break_animation.prefab
+  uploadId: 803608

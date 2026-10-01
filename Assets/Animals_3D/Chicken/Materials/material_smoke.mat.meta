@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 6824a0ed2ddaf49f29e75eb92cbcea35
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/Materials/material_smoke.mat
+  uploadId: 803608

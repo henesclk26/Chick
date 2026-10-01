@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 8eecaa8f5b2274b72a66f9bd9060645f
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/Resources/Prefabs/chick_oneLayer.prefab
+  uploadId: 803608

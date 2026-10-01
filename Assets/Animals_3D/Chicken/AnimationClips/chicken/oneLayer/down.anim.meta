@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 02564e9c371574d0bb23c092f8cbef4c
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/chicken/oneLayer/down.anim
+  uploadId: 803608

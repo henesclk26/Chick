@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 28665d276f4034d909bae63cd6019639
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/chick/oneLayer/peep.anim
+  uploadId: 803608

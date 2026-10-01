@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a3813f16c1b5b4126af59ad625b26d99
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/chicken/oneLayer/damage.anim
+  uploadId: 803608

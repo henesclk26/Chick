@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c411d1b8a05ee4eb5a84033d70dd19ae
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/egg_break/break2.anim
+  uploadId: 803608

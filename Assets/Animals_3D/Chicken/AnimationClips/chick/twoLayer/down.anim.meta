@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a9d0b0b0ef48e4e37a10b4494fe1291e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/chick/twoLayer/down.anim
+  uploadId: 803608

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 66430dc517ed74e0d9962e88b9d7105d
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/Scripts/ChickenAnimatorScript.cs
+  uploadId: 803608

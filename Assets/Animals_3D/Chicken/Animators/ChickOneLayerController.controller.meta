@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 0301346f88f0742ecac08bfe905af7a3
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/Animators/ChickOneLayerController.controller
+  uploadId: 803608

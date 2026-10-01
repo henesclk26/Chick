@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 82dd97ebe4f3d4f16aa0afd7860fb45b
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/chicken/twoLayer/jump_2during.anim
+  uploadId: 803608

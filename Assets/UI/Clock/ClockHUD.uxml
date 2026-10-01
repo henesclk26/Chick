@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="ClockHUD.uss" />
+    <ui:VisualElement name="ClockHUD" picking-mode="Ignore">
+        <ui:VisualElement name="ClockIcon" picking-mode="Ignore">
+            <ui:VisualElement class="hand hour" picking-mode="Ignore" />
+            <ui:VisualElement class="hand minute" picking-mode="Ignore" />
+        </ui:VisualElement>
+        <ui:Label name="ClockText" text="07:00" picking-mode="Ignore" />
+    </ui:VisualElement>
+</ui:UXML>

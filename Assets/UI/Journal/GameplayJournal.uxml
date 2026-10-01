@@ -1,0 +1,273 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="GameplayJournal.uss" />
+    <ui:VisualElement name="journal-root" class="journal-root">
+        <ui:VisualElement class="screen-dim" />
+        <ui:VisualElement class="journal-window">
+            <ui:VisualElement class="journal-sidebar">
+                <ui:Label text="ÇİFTLİK" class="sidebar-brand" />
+                <ui:VisualElement class="sidebar-mark" />
+                <ui:VisualElement class="sidebar-nav">
+                    <ui:Button name="upgrades-tab" class="side-button side-active">
+                        <ui:Label text="↑" class="nav-icon" />
+                        <ui:Label text="Yükseltmeler" class="nav-label" />
+                    </ui:Button>
+                    <ui:Button name="shop-tab" class="side-button">
+                        <ui:Label text="▣" class="nav-icon" />
+                        <ui:Label text="Mağaza" class="nav-label" />
+                    </ui:Button>
+                    <ui:Button name="statistics-tab" class="side-button">
+                        <ui:Label text="▥" class="nav-icon" />
+                        <ui:Label text="İstatistik" class="nav-label" />
+                    </ui:Button>
+                </ui:VisualElement>
+                <ui:VisualElement class="sidebar-spacer" />
+                <ui:Button name="journal-back" class="sidebar-back">
+                    <ui:Label text="←" class="back-arrow" />
+                    <ui:Label text="Geri" class="back-label" />
+                </ui:Button>
+                <ui:Label text="TAB  ·  OYUNA DÖN" class="sidebar-hint" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="journal-main">
+                <ui:VisualElement class="journal-header">
+                    <ui:VisualElement class="title-stack">
+                        <ui:Label text="ÇİFTLİK DEFTERİ" class="journal-kicker" />
+                        <ui:Label name="header-title" text="YÜKSELTMELER" class="journal-title" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="header-actions">
+                        <ui:VisualElement class="egg-balance">
+                            <ui:Image name="balance-egg" class="balance-egg" />
+                            <ui:Label name="points-label" text="0" class="balance-text" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="egg-rate" class="egg-rate" picking-mode="Ignore">
+                            <ui:Label text="1x" class="egg-rate-text" picking-mode="Ignore" />
+                            <ui:Image name="egg-rate-gold" class="egg-rate-egg" picking-mode="Ignore" />
+                            <ui:Label text="=" class="egg-rate-text egg-rate-equals" picking-mode="Ignore" />
+                            <ui:Label text="5x" class="egg-rate-text" picking-mode="Ignore" />
+                            <ui:Image name="egg-rate-white" class="egg-rate-egg" picking-mode="Ignore" />
+                        </ui:VisualElement>
+                        <ui:Button name="journal-close" text="×" class="close-button" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="journal-content">
+                    <ui:VisualElement name="upgrades-page" class="page upgrades-page">
+                        <ui:ScrollView name="upgrade-list" class="upgrade-list" mode="Vertical" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="Auto" mouse-wheel-scroll-size="60">
+                            <ui:VisualElement class="upgrade-card">
+                                <ui:Image name="peck-art" class="upgrade-art" />
+                                <ui:VisualElement class="upgrade-details">
+                                    <ui:Label text="Daha Hızlı Gagalama" class="upgrade-name" />
+                                    <ui:Label text="Yemek yeme hızını artırır." class="upgrade-description" />
+                                    <ui:VisualElement name="peck-levels" class="level-row" />
+                                </ui:VisualElement>
+                                <ui:Button name="peck-price" class="upgrade-price">
+                                    <ui:Image name="peck-egg" class="price-egg" />
+                                    <ui:Label name="peck-cost" text="10" class="price-text" />
+                                </ui:Button>
+                                <ui:VisualElement class="card-scrape scrape-one" />
+                                <ui:VisualElement class="card-scrape scrape-three" />
+                            </ui:VisualElement>
+
+                            <ui:VisualElement class="upgrade-card">
+                                <ui:Image name="range-art" class="upgrade-art" />
+                                <ui:VisualElement class="upgrade-details">
+                                    <ui:Label text="Toplama Menzili" class="upgrade-name" />
+                                    <ui:Label text="Yakındaki tohumları daha rahat ye." class="upgrade-description" />
+                                    <ui:VisualElement name="range-levels" class="level-row" />
+                                </ui:VisualElement>
+                                <ui:Button name="range-price" class="upgrade-price">
+                                    <ui:Image name="range-egg" class="price-egg" />
+                                    <ui:Label name="range-cost" text="15" class="price-text" />
+                                </ui:Button>
+                                <ui:VisualElement class="card-scrape scrape-two" />
+                                <ui:VisualElement class="card-scrape scrape-three" />
+                            </ui:VisualElement>
+
+                            <ui:VisualElement class="upgrade-card">
+                                <ui:Image name="helper-art" class="upgrade-art" />
+                                <ui:VisualElement class="upgrade-details">
+                                    <ui:Label text="Yardımcı Civciv" class="upgrade-name" />
+                                    <ui:Label text="Toplamaya destek olur." class="upgrade-description" />
+                                    <ui:VisualElement name="helper-levels" class="level-row" />
+                                </ui:VisualElement>
+                                <ui:Button name="helper-price" class="upgrade-price">
+                                    <ui:Image name="helper-egg" class="price-egg" />
+                                    <ui:Label name="helper-cost" text="20" class="price-text" />
+                                </ui:Button>
+                                <ui:VisualElement class="card-scrape scrape-one" />
+                                <ui:VisualElement class="card-scrape scrape-two" />
+                            </ui:VisualElement>
+
+                            <ui:VisualElement class="upgrade-card">
+                                <ui:Image name="helper-speed-art" class="upgrade-art" />
+                                <ui:VisualElement class="upgrade-details">
+                                    <ui:Label text="Yardımcı Gagalama" class="upgrade-name" />
+                                    <ui:Label text="Yardımcı civciv iki kat hızlı gagalar." class="upgrade-description" />
+                                    <ui:VisualElement name="helper-speed-levels" class="level-row" />
+                                </ui:VisualElement>
+                                <ui:Button name="helper-speed-price" class="upgrade-price">
+                                    <ui:Image name="helper-speed-egg" class="price-egg" />
+                                    <ui:Label name="helper-speed-cost" text="30" class="price-text" />
+                                </ui:Button>
+                                <ui:VisualElement class="card-scrape scrape-two" />
+                                <ui:VisualElement class="card-scrape scrape-three" />
+                            </ui:VisualElement>
+
+                            <ui:VisualElement class="upgrade-card">
+                                <ui:Image name="helper-range-art" class="upgrade-art" />
+                                <ui:VisualElement class="upgrade-details">
+                                    <ui:Label text="Yardımcı Menzili" class="upgrade-name" />
+                                    <ui:Label text="Yardımcı civciv iki kat uzaktaki yemleri bulur." class="upgrade-description" />
+                                    <ui:VisualElement name="helper-range-levels" class="level-row" />
+                                </ui:VisualElement>
+                                <ui:Button name="helper-range-price" class="upgrade-price">
+                                    <ui:Image name="helper-range-egg" class="price-egg" />
+                                    <ui:Label name="helper-range-cost" text="25" class="price-text" />
+                                </ui:Button>
+                                <ui:VisualElement class="card-scrape scrape-one" />
+                                <ui:VisualElement class="card-scrape scrape-three" />
+                            </ui:VisualElement>
+
+                            <ui:VisualElement class="upgrade-card">
+                                <ui:Image name="sprint-speed-art" class="upgrade-art" />
+                                <ui:VisualElement class="upgrade-details">
+                                    <ui:Label text="Sprint Hızı" class="upgrade-name" />
+                                    <ui:Label text="Koşarken daha hızlı ilerle." class="upgrade-description" />
+                                    <ui:VisualElement name="sprint-speed-levels" class="level-row" />
+                                </ui:VisualElement>
+                                <ui:Button name="sprint-speed-price" class="upgrade-price">
+                                    <ui:Image name="sprint-speed-egg" class="price-egg" />
+                                    <ui:Label name="sprint-speed-cost" text="15" class="price-text" />
+                                </ui:Button>
+                                <ui:VisualElement class="card-scrape scrape-one" />
+                                <ui:VisualElement class="card-scrape scrape-three" />
+                            </ui:VisualElement>
+
+                            <ui:VisualElement class="upgrade-card">
+                                <ui:Image name="sprint-duration-art" class="upgrade-art" />
+                                <ui:VisualElement class="upgrade-details">
+                                    <ui:Label text="Sprint Süresi" class="upgrade-name" />
+                                    <ui:Label text="Daha uzun süre koşabil." class="upgrade-description" />
+                                    <ui:VisualElement name="sprint-duration-levels" class="level-row" />
+                                </ui:VisualElement>
+                                <ui:Button name="sprint-duration-price" class="upgrade-price">
+                                    <ui:Image name="sprint-duration-egg" class="price-egg" />
+                                    <ui:Label name="sprint-duration-cost" text="15" class="price-text" />
+                                </ui:Button>
+                                <ui:VisualElement class="card-scrape scrape-two" />
+                                <ui:VisualElement class="card-scrape scrape-three" />
+                            </ui:VisualElement>
+
+                            <ui:VisualElement class="upgrade-card">
+                                <ui:Image name="double-collect-art" class="upgrade-art" />
+                                <ui:VisualElement class="upgrade-details">
+                                    <ui:Label text="Çift Toplama" class="upgrade-name" />
+                                    <ui:Label text="Bazen bir yerine iki tohum topla." class="upgrade-description" />
+                                    <ui:VisualElement name="double-collect-levels" class="level-row" />
+                                </ui:VisualElement>
+                                <ui:Button name="double-collect-price" class="upgrade-price">
+                                    <ui:Image name="double-collect-egg" class="price-egg" />
+                                    <ui:Label text="25" class="price-text" />
+                                </ui:Button>
+                                <ui:VisualElement class="card-scrape scrape-one" />
+                                <ui:VisualElement class="card-scrape scrape-two" />
+                            </ui:VisualElement>
+
+                            <ui:VisualElement class="upgrade-card">
+                                <ui:Image name="double-jump-art" class="upgrade-art" />
+                                <ui:VisualElement class="upgrade-details">
+                                    <ui:Label text="Çift Zıplama" class="upgrade-name" />
+                                    <ui:Label text="Havadayken bir kez daha zıpla." class="upgrade-description" />
+                                    <ui:VisualElement name="double-jump-levels" class="level-row" />
+                                </ui:VisualElement>
+                                <ui:Button name="double-jump-price" class="upgrade-price">
+                                    <ui:Image name="double-jump-egg" class="price-egg" />
+                                    <ui:Label name="double-jump-cost" text="200" class="price-text" />
+                                </ui:Button>
+                                <ui:VisualElement class="card-scrape scrape-one" />
+                                <ui:VisualElement class="card-scrape scrape-three" />
+                            </ui:VisualElement>
+
+                            <ui:VisualElement class="upgrade-card">
+                                <ui:Image name="glide-art" class="upgrade-art" />
+                                <ui:VisualElement class="upgrade-details">
+                                    <ui:Label text="Süzülme" class="upgrade-name" />
+                                    <ui:Label text="Kanatlarını aç, havada yavaşça süzül." class="upgrade-description" />
+                                    <ui:VisualElement name="glide-levels" class="level-row" />
+                                </ui:VisualElement>
+                                <ui:Button name="glide-price" class="upgrade-price">
+                                    <ui:Image name="glide-egg" class="price-egg" />
+                                    <ui:Label name="glide-cost" text="200" class="price-text" />
+                                </ui:Button>
+                                <ui:VisualElement class="card-scrape scrape-two" />
+                                <ui:VisualElement class="card-scrape scrape-three" />
+                            </ui:VisualElement>
+                        </ui:ScrollView>
+                        <ui:Label name="upgrades-status" text="" class="upgrades-status" />
+                    </ui:VisualElement>
+
+                    <ui:VisualElement name="shop-page" class="page hidden">
+                        <ui:VisualElement class="page-heading shop-heading">
+                            <ui:VisualElement>
+                                <ui:Label text="Desen Mağazası" class="page-title" />
+                                <ui:Label text="Yem puanlarını biriktir ve sürpriz tavuk desenleri kazan." class="page-subtitle" />
+                            </ui:VisualElement>
+                            <ui:Label name="shop-points-label" text="Birikmiş puanın: 0" class="shop-balance" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="shop-content">
+                            <ui:Label name="shop-status" text="100 puan daha topla." class="shop-status" />
+                            <ui:ScrollView name="pattern-catalog" mode="Horizontal" horizontal-scroller-visibility="Auto" vertical-scroller-visibility="Hidden" class="pattern-catalog">
+                                <ui:VisualElement class="catalog-row">
+                                    <ui:Button name="pattern-card" class="pattern-card purchase-card">
+                                        <ui:VisualElement class="reward-art">
+                                            <ui:Image name="chicken-silhouette" class="catalog-character mystery-character" />
+                                            <ui:Label text="?" class="question-mark" />
+                                        </ui:VisualElement>
+                                        <ui:Label text="GİZEMLİ DESEN" class="reward-name" />
+                                        <ui:Label name="pattern-cost" text="100 PUAN" class="reward-cost" />
+                                        <ui:Label text="SATIN AL" class="reward-hint" />
+                                    </ui:Button>
+                                    <ui:Button name="chick-pattern-card" class="pattern-card owned-card selected-card">
+                                        <ui:VisualElement class="selected-badge"><ui:Label text="✓" class="selected-check" /></ui:VisualElement>
+                                        <ui:VisualElement class="reward-art"><ui:Image name="current-chick-icon" class="catalog-character current-character" /></ui:VisualElement>
+                                        <ui:Label text="SARI CİVCİV" class="reward-name" />
+                                        <ui:Label text="SEÇİLİ" class="owned-label" />
+                                        <ui:Label text="HAZIR RENK" class="reward-hint" />
+                                    </ui:Button>
+                                    <ui:Button name="chicken-pattern-card" class="pattern-card owned-card selected-card">
+                                        <ui:VisualElement class="selected-badge"><ui:Label text="✓" class="selected-check" /></ui:VisualElement>
+                                        <ui:VisualElement class="reward-art"><ui:Image name="current-chicken-icon" class="catalog-character current-character" /></ui:VisualElement>
+                                        <ui:Label text="BEYAZ TAVUK" class="reward-name" />
+                                        <ui:Label text="SEÇİLİ" class="owned-label" />
+                                        <ui:Label text="HAZIR RENK" class="reward-hint" />
+                                    </ui:Button>
+                                </ui:VisualElement>
+                            </ui:ScrollView>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement name="statistics-page" class="page hidden">
+                        <ui:VisualElement class="page-heading">
+                            <ui:VisualElement>
+                                <ui:Label text="Yediklerim" class="page-title" />
+                                <ui:Label text="Çiftlikte tattığın her şey burada birikir." class="page-subtitle" />
+                            </ui:VisualElement>
+                            <ui:Label text="HER YEM = 1 PUAN" class="info-chip" />
+                        </ui:VisualElement>
+                        <ui:ScrollView name="statistics-scroll" class="statistics-scroll">
+                            <ui:VisualElement name="statistics-list" class="statistics-list" />
+                        </ui:ScrollView>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="journal-footer">
+                    <ui:Label text="TAB" class="keycap" />
+                    <ui:Label text="Oyuna dön" class="footer-copy" />
+                    <ui:Label text="·" class="footer-dot" />
+                    <ui:Label text="ESC" class="keycap" />
+                    <ui:Label text="Defteri kapat" class="footer-copy" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

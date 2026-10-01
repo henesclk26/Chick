@@ -1,0 +1,45 @@
+# Meadow Variety V3 — 2026-09-25
+
+Project: D:/Yeni klasör/Chick. Scene: Assets/Scenes/SampleScene.unity, Farm Reference Map.
+
+## Design
+Five new images generated independently with built-in imagegen, using FreshMeadowV2/Grass.png as style reference. Original generated files retained. No offline image editing.
+
+- GrassRich: cool rich green, biased toward trees.
+- GrassFresh: connected fresh midgreen meadow.
+- GrassSunlit: yellow-green open patches, not dead grass.
+- PathEarth: quiet matte trodden soil.
+- GrassEarthBlend: grass-dominant worn meadow and path shoulders.
+
+Eight terrain layers total: original grass, the three new grasses, new soil, original soil accent, original gravel, new mixed meadow. Original gravel mask is mapped by texture identity. All new layers used; no terrain heights, objects, gameplay settings, or collider geometry changed. Terrain and TerrainCollider reference the same cloned V3 TerrainData.
+
+OrganicFarmPaths.cs creates cached Catmull-Rom routes with varied widths, soft irregular shoulders, fixed gate anchors, fence exclusions and crop-bed exclusions. MeadowVarietyV3.cs is an Editor-only explicit application/validation utility; it never runs automatically. Full alphamaps are explicitly restored after assigning layers. Textures use Repeat, mipmaps, trilinear sampling, sRGB and Standalone DXT1 with no alpha for matte URP terrain.
+
+## Rollback
+Previous TerrainData remains untouched: Assets/Art/Terrain/FreshMeadowV2/FarmTerrain_FreshGreen_v2.asset. To undo only this terrain change, assign it to BOTH the Terrain and TerrainCollider, then save the current scene. This preserves later unrelated scene edits. The pre-V3 scene, including unsaved edits at task start, is also backed up at Backups/MeadowVarietyV3_20260925/SampleScene_before_v3.unity. Do not replace the whole scene unless a full-scene rollback is intended.
+
+## Coordination
+This task used explicit gpt-6-astra design/composer review and gpt-6-luna path-helper worker. Main integration owned Unity mutations. Existing project-local .codex/config.toml model settings were preserved.
+
+## Exact generation prompts
+
+### GrassRich
+
+Use case: stylized-concept. Create a new square seamless terrain albedo texture variant for a low-poly farm adventure with a simple yellow chick. The attached image is STYLE REFERENCE ONLY: preserve its simple matte graphic hand-painted language, restrained broad organic color shapes, sparse tiny paired grass strokes and low visual noise. Do not reproduce its exact motif placement. The requested material should be different while clearly in the SAME game art family. No photorealism, no tiny detailed leaves, no microscopic noise, no bold polygon tessellation, no outlines, no lighting, shadows, depth, perspective, vignettes, borders, text or UI. Perfect straight overhead unlit diffuse color texture edge to edge, tileable horizontally and vertically. Approximately 90% quiet flat color fields, only10% sparse illustrative hints, moderate-low local contrast, simple slightly angular organic patch boundaries. MATERIAL 1: Lush cool emerald-leaf green meadow. Fresh saturated but NOT neon, not turquoise. Dominant midgreen approximately #4F883F interspersed moss and #65994A accents. 100% green ground, no dirt. Motifs are tiny short rounded pairs of new grass sprouts, a few tiny clover-like shapes but extremely sparse and simplified, avoid daisies. Broad asymmetrical cool-green patchwork with subtle transitions. Visibly richer and cooler than the reference.
+
+### GrassFresh
+
+Use case: stylized-concept. Create a new square seamless terrain albedo texture variant for a low-poly farm adventure with a simple yellow chick. The attached image is STYLE REFERENCE ONLY: preserve its simple matte graphic hand-painted language, restrained broad organic color shapes, sparse tiny paired grass strokes and low visual noise. Do not reproduce its exact motif placement. The requested material should be different while clearly in the SAME game art family. No photorealism, no tiny detailed leaves, no microscopic noise, no bold polygon tessellation, no outlines, no lighting, shadows, depth, perspective, vignettes, borders, text or UI. Perfect straight overhead unlit diffuse color texture edge to edge, tileable horizontally and vertically. Approximately 90% quiet flat color fields, only10% sparse illustrative hints, moderate-low local contrast, simple slightly angular organic patch boundaries. MATERIAL 2: Open fresh midgreen meadow. Dominant green approximately #78A34F, with soft #90AE60 and slightly cooler #67984B patches. 100% green ground, no brown. Motifs are sparse short curved grass strokes arranged in little loose fans, different layout from reference and no detailed leaves. Calm rolling swaths of organic green tones, fresh airy daytime feel. More medium/neutral green than the dark lush grass, no yellow predominance.
+
+### GrassSunlit
+
+Use case: stylized-concept. Create a new square seamless terrain albedo texture variant for a low-poly farm adventure with a simple yellow chick. The attached image is STYLE REFERENCE ONLY: preserve its simple matte graphic hand-painted language, restrained broad organic color shapes, sparse tiny paired grass strokes and low visual noise. Do not reproduce its exact motif placement. The requested material should be different while clearly in the SAME game art family. No photorealism, no tiny detailed leaves, no microscopic noise, no bold polygon tessellation, no outlines, no lighting, shadows, depth, perspective, vignettes, borders, text or UI. Perfect straight overhead unlit diffuse color texture edge to edge, tileable horizontally and vertically. Approximately 90% quiet flat color fields, only10% sparse illustrative hints, moderate-low local contrast, simple slightly angular organic patch boundaries. MATERIAL 3: Sunny lime-sage meadow, distinctly yellow-GREEN, not brown or dry straw. Approximate dominant #9AAF57 with #B3BD6B and #809E47 variations. 100% living green ground, no exposed soil. Sparse tiny pale seedling tufts with 2 or 3 tapered simple strokes, broad quiet uneven warmer yellow-green areas. It should indicate sun-exposed meadow regions while still lush and fresh, not drought or desert.
+
+### PathEarth
+
+Use case: stylized-concept. Create a new square seamless terrain albedo texture variant for a low-poly farm adventure with a simple yellow chick. The attached image is STYLE REFERENCE ONLY: preserve its simple matte graphic hand-painted language, restrained broad organic color shapes, sparse tiny paired grass strokes and low visual noise. Do not reproduce its exact motif placement. The requested material should be different while clearly in the SAME game art family. No photorealism, no tiny detailed leaves, no microscopic noise, no bold polygon tessellation, no outlines, no lighting, shadows, depth, perspective, vignettes, borders, text or UI. Perfect straight overhead unlit diffuse color texture edge to edge, tileable horizontally and vertically. Approximately 90% quiet flat color fields, only10% sparse illustrative hints, moderate-low local contrast, simple slightly angular organic patch boundaries. MATERIAL 4: Warm compacted earth for natural farm footpaths. Entire surface is earthy medium-light tan-brown approximately #A98B63 with soft muted umber and warm taupe shapes. Sparse tiny stylized pebble flecks, a few very subtle short wear marks, mostly broad quiet color. Do NOT draw a path or grass border in the texture: it is a continuous soil surface to be painted into curved paths by Unity. No cracks, no realistic grit, no rust/orange dominance, no grass.
+
+### GrassEarthBlend
+
+Use case: stylized-concept. Create a new square seamless terrain albedo texture variant for a low-poly farm adventure with a simple yellow chick. The attached image is STYLE REFERENCE ONLY: preserve its simple matte graphic hand-painted language, restrained broad organic color shapes, sparse tiny paired grass strokes and low visual noise. Do not reproduce its exact motif placement. The requested material should be different while clearly in the SAME game art family. No photorealism, no tiny detailed leaves, no microscopic noise, no bold polygon tessellation, no outlines, no lighting, shadows, depth, perspective, vignettes, borders, text or UI. Perfect straight overhead unlit diffuse color texture edge to edge, tileable horizontally and vertically. Approximately 90% quiet flat color fields, only10% sparse illustrative hints, moderate-low local contrast, simple slightly angular organic patch boundaries. MATERIAL 5: Trampled green meadow with patchy earth. Approximately65% fresh middle-green grass and35% quiet soft tan-brown dirt. Both visibly present as several irregular interlocking patches of varied sizes with soft broken edges, no central road or repeating diagonal stripe. Greener than barren soil, not as uniform as grass. Tiny sparse simple paired grass strokes in the green areas and only a few tiny beige pebble flecks in earth. Colors #73974C green, #90A35D light green, #A28C62 tan. Same extremely restrained flat illustrative low-poly-compatible style.
+

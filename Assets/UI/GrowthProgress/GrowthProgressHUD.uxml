@@ -1,0 +1,23 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="GrowthProgressHUD.uss" />
+    <ui:VisualElement name="GrowthProgressHUD" picking-mode="Ignore">
+        <ui:VisualElement name="GrowthBarRoot" picking-mode="Ignore">
+            <ui:VisualElement name="GrowthGlow" picking-mode="Ignore">
+                <ui:VisualElement name="GrowthGlowOuter" picking-mode="Ignore" />
+                <ui:VisualElement name="GrowthGlowInner" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <GrowthProgressBarElement name="GrowthBarContainer" picking-mode="Ignore" />
+            <ui:Image name="LeftIcon" picking-mode="Ignore" />
+            <ui:Image name="RightIcon" picking-mode="Ignore" />
+        </ui:VisualElement>
+        <ui:VisualElement name="UpgradeNotificationRoot" picking-mode="Ignore">
+            <ui:Label name="GrowthReadyLabel" text="GELİŞİM HAZIR!" picking-mode="Ignore" />
+            <ui:VisualElement name="UpgradePrompt" picking-mode="Ignore">
+                <UpgradeHoldIndicator name="UpgradeHoldIndicator" picking-mode="Ignore">
+                    <ui:Label name="UpgradeKey" text="Z" picking-mode="Ignore" />
+                </UpgradeHoldIndicator>
+                <ui:Label name="UpgradeText" text="GELİŞTİR" picking-mode="Ignore" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: f54ce113e2bba43f3bb78b0ec2dc6435
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/Scripts/HPSystem.cs
+  uploadId: 803608

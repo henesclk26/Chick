@@ -1,0 +1,71 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="MainMenu.uss" />
+    <ui:VisualElement name="menu-shell">
+        <ui:VisualElement name="menu-backdrop" picking-mode="Ignore" />
+        <ui:VisualElement name="home">
+            <ui:VisualElement name="menu-card">
+                <ui:VisualElement name="brand" picking-mode="Ignore">
+                    <ui:Label text="KÜÇÜK BİR ÇİFTLİK. KOCAMAN BİR MACERA." class="eyebrow" />
+                    <ui:Label name="game-title" text="CİVCİK" />
+                    <ui:Label text="Bir lokma. Bir adım. Yepyeni bir gün." class="tagline" />
+                </ui:VisualElement>
+                <ui:VisualElement name="navigation">
+                    <ui:Button name="new-game" text="YENİ OYUN" class="menu-button primary" />
+                    <ui:Button name="continue" text="DEVAM ET" class="menu-button" />
+                    <ui:Button name="settings-button" text="AYARLAR" class="menu-button" />
+                    <ui:Button name="quit" text="ÇIKIŞ" class="menu-button quiet" />
+                    <ui:Label name="save-status" text="Kayıt kontrol ediliyor…" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:Label name="world-caption" text="GÜNAYDIN, KÜÇÜK KAŞİF!" picking-mode="Ignore" />
+        </ui:VisualElement>
+        <ui:VisualElement name="settings-page" class="hidden">
+            <ui:VisualElement class="settings-card">
+                <ui:Label text="TAM SANA GÖRE" class="eyebrow" />
+                <ui:Label text="Ayarlar" class="page-title" />
+                <ui:ScrollView name="settings-scroll">
+                    <ui:Label text="SES" class="section-title" />
+                    <ui:VisualElement class="setting-row"><ui:Slider name="master" label="Genel ses" low-value="0" high-value="100" /><ui:Label name="master-value" class="value" /></ui:VisualElement>
+                    <ui:VisualElement class="setting-row"><ui:Slider name="music" label="Müzik" low-value="0" high-value="100" /><ui:Label name="music-value" class="value" /></ui:VisualElement>
+                    <ui:VisualElement class="setting-row"><ui:Slider name="sfx" label="Efektler" low-value="0" high-value="100" /><ui:Label name="sfx-value" class="value" /></ui:VisualElement>
+                    <ui:Label text="GÖRÜNTÜ" class="section-title" />
+                    <ui:Toggle name="fullscreen" label="Tam ekran" />
+                    <ui:DropdownField name="resolution" label="Çözünürlük" />
+                    <ui:Toggle name="vsync" label="Dikey senkronizasyon" />
+                    <ui:DropdownField name="quality" label="Grafik kalitesi" />
+                    <ui:Label text="KONTROLLER" class="section-title" />
+                    <ui:VisualElement class="setting-row"><ui:Slider name="sensitivity" label="Fare hassasiyeti" low-value="0.5" high-value="2" /><ui:Label name="sensitivity-value" class="value" /></ui:VisualElement>
+                    <ui:Label text="Fare: etrafa bak  ·  Sağ tık: açıyı kilitle  ·  Tekerlek: yakınlaştır" class="hint" />
+                </ui:ScrollView>
+                <ui:Label name="settings-status" class="hint" />
+                <ui:VisualElement class="actions"><ui:Button name="settings-back" text="GERİ" /><ui:Button name="settings-apply" text="UYGULA" class="primary" /></ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="pause-overlay" class="pause-overlay hidden">
+            <ui:VisualElement class="pause-card">
+                <ui:Label text="KÜÇÜK BİR MOLA" class="pause-kicker" />
+                <ui:Label text="Oyun duraklatıldı" class="pause-title" />
+                <ui:Label text="Hazır olduğunda çiftliğe dön." class="pause-copy" />
+                <ui:VisualElement class="pause-divider" />
+                <ui:Button name="pause-resume" text="OYUNA DEVAM ET" class="menu-button primary" />
+                <ui:Button name="pause-settings" text="AYARLAR" class="menu-button" />
+                <ui:Button name="pause-save-exit" text="KAYDET VE ÇIK" class="menu-button quiet pause-exit" />
+                <ui:Label name="pause-status" class="pause-status" />
+                <ui:Label text="ESC ile geri dön" class="pause-hint" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Label name="footer" text="CİVCİK  /  GELİŞTİRME SÜRÜMÜ" picking-mode="Ignore" />
+        <ui:VisualElement name="confirmation" class="modal hidden">
+            <ui:VisualElement class="dialog">
+                <ui:Label text="YENİ BİR SABAH" class="eyebrow" />
+                <ui:Label text="Baştan başlayalım mı?" class="dialog-title" />
+                <ui:Label text="Mevcut kayıt silinecek. Yeni oyuna başlamak istiyor musun?" class="dialog-message" />
+                <ui:VisualElement class="actions"><ui:Button name="confirm-no" text="HAYIR" /><ui:Button name="confirm-yes" text="EVET" class="primary" /></ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="display-confirm" class="modal hidden">
+            <ui:VisualElement class="dialog"><ui:Label text="Görüntü güzel mi?" class="dialog-title" /><ui:Label name="display-countdown" class="dialog-message" /><ui:VisualElement class="actions"><ui:Button name="display-revert" text="GERİ AL" /><ui:Button name="display-keep" text="KORU" class="primary" /></ui:VisualElement></ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="loading" class="modal hidden"><ui:Label text="Yeni bir gün hazırlanıyor…" class="loading-label" /></ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

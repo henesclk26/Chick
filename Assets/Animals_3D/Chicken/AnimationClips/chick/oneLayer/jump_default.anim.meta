@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a7f573695dcae42959cd53bb2229157f
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/chick/oneLayer/jump_default.anim
+  uploadId: 803608

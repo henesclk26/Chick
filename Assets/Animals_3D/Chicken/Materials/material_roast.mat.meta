@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 8f39efb725aa94e189181dac9866d38d
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/Materials/material_roast.mat
+  uploadId: 803608

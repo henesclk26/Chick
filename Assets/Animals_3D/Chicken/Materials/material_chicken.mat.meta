@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 058777becbf42496a955b96aaad2ee8f
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/Materials/material_chicken.mat
+  uploadId: 803608

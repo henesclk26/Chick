@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 4a8d146a6d0934845aac94b35c5e5a60
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/chick/twoLayer/crouch.anim
+  uploadId: 803608

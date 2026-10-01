@@ -1,0 +1,11 @@
+#ClockHUD {
+    position: absolute; right: 28px; top: 24px; height: 52px; min-width: 150px;
+    flex-direction: row; align-items: center; justify-content: center;
+    background-color: rgba(255, 246, 222, 0.94); border-radius: 18px;
+    border-width: 2px; border-color: rgba(104, 76, 41, 0.25); display: none;
+}
+#ClockText { font-size: 25px; color: rgb(69, 52, 35); -unity-font-style: bold; margin-left: 12px; }
+#ClockIcon { width: 25px; height: 25px; border-radius: 15px; border-width: 2px; border-color: rgb(143, 106, 56); }
+.hand { position: absolute; background-color: rgb(143, 106, 56); border-radius: 2px; }
+.hour { left: 10px; top: 5px; width: 2px; height: 8px; }
+.minute { left: 10px; top: 11px; width: 8px; height: 2px; }

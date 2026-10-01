@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 2d2b91c2ac34f4fab8c73a682600059c
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/chick/twoLayer/wing_idle.anim
+  uploadId: 803608

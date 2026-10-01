@@ -1,0 +1,93 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!319 &31900000
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ChickAvatarMask
+  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  m_Elements:
+  - m_Path: 
+    m_Weight: 1
+  - m_Path: Chick
+    m_Weight: 0
+  - m_Path: Chick/IK_shin_L
+    m_Weight: 0
+  - m_Path: Chick/IK_shin_R
+    m_Weight: 0
+  - m_Path: Chick/root
+    m_Weight: 0
+  - m_Path: Chick/root/body
+    m_Weight: 0
+  - m_Path: Chick/root/body/chest
+    m_Weight: 0
+  - m_Path: Chick/root/body/chest/neck
+    m_Weight: 0
+  - m_Path: Chick/root/body/chest/neck/head
+    m_Weight: 0
+  - m_Path: Chick/root/body/chest/neck/head/beak_bottom
+    m_Weight: 0
+  - m_Path: Chick/root/body/chest/neck/head/beak_top
+    m_Weight: 0
+  - m_Path: Chick/root/body/chest/neck/head/eye_L
+    m_Weight: 0
+  - m_Path: Chick/root/body/chest/neck/head/eye_R
+    m_Weight: 0
+  - m_Path: Chick/root/body/chest/neck/head/IK_eye
+    m_Weight: 0
+  - m_Path: Chick/root/body/chest/neck/head/tongue
+    m_Weight: 0
+  - m_Path: Chick/root/body/shoulder_L
+    m_Weight: 1
+  - m_Path: Chick/root/body/shoulder_L/arm1_L
+    m_Weight: 1
+  - m_Path: Chick/root/body/shoulder_L/arm1_L/arm2_L
+    m_Weight: 1
+  - m_Path: Chick/root/body/shoulder_L/arm1_L/arm2_L/arm3_L
+    m_Weight: 1
+  - m_Path: Chick/root/body/shoulder_L/arm1_L/finger_L
+    m_Weight: 1
+  - m_Path: Chick/root/body/shoulder_R
+    m_Weight: 1
+  - m_Path: Chick/root/body/shoulder_R/arm1_R
+    m_Weight: 1
+  - m_Path: Chick/root/body/shoulder_R/arm1_R/arm2_R
+    m_Weight: 1
+  - m_Path: Chick/root/body/shoulder_R/arm1_R/arm2_R/arm3_R
+    m_Weight: 1
+  - m_Path: Chick/root/body/shoulder_R/arm1_R/finger_R
+    m_Weight: 1
+  - m_Path: Chick/root/body/tail
+    m_Weight: 0
+  - m_Path: Chick/root/body/thigh_L
+    m_Weight: 0
+  - m_Path: Chick/root/body/thigh_L/shin_L
+    m_Weight: 0
+  - m_Path: Chick/root/body/thigh_L/shin_L/foot_L
+    m_Weight: 0
+  - m_Path: Chick/root/body/thigh_L/shin_L/foot_L/finger_1_L
+    m_Weight: 0
+  - m_Path: Chick/root/body/thigh_L/shin_L/foot_L/finger_2_L
+    m_Weight: 0
+  - m_Path: Chick/root/body/thigh_L/shin_L/foot_L/finger_3_L
+    m_Weight: 0
+  - m_Path: Chick/root/body/thigh_L/shin_L/foot_L/finger_4_L
+    m_Weight: 0
+  - m_Path: Chick/root/body/thigh_R
+    m_Weight: 0
+  - m_Path: Chick/root/body/thigh_R/shin_R
+    m_Weight: 0
+  - m_Path: Chick/root/body/thigh_R/shin_R/foot_R
+    m_Weight: 0
+  - m_Path: Chick/root/body/thigh_R/shin_R/foot_R/finger_1_R
+    m_Weight: 0
+  - m_Path: Chick/root/body/thigh_R/shin_R/foot_R/finger_2_R
+    m_Weight: 0
+  - m_Path: Chick/root/body/thigh_R/shin_R/foot_R/finger_3_R
+    m_Weight: 0
+  - m_Path: Chick/root/body/thigh_R/shin_R/foot_R/finger_4_R
+    m_Weight: 0
+  - m_Path: chick.body
+    m_Weight: 0

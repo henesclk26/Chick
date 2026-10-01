@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="DayTransition.uss" />
+    <ui:VisualElement name="FullScreenBlackOverlay">
+        <ui:Label name="DayLabel" text="DAY 1" />
+        <ui:Label name="SavingLabel" text="Saving..." />
+    </ui:VisualElement>
+</ui:UXML>

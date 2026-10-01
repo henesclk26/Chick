@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="SprintStaminaHUD.uss" />
+    <ui:VisualElement name="SprintStaminaHUD" picking-mode="Ignore">
+        <SprintStaminaGauge name="SprintStaminaGauge" picking-mode="Ignore" />
+    </ui:VisualElement>
+</ui:UXML>

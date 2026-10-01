@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 2ca294777640f4f38a7d97ee25e8c28e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/chicken/twoLayer/flapping.anim
+  uploadId: 803608

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 278c785fa11df49479f3c00cc30f3469
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/AnimationClips/chicken/twoLayer/damage_flapping.anim
+  uploadId: 803608

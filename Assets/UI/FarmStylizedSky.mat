@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: FarmStylizedSky
+  m_Shader: {fileID: 4800000, guid: 21fbce80cba93ed4995df2fbad952c96, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _CirrusAmount: 0.35
+    - _CloudCoverage: 0.45
+    - _CloudSpeed: 0.012
+    - _HorizonBlendHeight: 0.65
+    - _MoonIntensity: 0
+    - _StarIntensity: 0
+    - _SunHaloIntensity: 0.7
+    - _SunHaloWidth: 0.028
+    - _SunIntensity: 20
+    - _SunSize: 0.012
+    - _Twilight: 0
+    m_Colors:
+    - _AntiSunColor: {r: 0.85, g: 0.6, b: 0.72, a: 1}
+    - _CloudLitColor: {r: 1, g: 1, b: 1, a: 1}
+    - _CloudShadowColor: {r: 0.7, g: 0.78, b: 0.9, a: 1}
+    - _HorizonColor: {r: 0.72, g: 0.87, b: 0.97999996, a: 1}
+    - _MoonDirection: {r: 0.4, g: 0.35, b: 0.8, a: 0}
+    - _SkyColor: {r: 0.15999997, g: 0.47999996, b: 0.83, a: 1}
+    - _SunColor: {r: 1, g: 0.95, b: 0.85, a: 1}
+    - _SunDirection: {r: 0, g: 0.5, b: -1, a: 0}
+    - _SunGlowColor: {r: 1, g: 0.6, b: 0.34999996, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 04871a2087f894fbaa0ed7ae68b4aeb1
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 185546
+  packageName: Animals 3D Chicken
+  packageVersion: 1.22
+  assetPath: Assets/Animals_3D/Chicken/Resources/Prefabs/chicken_lowpoly.prefab
+  uploadId: 803608

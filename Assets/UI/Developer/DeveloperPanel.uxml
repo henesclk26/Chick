@@ -1,0 +1,109 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Developer/DeveloperPanel.uss" />
+    <ui:VisualElement name="developer-overlay" class="developer-overlay">
+        <ui:VisualElement class="developer-panel">
+            <ui:VisualElement class="panel-header">
+                <ui:VisualElement class="brand-mark"><ui:Label text="D" class="brand-letter" /></ui:VisualElement>
+                <ui:VisualElement class="title-block">
+                    <ui:Label text="GELİŞTİRİCİ ARAÇLARI" class="eyebrow" />
+                    <ui:Label text="Çiftlik kontrol paneli" class="panel-title" />
+                </ui:VisualElement>
+                <ui:Label text="OYUN İÇİ" class="header-badge" />
+                <ui:Button name="close-debug" text="×" class="close-button" />
+            </ui:VisualElement>
+            <ui:ScrollView class="panel-scroll" horizontal-scroller-visibility="Hidden">
+            <ui:VisualElement class="panel-content">
+                <ui:VisualElement class="time-card card">
+                    <ui:VisualElement class="card-heading">
+                        <ui:Label text="01  ·  ZAMAN" class="section-heading" />
+                        <ui:Label text="Işığı ve gölgeleri değiştir" class="section-help" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="clock-face">
+                        <ui:Label text="ŞU ANKİ SAAT" class="clock-caption" />
+                        <ui:Label name="current-time" text="07:00" class="time-value" />
+                        <ui:Label text="– / + ile her saate geç" class="clock-hint" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="hour-step-row">
+                        <ui:Button name="hour-back" text="−  1 SAAT" class="step-button" />
+                        <ui:Button name="hour-forward" text="+  1 SAAT" class="step-button" />
+                    </ui:VisualElement>
+                    <ui:Label text="HIZLI SEÇİM" class="mini-heading" />
+                    <ui:VisualElement class="preset-row">
+                        <ui:Button name="time-morning" text="07:00  Sabah" class="preset-button" />
+                        <ui:Button name="time-noon" text="12:00  Öğle" class="preset-button" />
+                        <ui:Button name="time-evening" text="18:00  Akşam" class="preset-button" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="right-column">
+                    <ui:VisualElement class="form-card card">
+                        <ui:VisualElement class="card-heading">
+                            <ui:Label text="02  ·  KARAKTER" class="section-heading" />
+                            <ui:Label text="Formu anında değiştir" class="section-help" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="form-row">
+                            <ui:Button name="form-chick" text="Civciv" class="choice-button" />
+                            <ui:Button name="form-chicken" text="Tavuk" class="choice-button" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="destination-card card">
+                        <ui:VisualElement class="card-heading">
+                            <ui:Label text="03  ·  HIZLI KONUM" class="section-heading" />
+                            <ui:Label text="Bir çiftlik bölmesine git" class="section-help" />
+                        </ui:VisualElement>
+                        <ui:Button name="spawn-barn" class="destination-button">
+                            <ui:Label text="01" class="destination-number" />
+                            <ui:Label text="Ahır avlusu" class="destination-name" />
+                            <ui:Label text="→" class="destination-arrow" />
+                        </ui:Button>
+                        <ui:Button name="spawn-field" class="destination-button">
+                            <ui:Label text="02" class="destination-number" />
+                            <ui:Label text="Tarla" class="destination-name" />
+                            <ui:Label text="→" class="destination-arrow" />
+                        </ui:Button>
+                        <ui:Button name="spawn-coop" class="destination-button">
+                            <ui:Label text="03" class="destination-number" />
+                            <ui:Label text="Kümes avlusu" class="destination-name" />
+                            <ui:Label text="→" class="destination-arrow" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement class="movement-card card">
+                <ui:Label text="04  ·  HAREKET" class="section-heading" />
+                <ui:Label text="Bu oturumda geçerli · Seçeneği kapatınca normal değerlere döner" class="section-help" />
+                <ui:VisualElement class="movement-toggle-row">
+                    <ui:Button name="infinite-sprint" class="movement-toggle" tooltip="Sprint sırasında stamina tükenmez. Açınca stamina dolar.">
+                        <ui:Label text="Sonsuz stamina" class="toggle-title" picking-mode="Ignore" />
+                        <ui:Label text="Yorulmadan sprint yap" class="toggle-help" picking-mode="Ignore" />
+                        <ui:Label text="KAPALI" class="toggle-state" picking-mode="Ignore" />
+                    </ui:Button>
+                    <ui:Button name="sprint-speed-5x" class="movement-toggle" tooltip="Mevcut sprint hızını 5 ile çarpar; yürüme hızını değiştirmez.">
+                        <ui:Label text="5× sprint hızı" class="toggle-title" picking-mode="Ignore" />
+                        <ui:Label text="Shift ile 5 kat hızlı koş" class="toggle-help" picking-mode="Ignore" />
+                        <ui:Label text="KAPALI" class="toggle-state" picking-mode="Ignore" />
+                    </ui:Button>
+                    <ui:Button name="jump-height-2x" class="movement-toggle" tooltip="Civciv ve tavuk formunda zıplama yüksekliğini 2 ile çarpar.">
+                        <ui:Label text="2× yüksek zıplama" class="toggle-title" picking-mode="Ignore" />
+                        <ui:Label text="Space ile daha yükseğe ulaş" class="toggle-help" picking-mode="Ignore" />
+                        <ui:Label text="KAPALI" class="toggle-state" picking-mode="Ignore" />
+                    </ui:Button>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement class="egg-card card">
+                <ui:VisualElement class="egg-info">
+                    <ui:Label text="05  ·  YUMURTA" class="section-heading" />
+                    <ui:Label text="Yalnızca tavuk formunda kullanılabilir" class="section-help" />
+                    <ui:Label name="debug-egg-balance" text="Bakiye: 0 yumurta" class="egg-balance-label" />
+                </ui:VisualElement>
+                <ui:Button name="grant-eggs" text="+20 YUMURTA" class="step-button egg-grant-button" enabled="false" />
+            </ui:VisualElement>
+            </ui:ScrollView>
+            <ui:VisualElement class="panel-footer">
+                <ui:VisualElement class="status-dot" />
+                <ui:Label name="debug-status" text="Bir kontrol seç." class="status-label" />
+                <ui:Label text="F1" class="keycap" />
+                <ui:Label text="KAPAT" class="footer-shortcut" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
