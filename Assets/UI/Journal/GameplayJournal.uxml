@@ -87,7 +87,7 @@
                                 <ui:Image name="helper-art" class="upgrade-art" />
                                 <ui:VisualElement class="upgrade-details">
                                     <ui:Label text="Yardımcı Civciv" class="upgrade-name" />
-                                    <ui:Label text="Toplamaya destek olur." class="upgrade-description" />
+                                    <ui:Label text="Her alımda 1 civciv katılır. En fazla 3." class="upgrade-description" />
                                     <ui:VisualElement name="helper-levels" class="level-row" />
                                 </ui:VisualElement>
                                 <ui:Button name="helper-price" class="upgrade-price">

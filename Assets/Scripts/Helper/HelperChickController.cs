@@ -24,6 +24,14 @@ public sealed class HelperChickController : MonoBehaviour
     [SerializeField, Min(0f)] private float minJumpAirTime = .18f;
     [SerializeField, Min(1f)] private float maxTurnSpeed = 540f;
 
+    [Header("Independent movement")]
+    [Tooltip("Free wandering radius; separate from the purchased food collection range.")]
+    [SerializeField, Min(.6f)] private float idleRoamRadius = 1.35f;
+    [Tooltip("Start catching up only after leaving this personal space, not on every owner step.")]
+    [SerializeField, Min(1f)] private float followStartDistance = 2.2f;
+    [SerializeField, Min(.5f)] private float followRestDistance = 1.2f;
+    [SerializeField, Min(2f)] private float urgentFollowDistance = 3.6f;
+
     [Header("Obstacles")]
     [SerializeField] private LayerMask obstacleMask = ~(1 << 9);
 
@@ -37,7 +45,6 @@ public sealed class HelperChickController : MonoBehaviour
 
     private enum EatPhase { None, Eating, Recovering }
 
-    private const float CalmPlayerSpeed = .35f;
     private const float ArriveDistance = .04f;
     private const float ScanInterval = .2f;
     private const float ContactAssistSeconds = .14f;
@@ -64,6 +71,7 @@ public sealed class HelperChickController : MonoBehaviour
     private ChickPlayerController player;
     private CharacterController playerBody;
     private ChickEatingController playerEater;
+    private IReadOnlyList<HelperChickController> companions;
 
     private readonly RaycastHit[] castHits = new RaycastHit[8];
     private readonly Collider[] overlaps = new Collider[128];
@@ -76,6 +84,14 @@ public sealed class HelperChickController : MonoBehaviour
     private bool settled;
     private bool following;
     private float roamTimer;
+    private float roamTravelTime;
+    private float wanderSpeed = .6f;
+    private Vector3 followOffset;
+    private float personalFollowDistance;
+    private float personalRestDistance;
+    private float reactionDelay;
+    private float departureTimer;
+    private float destinationTimer;
     private float hopDelay;
     private float stuckTimer;
     private float avoidSide = 1f;
@@ -125,15 +141,67 @@ public sealed class HelperChickController : MonoBehaviour
         ReadAnimationTiming();
     }
 
-    public void Initialize(PlayerUpgrades playerUpgrades, ChickPlayerController owner)
+    public void Initialize(PlayerUpgrades playerUpgrades, ChickPlayerController owner,
+        IReadOnlyList<HelperChickController> flock = null)
     {
+        companions = flock;
         upgrades = playerUpgrades;
         player = owner;
         playerBody = owner.GetComponent<CharacterController>();
         playerEater = owner.GetComponent<ChickEatingController>();
         Physics.IgnoreCollision(body, playerBody);
+        if (companions != null)
+            foreach (HelperChickController other in companions)
+                if (other != null && other != this && other.body != null)
+                    Physics.IgnoreCollision(body, other.body);
         lastPlayerPosition = owner.transform.position;
         SnapToSlot();
+    }
+
+    private void OnDisable() => CancelFood();
+
+    private bool IsCompanion(HelperChickController other) =>
+        other != null && other != this && other.isActiveAndEnabled && other.player == player;
+
+    private bool FoodClaimedByCompanion(EdibleObject edible)
+    {
+        if (companions == null) return false;
+        foreach (HelperChickController other in companions)
+            if (IsCompanion(other) && other.foodTarget == edible) return true;
+        return false;
+    }
+
+    private Vector3 SeparateFromCompanions(Vector3 desired)
+    {
+        if (jumping) return desired;
+        Vector3 separation = Vector3.zero;
+        Vector3 fromOwner = Flat(transform.position - player.transform.position);
+        float ownerClearance = SlotSideOffset;
+        if (fromOwner.magnitude < ownerClearance && Mathf.Abs(transform.position.y - player.transform.position.y) < body.height)
+            separation += FlatOrDefault(fromOwner, -transform.forward).normalized *
+                (1f - fromOwner.magnitude / ownerClearance) * walkSpeed * 2f;
+        if (companions != null) foreach (HelperChickController other in companions)
+        {
+            if (!IsCompanion(other) || Mathf.Abs(other.transform.position.y - transform.position.y) > body.height) continue;
+            Vector3 away = Flat(transform.position - other.transform.position);
+            float spacing = body.radius + other.body.radius + .16f;
+            float distance = away.magnitude;
+            // Queue behind a nearby chick instead of overtaking through it or dodging to the other side.
+            if (desired.sqrMagnitude > .01f && distance < spacing + .45f)
+            {
+                Vector3 forward = desired.normalized;
+                float ahead = Vector3.Dot(-away, forward);
+                float sideways = Mathf.Abs(Vector3.Cross(-away, forward).y);
+                bool sameDirection = Vector3.Dot(other.transform.forward, forward) > .3f;
+                if (ahead > 0f && sideways < spacing && (sameDirection || GetInstanceID() > other.GetInstanceID()))
+                    desired *= Mathf.InverseLerp(spacing, spacing + .45f, ahead);
+            }
+            if (distance >= spacing) continue;
+            Vector3 direction = distance > .001f ? away / distance :
+                (GetInstanceID() < other.GetInstanceID() ? Vector3.left : Vector3.right);
+            separation += direction * ((spacing - distance) / spacing) * walkSpeed * 2f;
+        }
+        return Vector3.ClampMagnitude(desired + separation, Mathf.Max(walkSpeed, desired.magnitude));
     }
 
     private void ReadAnimationTiming()
@@ -161,9 +229,8 @@ public sealed class HelperChickController : MonoBehaviour
         float playerSpeed = playerVelocity.magnitude;
         float leash = upgrades != null ? upgrades.HelperRoamRadius : .5f;
         float playerDistance = Flat(transform.position - playerPosition).magnitude;
-        bool playerCalm = playerSpeed < CalmPlayerSpeed;
 
-        UpdateNavigation(playerPosition, playerDistance, playerSpeed, leash, dt);
+        UpdateNavigation(playerPosition, playerDistance, leash, dt);
         if (playerDistance > Mathf.Max(8f, leash * 5f)) { SnapToSlot(); return; }
 
         bool playerJumping = player.IsJumping;
@@ -171,7 +238,8 @@ public sealed class HelperChickController : MonoBehaviour
         // The chicken stands on something higher (a melon, a crate) and the helper is not beside it yet.
         bool chickenAbove = !playerJumping && playerPosition.y - transform.position.y > .1f &&
                             Flat(slotWorld - transform.position).magnitude > .15f;
-        UpdateFood(playerPosition, leash, playerDistance, playerCalm && !chickenAbove && !following, dt);
+        // Nearby chicks may finish their own peck/approach even while the owner starts walking.
+        UpdateFood(playerPosition, leash, playerDistance, !chickenAbove && !following, dt);
 
         bool busyEating = eatPhase != EatPhase.None;
         Vector3 desired = Vector3.zero;
@@ -179,6 +247,7 @@ public sealed class HelperChickController : MonoBehaviour
         if (!busyEating)
             desired = foodTarget != null ? ApproachFood(ref faceDirection) : FollowDesired(playerSpeed, dt);
         busyEating = eatPhase != EatPhase.None;
+        if (!busyEating && foodTarget == null) desired = SeparateFromCompanions(desired);
         Vector3 steered = busyEating ? Vector3.zero : Steer(desired);
 
         // Turn into travel before accelerating, rather than sliding sideways or facing the owner.
@@ -242,55 +311,114 @@ public sealed class HelperChickController : MonoBehaviour
         else if (distance < .06f) settled = true;
         if (settled) return Vector3.zero;
 
-        float limit = following ? Mathf.Max(walkSpeed, playerSpeed + catchUpBonus) : walkSpeed * .7f;
-        float speed = Mathf.Min(limit, distance * followGain, distance / Mathf.Max(.001f, dt));
+        float ownerDistance = Flat(player.transform.position - transform.position).magnitude;
+        float urgency = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(personalRestDistance, urgentFollowDistance, ownerDistance));
+        // Distance controls pace. Never add the owner's velocity or copy its turn into our motion.
+        float limit = following ? Mathf.Lerp(walkSpeed, Mathf.Max(runSpeed, playerSpeed + catchUpBonus), urgency) : wanderSpeed;
+        float speed = Mathf.Min(limit, Mathf.Min(distance * followGain, distance / Mathf.Max(.001f, dt)));
         return toSlot.normalized * speed;
     }
 
-    private void UpdateNavigation(Vector3 playerPosition, float distance, float playerSpeed, float leash, float dt)
+    private void UpdateNavigation(Vector3 playerPosition, float distance, float leash, float dt)
     {
         float stopDistance = SlotSideOffset;
-        float roamRadius = Mathf.Max(leash, stopDistance + .2f);
+        float roamRadius = Mathf.Max(idleRoamRadius, leash);
         Vector3 fromHelper = Flat(playerPosition - transform.position);
-        float departingSpeed = Vector3.Dot(playerVelocity, fromHelper.normalized);
         bool elevated = !player.IsJumping && playerPosition.y - transform.position.y > .12f;
-        if (distance > roamRadius + .15f || elevated ||
-            (departingSpeed > .12f && distance > stopDistance + .06f))
-            following = true;
-        else if (following && distance <= stopDistance + .1f && playerSpeed < CalmPlayerSpeed && !elevated)
+        if (!following)
+        {
+            departureTimer = distance > Mathf.Max(personalFollowDistance, leash) ? departureTimer + dt : 0f;
+            if (elevated || distance > urgentFollowDistance || departureTimer >= reactionDelay)
+            {
+                following = true;
+                settled = false;
+                destinationTimer = 0f;
+                // Preserve the occupied side in WORLD space: no rotating slots or random side swaps.
+                followOffset = FlatOrDefault(transform.position - playerPosition, -transform.forward).normalized * .65f;
+            }
+        }
+        else if (distance <= (playerVelocity.magnitude < .15f ? Mathf.Max(personalRestDistance, personalFollowDistance - .1f) : personalRestDistance) && !elevated)
         {
             following = false;
             slotWorld = transform.position;
             settled = true;
-            roamTimer = Random.Range(1.5f, 3f);
+            departureTimer = 0f;
+            roamTimer = Random.Range(.65f, 1.5f);
+            roamTravelTime = 0f;
         }
         if (following)
         {
-            // A radial stand-off keeps the current side. Turning the chicken alone never moves it.
-            slotWorld = playerPosition - FlatOrDefault(fromHelper, transform.forward).normalized * stopDistance;
-            if (elevated && TryNearbyStand(playerPosition, out Vector3 raised)) slotWorld = raised;
-            roamTimer = Random.Range(1.5f, 3f);
+            if (elevated)
+            {
+                slotWorld = playerPosition - FlatOrDefault(fromHelper, transform.forward).normalized * stopDistance;
+                if (TryNearbyStand(playerPosition, out Vector3 raised)) slotWorld = raised;
+            }
+            else if (!jumping)
+            {
+                destinationTimer -= dt;
+                if (destinationTimer <= 0f)
+                {
+                    // Commit to a ground destination instead of turning in lockstep with the owner.
+                    destinationTimer = Random.Range(.65f, 1.05f);
+                    Vector3 candidate = playerPosition + followOffset;
+                    if (TryGround(candidate, playerPosition.y, out Vector3 stand) &&
+                        Mathf.Abs(stand.y - playerPosition.y) <= .15f && PointFree(stand)) slotWorld = stand;
+                    else slotWorld = playerPosition - FlatOrDefault(fromHelper, transform.forward).normalized * stopDistance;
+                }
+            }
             return;
         }
         if (foodTarget != null || jumping || !grounded || player.IsJumping) return;
+        // Finish each excursion before choosing the next one. Each chick pauses on its own schedule.
+        if (!settled && Flat(slotWorld - transform.position).magnitude > .1f)
+        {
+            roamTravelTime += dt;
+            if (roamTravelTime < 4.5f) return;
+            slotWorld = transform.position;
+            settled = true;
+        }
         roamTimer -= dt;
         if (roamTimer > 0f) return;
-        roamTimer = Random.Range(2f, 4f);
-        // Stable world-space goals, pauses and modest forward-biased excursions.
-        for (int i = 0; i < 8; i++)
+        roamTimer = Random.Range(.55f, 1.6f);
+        roamTravelTime = 0f;
+        wanderSpeed = Random.Range(walkSpeed * .6f, walkSpeed * .95f);
+        for (int i = 0; i < 12; i++)
         {
-            Vector3 direction = Quaternion.Euler(0f, Random.Range(-100f, 100f), 0f) * transform.forward;
-            Vector3 candidate = transform.position + direction * Random.Range(.18f, .45f);
+            Vector3 direction = Quaternion.Euler(0f, Random.Range(-140f, 140f), 0f) * transform.forward;
+            Vector3 candidate = i < 8 ? transform.position + direction * Random.Range(.45f, .95f)
+                : playerPosition + direction * Random.Range(roamRadius * .5f, roamRadius);
             float ownerGap = Flat(candidate - playerPosition).magnitude;
-            if (ownerGap < stopDistance * .8f || ownerGap > roamRadius) continue;
+            if (ownerGap < stopDistance + .08f || ownerGap > roamRadius) continue;
             if (!TryGround(candidate, transform.position.y, out Vector3 ground) ||
-                Mathf.Abs(ground.y - transform.position.y) > .08f || !PointFree(ground)) continue;
+                Mathf.Abs(ground.y - transform.position.y) > .12f || !PointFree(ground)) continue;
             Vector3 delta = Flat(ground - transform.position);
-            if (!IsFree(delta.normalized, delta.magnitude, out _)) continue;
+            if (delta.magnitude < .25f || !IsFree(delta.normalized, delta.magnitude, out _) || !SafeRoamPath(ground)) continue;
             slotWorld = ground;
             settled = false;
             break;
         }
+    }
+
+    private void ResetFollowBehaviour()
+    {
+        personalFollowDistance = followStartDistance * Random.Range(.92f, 1.1f);
+        personalRestDistance = Mathf.Min(personalFollowDistance - .5f, followRestDistance * Random.Range(.9f, 1.1f));
+        reactionDelay = Random.Range(.25f, .65f);
+        departureTimer = destinationTimer = 0f;
+        followOffset = Vector3.zero;
+    }
+
+    private bool SafeRoamPath(Vector3 end)
+    {
+        Vector3 start = transform.position;
+        int steps = Mathf.Max(1, Mathf.CeilToInt(Flat(end - start).magnitude / .2f));
+        for (int i = 1; i <= steps; i++)
+        {
+            Vector3 point = Vector3.Lerp(start, end, (float)i / steps);
+            if (Flat(point - player.transform.position).magnitude < SlotSideOffset ||
+                !TryGround(point, start.y, out Vector3 ground) || Mathf.Abs(ground.y - start.y) > .12f) return false;
+        }
+        return true;
     }
 
     private bool TryNearbyStand(Vector3 playerPosition, out Vector3 best)
@@ -334,7 +462,9 @@ public sealed class HelperChickController : MonoBehaviour
         yawVelocity = 0f;
         settled = false;
         following = false;
-        roamTimer = Random.Range(1.5f, 3f);
+        roamTimer = Random.Range(.35f, 1.1f);
+        roamTravelTime = 0f;
+        ResetFollowBehaviour();
     }
 
     // ---- Climbing -------------------------------------------------------------------------------
@@ -513,7 +643,8 @@ public sealed class HelperChickController : MonoBehaviour
     }
 
     private bool IsOwnCollider(Collider collider) =>
-        collider.transform.IsChildOf(transform) || (player != null && collider.transform.IsChildOf(player.transform));
+        collider.transform.IsChildOf(transform) || (player != null && collider.transform.IsChildOf(player.transform)) ||
+        IsCompanion(collider.GetComponentInParent<HelperChickController>());
 
     // Ray queries skip the helper's and the chicken's own colliders, so standing on a spot never invalidates it.
     private bool RaycastGround(Vector3 origin, float length, out RaycastHit best)
@@ -557,6 +688,11 @@ public sealed class HelperChickController : MonoBehaviour
 
     private bool PointFree(Vector3 ground)
     {
+        if (companions != null)
+            foreach (HelperChickController other in companions)
+                if (IsCompanion(other) && Mathf.Abs(other.transform.position.y - ground.y) < body.height &&
+                    Flat(other.transform.position - ground).magnitude < body.radius + other.body.radius + .05f)
+                    return false;
         float radius = body.radius * .9f;
         int count = Physics.OverlapCapsuleNonAlloc(ground + Vector3.up * (radius + .04f),
             ground + Vector3.up * Mathf.Max(radius + .04f, body.height - radius), radius, blockers,
@@ -604,7 +740,7 @@ public sealed class HelperChickController : MonoBehaviour
         {
             EdibleObject edible = overlaps[i].GetComponentInParent<EdibleObject>();
             overlaps[i] = null;
-            if (!IsEdible(edible) || IsIgnored(edible)) continue;
+            if (!IsEdible(edible) || IsIgnored(edible) || FoodClaimedByCompanion(edible)) continue;
             if (playerEater != null && playerEater.CurrentTarget == edible) continue;
             Vector3 bite = edible.BitePosition;
             if (Flat(bite - playerPosition).sqrMagnitude > leash * leash) continue;
@@ -625,6 +761,7 @@ public sealed class HelperChickController : MonoBehaviour
 
     private void TryClaim(EdibleObject edible)
     {
+        if (FoodClaimedByCompanion(edible)) return;
         Vector3 bite = edible.BitePosition;
         if (!RaycastGround(bite + Vector3.up * .05f, .45f, out RaycastHit floor) ||
             Mathf.Abs(bite.y - (floor.point.y + localImpactPoint.y)) > edible.MaxVerticalInteractionOffset)

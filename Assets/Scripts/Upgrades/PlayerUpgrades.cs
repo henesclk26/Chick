@@ -19,7 +19,7 @@ public sealed class PlayerUpgrades : MonoBehaviour
     public const string HelperRange = "helper-range";
     public const string DoubleJump = "double-jump";
     public const string Glide = "glide";
-    public const int MaxHelperChicks = 1;
+    public const int MaxHelperChicks = 3;
 
     [Serializable]
     private sealed class UpgradeDefinition
@@ -39,7 +39,7 @@ public sealed class PlayerUpgrades : MonoBehaviour
         new UpgradeDefinition { id = CollectRange, levelPrices = new[] { 15, 30, 45 } },
         new UpgradeDefinition { id = SprintSpeed, levelPrices = new[] { 15, 30, 45 } },
         new UpgradeDefinition { id = SprintDuration, levelPrices = new[] { 15, 30, 45 } },
-        new UpgradeDefinition { id = HelperChick, levelPrices = new[] { 20 } },
+        new UpgradeDefinition { id = HelperChick, levelPrices = new[] { 20, 20, 20 } },
         new UpgradeDefinition { id = HelperEatSpeed, levelPrices = new[] { 30 } },
         new UpgradeDefinition { id = HelperRange, levelPrices = new[] { 25 } },
         new UpgradeDefinition { id = DoubleJump, levelPrices = new[] { 200 } },
@@ -91,7 +91,7 @@ public sealed class PlayerUpgrades : MonoBehaviour
     public float SprintDurationBonusSeconds => sprintDurationPerLevel * GetLevel(SprintDuration);
     public bool DoubleJumpUnlocked => GetLevel(DoubleJump) > 0;
     public bool GlideUnlocked => GetLevel(Glide) > 0;
-    // One purchase unlocks one helper for now; the cap keeps a later level count from spawning extras.
+    // Each purchased level adds one independent companion.
     public int HelperChickCount => Mathf.Min(GetLevel(HelperChick), MaxHelperChicks);
     public float HelperRoamRadius =>
         helperRoamRadius * Mathf.Pow(helperRangeMultiplierPerLevel, GetLevel(HelperRange));
@@ -171,6 +171,15 @@ public sealed class PlayerUpgrades : MonoBehaviour
         var list = (upgrades ?? new UpgradeDefinition[0]).Where(definition => definition != null && definition.id != "auto-eat").ToList();
         foreach (UpgradeDefinition definition in DefaultUpgrades())
             if (list.All(existing => existing.id != definition.id)) list.Add(definition);
+        // Migrate scenes/prefabs with the old one-helper definition without losing tuned prices.
+        UpgradeDefinition helpers = list.Find(definition => definition.id == HelperChick);
+        if (helpers.levelPrices == null || helpers.levelPrices.Length != MaxHelperChicks)
+        {
+            int[] previous = helpers.levelPrices ?? Array.Empty<int>();
+            int price = previous.Length > 0 ? previous[previous.Length - 1] : 20;
+            helpers.levelPrices = Enumerable.Range(0, MaxHelperChicks)
+                .Select(index => index < previous.Length ? previous[index] : price).ToArray();
+        }
         upgrades = list.ToArray();
     }
 

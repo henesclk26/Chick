@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -13,7 +14,7 @@ public sealed class HelperChickSpawner : MonoBehaviour
 
     private ChickPlayerController player;
     private PlayerGrowthController growth;
-    private HelperChickController active;
+    private readonly List<HelperChickController> active = new List<HelperChickController>();
 
     private void Awake()
     {
@@ -25,12 +26,16 @@ public sealed class HelperChickSpawner : MonoBehaviour
 
     private void Update()
     {
-        bool wanted = ShouldExist();
-        if (wanted && active == null) Spawn();
-        else if (!wanted && active != null) Despawn();
+        active.RemoveAll(helper => helper == null);
+        int wanted = ShouldExist() ? upgrades.HelperChickCount : 0;
+        while (active.Count > wanted) DespawnLast();
+        while (active.Count < wanted) Spawn();
     }
 
-    private void OnDisable() => Despawn();
+    private void OnDisable()
+    {
+        while (active.Count > 0) DespawnLast();
+    }
 
     private bool ShouldExist() =>
         helperPrefab != null && upgrades != null && player != null && growth != null &&
@@ -40,15 +45,21 @@ public sealed class HelperChickSpawner : MonoBehaviour
 
     private void Spawn()
     {
-        active = Instantiate(helperPrefab, player.transform.position, player.transform.rotation);
-        active.name = "HelperChick";
-        active.Initialize(upgrades, player);
+        int index = active.Count;
+        Vector3 offset = Quaternion.Euler(0f, index * 120f, 0f) * -player.transform.forward * .45f;
+        HelperChickController helper = Instantiate(helperPrefab, player.transform.position + offset, player.transform.rotation);
+        helper.name = "HelperChick_" + (index + 1);
+        active.Add(helper);
+        helper.Initialize(upgrades, player, active);
     }
 
-    private void Despawn()
+    private void DespawnLast()
     {
-        if (active == null) return;
-        Destroy(active.gameObject);
-        active = null;
+        int index = active.Count - 1;
+        HelperChickController helper = active[index];
+        active.RemoveAt(index);
+        if (helper == null) return;
+        helper.gameObject.SetActive(false);
+        Destroy(helper.gameObject);
     }
 }
