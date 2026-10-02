@@ -15,9 +15,9 @@ public sealed class HelperChickController : MonoBehaviour
     [SerializeField, Min(.1f)] private float walkSpeed = .8f;
     [SerializeField, Min(.1f)] private float runSpeed = 1.4f;
     [Tooltip("How hard the helper closes the distance to its navigation target, in 1/s.")]
-    [SerializeField, Min(0f)] private float followGain = 4f;
+    [SerializeField, Min(0f)] private float followGain = 8f;
     [Tooltip("Extra speed on top of the chicken's own speed while catching up.")]
-    [SerializeField, Min(0f)] private float catchUpBonus = .7f;
+    [SerializeField, Min(0f)] private float catchUpBonus = 1.5f;
     [SerializeField, Min(1f)] private float acceleration = 14f;
     [SerializeField] private float gravity = -18f;
     [SerializeField, Min(0f)] private float jumpHeight = .275f;
@@ -26,11 +26,13 @@ public sealed class HelperChickController : MonoBehaviour
 
     [Header("Independent movement")]
     [Tooltip("Free wandering radius; separate from the purchased food collection range.")]
-    [SerializeField, Min(.6f)] private float idleRoamRadius = 1.35f;
+    [SerializeField, Min(.6f)] private float idleRoamRadius = .75f;
     [Tooltip("Start catching up only after leaving this personal space, not on every owner step.")]
-    [SerializeField, Min(1f)] private float followStartDistance = 2.2f;
-    [SerializeField, Min(.5f)] private float followRestDistance = 1.2f;
-    [SerializeField, Min(2f)] private float urgentFollowDistance = 3.6f;
+    [SerializeField, Min(.5f)] private float followStartDistance = .6f;
+    [SerializeField, Min(.3f)] private float followRestDistance = .42f;
+    [SerializeField, Min(.8f)] private float urgentFollowDistance = .9f;
+    [Tooltip("Outer food-search boundary, not a preferred distance from the owner.")]
+    [SerializeField, Min(1f)] private float forageRadius = 2.2f;
 
     [Header("Obstacles")]
     [SerializeField] private LayerMask obstacleMask = ~(1 << 9);
@@ -49,7 +51,6 @@ public sealed class HelperChickController : MonoBehaviour
     private const float ScanInterval = .2f;
     private const float ContactAssistSeconds = .14f;
     private const float IgnoreSeconds = 8f;
-    private const float StepHeight = .4f;
     private const int SlotCount = 12;
     private const float ClimbDelay = .4f;
     private const float UnreachableTeleportDelay = 6f;
@@ -74,7 +75,10 @@ public sealed class HelperChickController : MonoBehaviour
     private IReadOnlyList<HelperChickController> companions;
 
     private readonly RaycastHit[] castHits = new RaycastHit[8];
-    private readonly Collider[] overlaps = new Collider[128];
+    private Collider[] overlaps = new Collider[128];
+    private readonly List<EdibleObject> foodCandidates = new List<EdibleObject>(128);
+    private readonly HashSet<EdibleObject> uniqueFood = new HashSet<EdibleObject>();
+    private static readonly HashSet<HelperChickController> activeHelpers = new HashSet<HelperChickController>();
     private readonly Collider[] blockers = new Collider[8];
     private readonly Dictionary<int, float> ignoredUntil = new Dictionary<int, float>();
 
@@ -115,12 +119,14 @@ public sealed class HelperChickController : MonoBehaviour
     private Vector3 standPoint;
     private float foodTimer;
     private float scanTimer;
+    private float foodSearchGraceUntil;
     private Transform targetVisual;
     private Vector3 originalVisualLocalPosition;
     private Vector3 originalBitePosition;
     private Vector3 targetRootAtStart;
     private bool assistInvalidated;
     private bool impactHandled;
+    private bool impactSucceeded;
     private bool enteredEatState;
     private float startDeadline;
     private float eatClipLength = 80f / 60f;
@@ -158,7 +164,22 @@ public sealed class HelperChickController : MonoBehaviour
         SnapToSlot();
     }
 
-    private void OnDisable() => CancelFood();
+    private void OnEnable() => activeHelpers.Add(this);
+
+    private void OnDisable()
+    {
+        activeHelpers.Remove(this);
+        CancelFood();
+    }
+
+    // Player and helpers must never animate/contact-assist the same seed simultaneously.
+    public static bool IsFoodReservedByHelper(EdibleObject edible)
+    {
+        if (edible == null) return false;
+        foreach (HelperChickController helper in activeHelpers)
+            if (helper != null && helper.isActiveAndEnabled && helper.foodTarget == edible) return true;
+        return false;
+    }
 
     private bool IsCompanion(HelperChickController other) =>
         other != null && other != this && other.isActiveAndEnabled && other.player == player;
@@ -184,17 +205,17 @@ public sealed class HelperChickController : MonoBehaviour
         {
             if (!IsCompanion(other) || Mathf.Abs(other.transform.position.y - transform.position.y) > body.height) continue;
             Vector3 away = Flat(transform.position - other.transform.position);
-            float spacing = body.radius + other.body.radius + .16f;
+            float spacing = body.radius + other.body.radius + .08f;
             float distance = away.magnitude;
             // Queue behind a nearby chick instead of overtaking through it or dodging to the other side.
-            if (desired.sqrMagnitude > .01f && distance < spacing + .45f)
+            if (desired.sqrMagnitude > .01f && distance < spacing + .12f)
             {
                 Vector3 forward = desired.normalized;
                 float ahead = Vector3.Dot(-away, forward);
                 float sideways = Mathf.Abs(Vector3.Cross(-away, forward).y);
                 bool sameDirection = Vector3.Dot(other.transform.forward, forward) > .3f;
                 if (ahead > 0f && sideways < spacing && (sameDirection || GetInstanceID() > other.GetInstanceID()))
-                    desired *= Mathf.InverseLerp(spacing, spacing + .45f, ahead);
+                    desired *= Mathf.InverseLerp(spacing, spacing + .12f, ahead);
             }
             if (distance >= spacing) continue;
             Vector3 direction = distance > .001f ? away / distance :
@@ -227,10 +248,20 @@ public sealed class HelperChickController : MonoBehaviour
         if (playerStep.sqrMagnitude > 4f) { SnapToSlot(); return; }
         playerVelocity = Vector3.Lerp(playerVelocity, playerStep / dt, 1f - Mathf.Exp(-12f * dt));
         float playerSpeed = playerVelocity.magnitude;
-        float leash = upgrades != null ? upgrades.HelperRoamRadius : .5f;
+        float leash = forageRadius * (upgrades != null ? upgrades.HelperRangeMultiplier : 1f);
         float playerDistance = Flat(transform.position - playerPosition).magnitude;
 
+        bool ownerAbove = !player.IsJumping && playerPosition.y - transform.position.y > .12f;
+        // Search before roaming, but never interrupt a return home with another food trip.
+        bool foraging = foodTarget != null || eatPhase != EatPhase.None || Time.time < foodSearchGraceUntil;
+        // Walking inside the food radius must not cancel a meal or the search for the next seed.
+        // Without food, use the much tighter companion-follow distances as before.
+        bool ownerLeaving = !foraging && playerSpeed > .15f && playerDistance > personalFollowDistance;
+        bool canForage = !following && playerDistance <= leash &&
+                         (foraging || (!ownerAbove && !ownerLeaving));
+        UpdateFood(playerPosition, leash, playerDistance, canForage, dt);
         UpdateNavigation(playerPosition, playerDistance, leash, dt);
+        if (following && (foodTarget != null || eatPhase != EatPhase.None)) CancelFood();
         if (playerDistance > Mathf.Max(8f, leash * 5f)) { SnapToSlot(); return; }
 
         bool playerJumping = player.IsJumping;
@@ -238,8 +269,6 @@ public sealed class HelperChickController : MonoBehaviour
         // The chicken stands on something higher (a melon, a crate) and the helper is not beside it yet.
         bool chickenAbove = !playerJumping && playerPosition.y - transform.position.y > .1f &&
                             Flat(slotWorld - transform.position).magnitude > .15f;
-        // Nearby chicks may finish their own peck/approach even while the owner starts walking.
-        UpdateFood(playerPosition, leash, playerDistance, !chickenAbove && !following, dt);
 
         bool busyEating = eatPhase != EatPhase.None;
         Vector3 desired = Vector3.zero;
@@ -314,7 +343,7 @@ public sealed class HelperChickController : MonoBehaviour
         float ownerDistance = Flat(player.transform.position - transform.position).magnitude;
         float urgency = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(personalRestDistance, urgentFollowDistance, ownerDistance));
         // Distance controls pace. Never add the owner's velocity or copy its turn into our motion.
-        float limit = following ? Mathf.Lerp(walkSpeed, Mathf.Max(runSpeed, playerSpeed + catchUpBonus), urgency) : wanderSpeed;
+        float limit = following ? Mathf.Max(walkSpeed, playerSpeed + Mathf.Lerp(.15f, catchUpBonus, urgency)) : wanderSpeed;
         float speed = Mathf.Min(limit, Mathf.Min(distance * followGain, distance / Mathf.Max(.001f, dt)));
         return toSlot.normalized * speed;
     }
@@ -322,22 +351,27 @@ public sealed class HelperChickController : MonoBehaviour
     private void UpdateNavigation(Vector3 playerPosition, float distance, float leash, float dt)
     {
         float stopDistance = SlotSideOffset;
-        float roamRadius = Mathf.Max(idleRoamRadius, leash);
+        float roamRadius = idleRoamRadius;
         Vector3 fromHelper = Flat(playerPosition - transform.position);
         bool elevated = !player.IsJumping && playerPosition.y - transform.position.y > .12f;
+        // Recovery/search between two bites is still foraging, not an instruction to go home.
+        bool feedingTrip = foodTarget != null || eatPhase != EatPhase.None || Time.time < foodSearchGraceUntil;
         if (!following)
         {
-            departureTimer = distance > Mathf.Max(personalFollowDistance, leash) ? departureTimer + dt : 0f;
-            if (elevated || distance > urgentFollowDistance || departureTimer >= reactionDelay)
+            departureTimer = !feedingTrip && distance > personalFollowDistance ? departureTimer + dt : 0f;
+            if (distance > leash ||
+                (!feedingTrip && (elevated || distance > urgentFollowDistance || departureTimer >= reactionDelay)))
             {
                 following = true;
                 settled = false;
                 destinationTimer = 0f;
                 // Preserve the occupied side in WORLD space: no rotating slots or random side swaps.
-                followOffset = FlatOrDefault(transform.position - playerPosition, -transform.forward).normalized * .65f;
+                followOffset = FlatOrDefault(transform.position - playerPosition, -transform.forward).normalized *
+                    Mathf.Max(SlotSideOffset, .32f);
             }
         }
-        else if (distance <= (playerVelocity.magnitude < .15f ? Mathf.Max(personalRestDistance, personalFollowDistance - .1f) : personalRestDistance) && !elevated)
+        // Latch the return until genuinely beside the owner, not merely back inside the food radius.
+        else if (distance <= Mathf.Max(personalRestDistance, SlotSideOffset + .12f) && !elevated)
         {
             following = false;
             slotWorld = transform.position;
@@ -359,10 +393,12 @@ public sealed class HelperChickController : MonoBehaviour
                 if (destinationTimer <= 0f)
                 {
                     // Commit to a ground destination instead of turning in lockstep with the owner.
-                    destinationTimer = Random.Range(.65f, 1.05f);
-                    Vector3 candidate = playerPosition + followOffset;
+                    destinationTimer = Random.Range(.08f, .14f);
+                    // Small position prediction compensates for sampling lag without copying owner rotation.
+                    Vector3 candidate = playerPosition + followOffset + playerVelocity * .12f;
                     if (TryGround(candidate, playerPosition.y, out Vector3 stand) &&
-                        Mathf.Abs(stand.y - playerPosition.y) <= .15f && PointFree(stand)) slotWorld = stand;
+                        Mathf.Abs(stand.y - playerPosition.y) <= .15f && FollowStandFree(stand)) slotWorld = stand;
+                    else if (TryUncrowdedFollowStand(playerPosition, out Vector3 freeStand)) slotWorld = freeStand;
                     else slotWorld = playerPosition - FlatOrDefault(fromHelper, transform.forward).normalized * stopDistance;
                 }
             }
@@ -385,7 +421,7 @@ public sealed class HelperChickController : MonoBehaviour
         for (int i = 0; i < 12; i++)
         {
             Vector3 direction = Quaternion.Euler(0f, Random.Range(-140f, 140f), 0f) * transform.forward;
-            Vector3 candidate = i < 8 ? transform.position + direction * Random.Range(.45f, .95f)
+            Vector3 candidate = i < 8 ? transform.position + direction * Random.Range(.25f, .55f)
                 : playerPosition + direction * Random.Range(roamRadius * .5f, roamRadius);
             float ownerGap = Flat(candidate - playerPosition).magnitude;
             if (ownerGap < stopDistance + .08f || ownerGap > roamRadius) continue;
@@ -402,10 +438,48 @@ public sealed class HelperChickController : MonoBehaviour
     private void ResetFollowBehaviour()
     {
         personalFollowDistance = followStartDistance * Random.Range(.92f, 1.1f);
-        personalRestDistance = Mathf.Min(personalFollowDistance - .5f, followRestDistance * Random.Range(.9f, 1.1f));
-        reactionDelay = Random.Range(.25f, .65f);
+        personalRestDistance = Mathf.Min(personalFollowDistance - .12f, followRestDistance * Random.Range(.9f, 1.1f));
+        reactionDelay = Random.Range(.04f, .08f);
         departureTimer = destinationTimer = 0f;
         followOffset = Vector3.zero;
+    }
+
+    private bool FollowStandFree(Vector3 end)
+    {
+        if (!PointFree(end)) return false;
+        if (companions == null) return true;
+        Vector3 route = Flat(end - transform.position);
+        foreach (HelperChickController other in companions)
+        {
+            // Moving companions are queued behind normally; a resting one must not block us forever.
+            if (!IsCompanion(other) || other.smoothedSpeed > .12f ||
+                Mathf.Abs(other.transform.position.y - transform.position.y) > body.height) continue;
+            float t = route.sqrMagnitude > .001f ?
+                Mathf.Clamp01(Vector3.Dot(Flat(other.transform.position - transform.position), route) / route.sqrMagnitude) : 0f;
+            float clearance = body.radius + other.body.radius + .18f;
+            if (Flat(other.transform.position - (transform.position + route * t)).sqrMagnitude < clearance * clearance)
+                return false;
+        }
+        return true;
+    }
+
+    private bool TryUncrowdedFollowStand(Vector3 ownerPosition, out Vector3 best)
+    {
+        best = ownerPosition;
+        float bestScore = float.PositiveInfinity;
+        Vector3 radial = FlatOrDefault(transform.position - ownerPosition, -transform.forward).normalized;
+        for (int i = 0; i < SlotCount; i++)
+        {
+            Vector3 candidate = ownerPosition + Quaternion.Euler(0f, i * 360f / SlotCount, 0f) * radial *
+                Mathf.Max(SlotSideOffset + .1f, personalRestDistance * .85f);
+            if (!TryGround(candidate, ownerPosition.y, out Vector3 ground) ||
+                Mathf.Abs(ground.y - ownerPosition.y) > .15f || !FollowStandFree(ground)) continue;
+            float score = (ground - transform.position).sqrMagnitude;
+            if (score >= bestScore) continue;
+            bestScore = score;
+            best = ground;
+        }
+        return !float.IsPositiveInfinity(bestScore);
     }
 
     private bool SafeRoamPath(Vector3 end)
@@ -473,7 +547,8 @@ public sealed class HelperChickController : MonoBehaviour
     private bool UpdateClimb(Vector3 playerPosition, bool chickenAbove, bool blockedBelow, float dt)
     {
         if (hopping) return false;
-        if (!following || player.IsJumping || foodTarget != null || !blockedBelow)
+        bool foraging = foodTarget != null && eatPhase == EatPhase.None;
+        if ((!following && !foraging) || (!foraging && player.IsJumping) || !blockedBelow)
         {
             climbWait = 0f;
             belowTimer = Mathf.Max(0f, belowTimer - dt);
@@ -481,21 +556,22 @@ public sealed class HelperChickController : MonoBehaviour
         }
         climbWait += dt;
         belowTimer += dt;
-        if (belowTimer >= UnreachableTeleportDelay && chickenAbove) { SnapToSlot(); return true; }
+        if (!foraging && belowTimer >= UnreachableTeleportDelay && chickenAbove) { SnapToSlot(); return true; }
         if (climbWait >= ClimbDelay)
         {
             climbWait = 0f;
-            if (TryLedgeHop(playerPosition)) belowTimer = stuckTimer = 0f;
+            if (TryLedgeHop(foraging ? standPoint : slotWorld, foraging))
+                belowTimer = stuckTimer = foodTimer = 0f;
         }
         return false;
     }
 
-    // A flapping hop onto the surface the chicken stands on, up to the chicken's own jump height.
-    private bool TryLedgeHop(Vector3 playerPosition)
+    // The same checked landing/arc is used for owner following AND independent food trips.
+    private bool TryLedgeHop(Vector3 destination, bool keepFood)
     {
         Vector3 feet = transform.position;
         float maxRise = Mathf.Max(jumpHeight, player.CurrentJumpHeight);
-        Vector3 towardPlayer = FlatOrDefault(slotWorld - feet, playerPosition - feet).normalized;
+        Vector3 towardPlayer = FlatOrDefault(destination - feet, transform.forward).normalized;
         // No obstacle on our route means no jump, even when the owner jumps beside us.
         if (!FindBlock(Vector3.zero, towardPlayer, .4f, true, out RaycastHit obstacle)) return false;
         // Probe the near edge first: this also allows intermediate steps, not only the owner's final surface.
@@ -506,14 +582,14 @@ public sealed class HelperChickController : MonoBehaviour
             if (!RaycastGround(point + Vector3.up * (maxRise + .1f), maxRise + .2f, out RaycastHit top)) continue;
             float rise = top.point.y - feet.y;
             if (rise < .06f || rise > maxRise || !StableLanding(top.point)) continue;
-            if (BeginHop(top.point)) return true;
+            if (BeginHop(top.point, keepFood)) return true;
         }
-        if (TryHopLanding(slotWorld, playerPosition.y, feet, maxRise, out Vector3 landing))
-            return BeginHop(landing);
+        if (TryHopLanding(destination, destination.y, feet, maxRise, out Vector3 landing))
+            return BeginHop(landing, keepFood);
         return false;
     }
 
-    private bool BeginHop(Vector3 landing)
+    private bool BeginHop(Vector3 landing, bool keepFood)
     {
         Vector3 feet = transform.position;
         float g = -gravity;
@@ -539,7 +615,8 @@ public sealed class HelperChickController : MonoBehaviour
             previous = sample;
         }
 
-        CancelFood();
+        // Keep the food and its reserved landing spot through the jump.
+        if (!keepFood) CancelFood();
         jumping = hopping = true;
         grounded = false;
         airborneTimer = 0f;
@@ -705,26 +782,29 @@ public sealed class HelperChickController : MonoBehaviour
 
     // ---- Eating ---------------------------------------------------------------------------------
 
-    private void UpdateFood(Vector3 playerPosition, float leash, float playerDistance, bool playerCalm, float dt)
+    private void UpdateFood(Vector3 playerPosition, float leash, float playerDistance, bool canForage, float dt)
     {
         if (foodTarget != null)
         {
-            bool leftLeash = playerDistance > leash + .6f;
-            bool playerMoving = eatPhase == EatPhase.None && !playerCalm;
+            bool leftLeash = playerDistance > leash;
             bool finished = eatPhase != EatPhase.None && impactHandled;
             bool lost = !foodTarget.CanBeEaten() && !finished;
-            if (following || leftLeash || playerMoving || lost || jumping) { CancelFood(); return; }
-            if (eatPhase == EatPhase.None)
+            if (following || leftLeash || (jumping && !hopping)) { CancelFood(); return; }
+            bool abandoned = lost || (playerEater != null && playerEater.CurrentTarget == foodTarget && !finished);
+            if (!abandoned && eatPhase == EatPhase.None && !hopping)
             {
                 foodTimer += dt;
-                if (foodTimer > 5f) { Ignore(foodTarget); CancelFood(); }
+                if (foodTimer > 7f) { Ignore(foodTarget); abandoned = true; }
             }
-            return;
+            if (!abandoned) return;
+            CancelFood();
+            // A vanished/unreachable seed should lead to another seed, not a trip back to the owner.
+            foodSearchGraceUntil = Time.time + .45f;
         }
 
         if (eatPhase != EatPhase.None) return; // Consumed objects may be destroyed before recovery ends.
         scanTimer -= dt;
-        if (scanTimer > 0f || !playerCalm || jumping || !grounded) return;
+        if (scanTimer > 0f || !canForage || following || playerDistance > leash || jumping || !grounded) return;
         scanTimer = ScanInterval;
         FindFood(playerPosition, leash);
     }
@@ -733,8 +813,16 @@ public sealed class HelperChickController : MonoBehaviour
     {
         int count = Physics.OverlapSphereNonAlloc(playerPosition + Vector3.up * .05f, leash + .15f, overlaps,
             edibleMask, QueryTriggerInteraction.Collide);
-        EdibleObject best = null;
-        float bestScore = float.PositiveInfinity;
+        // NonAlloc truncation is unordered: a fixed buffer can permanently hide the nearest seeds.
+        // Grow only on saturation and reuse the capacity for every subsequent scan.
+        while (count == overlaps.Length)
+        {
+            System.Array.Resize(ref overlaps, overlaps.Length * 2);
+            count = Physics.OverlapSphereNonAlloc(playerPosition + Vector3.up * .05f, leash + .15f, overlaps,
+                edibleMask, QueryTriggerInteraction.Collide);
+        }
+        foodCandidates.Clear();
+        uniqueFood.Clear();
         Vector3 helperPosition = transform.position;
         for (int i = 0; i < count; i++)
         {
@@ -744,24 +832,27 @@ public sealed class HelperChickController : MonoBehaviour
             if (playerEater != null && playerEater.CurrentTarget == edible) continue;
             Vector3 bite = edible.BitePosition;
             if (Flat(bite - playerPosition).sqrMagnitude > leash * leash) continue;
-            Vector3 toFood = Flat(bite - helperPosition);
-            // Prefer reachable food ahead over an equally close seed behind the helper.
-            float turnCost = (1f - Vector3.Dot(transform.forward, toFood.normalized)) * .08f;
-            float score = toFood.sqrMagnitude + Mathf.Abs(bite.y - helperPosition.y) + turnCost;
-            if (score < bestScore) { best = edible; bestScore = score; }
+            if (uniqueFood.Add(edible)) foodCandidates.Add(edible);
         }
-        if (best != null) TryClaim(best);
+        foodCandidates.Sort((a, b) => (a.BitePosition - helperPosition).sqrMagnitude.CompareTo(
+            (b.BitePosition - helperPosition).sqrMagnitude));
+        // If the closest seed has no free feeding spot, try the next one in the same scan.
+        foreach (EdibleObject candidate in foodCandidates)
+        {
+            TryClaim(candidate);
+            if (foodTarget != null) break;
+        }
     }
 
     private bool IsEdible(EdibleObject edible) =>
         edible != null && beakEatPoint != null && edible.CanBeEaten() && edible.ContactVisual != null &&
         edible.ContactVisual != edible.transform && edible.ContactVisual.IsChildOf(edible.transform) &&
-        (edibleMask.value & (1 << edible.gameObject.layer)) != 0 &&
-        edible.IsSurfaceAccessibleFrom(body.bounds.center);
+        (edibleMask.value & (1 << edible.gameObject.layer)) != 0;
 
     private void TryClaim(EdibleObject edible)
     {
-        if (FoodClaimedByCompanion(edible)) return;
+        if (!IsEdible(edible) || FoodClaimedByCompanion(edible) ||
+            (playerEater != null && playerEater.CurrentTarget == edible)) return;
         Vector3 bite = edible.BitePosition;
         if (!RaycastGround(bite + Vector3.up * .05f, .45f, out RaycastHit floor) ||
             Mathf.Abs(bite.y - (floor.point.y + localImpactPoint.y)) > edible.MaxVerticalInteractionOffset)
@@ -772,11 +863,23 @@ public sealed class HelperChickController : MonoBehaviour
         Vector3 approach = FlatOrDefault(bite - transform.position, transform.forward).normalized;
         // A seed already in beak range does not require stepping backwards and turning twice.
         Vector3 stand = CanReachFacing(edible) ? transform.position : bite - approach * localImpactPoint.z;
-        if (!TryGround(stand, transform.position.y, out Vector3 ground) ||
-            Mathf.Abs(ground.y - transform.position.y) > StepHeight || !PointFree(ground))
+        // Probe from the food's surface height, not from below a ledge the helper can jump onto.
+        if (!TryGround(stand, floor.point.y, out Vector3 ground) ||
+            Mathf.Abs(ground.y - transform.position.y) > Mathf.Max(jumpHeight, player.CurrentJumpHeight) ||
+            !edible.IsSurfaceAccessibleFrom(ground + Vector3.up * body.height * .5f))
         {
             Ignore(edible);
             return;
+        }
+        // A companion occupying this spot is temporary, not an eight-second food blacklist.
+        if (!PointFree(ground)) return;
+        // Reserve the feeding position as well as the seed, before anyone starts walking.
+        if (companions != null) foreach (HelperChickController other in companions)
+        {
+            if (!IsCompanion(other) || other.foodTarget == null) continue;
+            float clearance = body.radius + other.body.radius + .12f;
+            if (Mathf.Abs(other.standPoint.y - ground.y) < body.height &&
+                Flat(other.standPoint - ground).sqrMagnitude < clearance * clearance) return;
         }
         foodTarget = edible;
         standPoint = ground;
@@ -825,6 +928,7 @@ public sealed class HelperChickController : MonoBehaviour
         targetRootAtStart = foodTarget.transform.position;
         assistInvalidated = false;
         impactHandled = false;
+        impactSucceeded = false;
         enteredEatState = false;
         startDeadline = Time.time + .25f;
 
@@ -838,7 +942,7 @@ public sealed class HelperChickController : MonoBehaviour
 
     private bool IsInReach(EdibleObject edible)
     {
-        if (!IsEdible(edible)) return false;
+        if (!IsEdible(edible) || !edible.IsSurfaceAccessibleFrom(body.bounds.center)) return false;
         Vector3 predicted = transform.TransformPoint(localImpactPoint);
         Vector3 planar = Flat(edible.BitePosition - transform.position);
         if (planar.sqrMagnitude < 1e-6f || Vector3.Dot(planar.normalized, transform.forward) < Mathf.Cos(80f * Mathf.Deg2Rad))
@@ -854,8 +958,8 @@ public sealed class HelperChickController : MonoBehaviour
         if (eatPhase != EatPhase.Eating || impactHandled) return;
         bool atContact = ApplyContactAssist(1f);
         impactHandled = true;
-        bool eaten = atContact && foodTarget != null && IsInReach(foodTarget) && foodTarget.Consume();
-        if (!eaten && foodTarget != null) Ignore(foodTarget);
+        impactSucceeded = atContact && foodTarget != null && IsInReach(foodTarget) && foodTarget.Consume();
+        if (!impactSucceeded && foodTarget != null) Ignore(foodTarget);
         RestoreContactVisual();
     }
 
@@ -917,12 +1021,16 @@ public sealed class HelperChickController : MonoBehaviour
     private void FinishEat()
     {
         RestoreContactVisual();
-        if (foodTarget != null && foodTarget.CanBeEaten()) Ignore(foodTarget);
+        if (!impactSucceeded && foodTarget != null && foodTarget.CanBeEaten()) Ignore(foodTarget);
         eatPhase = EatPhase.None;
         foodTarget = null;
         targetVisual = null;
         impactHandled = false;
         enteredEatState = false;
+        impactSucceeded = false;
+        // Next Update scans BEFORE navigation. Never leave a scan-cooldown gap after a completed bite.
+        scanTimer = 0f;
+        foodSearchGraceUntil = Time.time + .45f;
     }
 
     private void CancelFood()
@@ -934,6 +1042,9 @@ public sealed class HelperChickController : MonoBehaviour
         targetVisual = null;
         impactHandled = false;
         enteredEatState = false;
+        impactSucceeded = false;
+        scanTimer = 0f;
+        foodSearchGraceUntil = 0f;
     }
 
     private void Ignore(EdibleObject edible)

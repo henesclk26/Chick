@@ -419,8 +419,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HelperChickController
   walkSpeed: 0.8
   runSpeed: 1.4
-  followGain: 4
-  catchUpBonus: 0.7
+  followGain: 8
+  catchUpBonus: 1.5
   acceleration: 14
   gravity: -18
   jumpHeight: 0.275

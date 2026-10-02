@@ -93,8 +93,8 @@ public sealed class PlayerUpgrades : MonoBehaviour
     public bool GlideUnlocked => GetLevel(Glide) > 0;
     // Each purchased level adds one independent companion.
     public int HelperChickCount => Mathf.Min(GetLevel(HelperChick), MaxHelperChicks);
-    public float HelperRoamRadius =>
-        helperRoamRadius * Mathf.Pow(helperRangeMultiplierPerLevel, GetLevel(HelperRange));
+    public float HelperRangeMultiplier => Mathf.Pow(helperRangeMultiplierPerLevel, GetLevel(HelperRange));
+    public float HelperRoamRadius => helperRoamRadius * HelperRangeMultiplier;
     public float HelperEatSpeedFraction =>
         helperEatSpeedFraction * Mathf.Pow(helperEatSpeedMultiplierPerLevel, GetLevel(HelperEatSpeed));
 

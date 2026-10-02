@@ -211,6 +211,7 @@ public sealed class ChickEatingController : MonoBehaviour
     private bool IsTargetValid(EdibleObject edible)
     {
         if (edible == null || beakEatPoint == null || !edible.CanBeEaten() ||
+            HelperChickController.IsFoodReservedByHelper(edible) ||
             edible.ContactVisual == null || edible.ContactVisual == edible.transform ||
             !edible.ContactVisual.IsChildOf(edible.transform) ||
             !edible.IsSurfaceAccessibleFrom(characterController.bounds.center) ||
