@@ -401,9 +401,9 @@ CharacterController:
   m_Height: 0.22
   m_Radius: 0.09
   m_SlopeLimit: 45
-  m_StepOffset: 0
+  m_StepOffset: 0.0264
   m_SkinWidth: 0.009
-  m_MinMoveDistance: 0.001
+  m_MinMoveDistance: 0
   m_Center: {x: 0, y: 0.11, z: -0.01}
 --- !u!114 &4032469900938985195
 MonoBehaviour:
@@ -434,7 +434,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 512
   baseEatAnimationSpeed: 1.4
-  maxContactAssistDistance: 0.13
   beakEatPoint: {fileID: 5230960437202300000}
   localImpactPoint: {x: -0.007, y: 0.011, z: 0.087}
 --- !u!1 &3547425873419275207

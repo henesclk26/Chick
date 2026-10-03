@@ -175,7 +175,7 @@ public sealed class PlayerGrowthController : MonoBehaviour
         capsule.height = grown ? .6f * chickenBodyScale : chickHeight;
         capsule.radius = grown ? .21f * chickenBodyScale : chickRadius;
         capsule.center = grown ? new Vector3(0f, .3f * chickenBodyScale, 0f) : chickCenter;
-        capsule.stepOffset = 0f;
+        BirdGroundTraversal.Configure(capsule);
         capsule.enabled = capsuleEnabled;
         player.SetFormAnimator(grown ? chickenAnimator : chickAnimator);
         eater.ConfigureForm(player.ActiveAnimator, grown ? chickenBeak : chickBeak,

@@ -204,6 +204,7 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
+        BirdGroundTraversal.Configure(controller);
         eatingController = GetComponent<ChickEatingController>();
         if (upgrades == null) upgrades = FindFirstObjectByType<PlayerUpgrades>(FindObjectsInactive.Include);
 

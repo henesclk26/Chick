@@ -57,6 +57,7 @@
 #LeftIconGlow, #RightIconGlow { display: none; }
 #LeftIcon { width: 38px; left: -38px; }
 #RightIcon {
+    display: flex;
     width: 48px;
     height: 50px;
     top: 2px;

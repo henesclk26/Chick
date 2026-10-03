@@ -220,16 +220,39 @@ public sealed class HelperChickNearHomeVerification : MonoBehaviour
         // Measure ordinary walking separately from the preceding long food excursion.
         yield return new WaitForSeconds(3f);
         float maxFollow=0f;
+        int walkingFollowExits=0;
+        float[] slowTime=new float[3], longestSlow=new float[3], speedSum=new float[3];
+        int speedSamples=0;
         for(float t=0;t<7f;t+=Time.deltaTime) {
             player.TeleportTo(player.transform.position+Vector3.forward*(1.2f*Time.deltaTime),Quaternion.identity);
             yield return null;
             foreach(var h in flock) maxFollow=Mathf.Max(maxFollow,Vector3.Distance(h.transform.position,player.transform.position));
+            if(t>2f) {
+                speedSamples++;
+                for(int i=0;i<3;i++) {
+                    if(!(bool)Get(flock[i],"following")) walkingFollowExits++;
+                    Vector3 v=flock[i].GetComponent<CharacterController>().velocity;v.y=0f;
+                    speedSum[i]+=v.magnitude;
+                    slowTime[i]=v.magnitude<.25f ? slowTime[i]+Time.deltaTime : 0f;
+                    longestSlow[i]=Mathf.Max(longestSlow[i],slowTime[i]);
+                }
+            }
         }
         Check(maxFollow<1.4f,"walking follow stays near; max="+maxFollow.ToString("F2"));
+        Check(walkingFollowExits==0,"no follow/idle cycling while owner walks; exits="+walkingFollowExits);
+        for(int i=0;i<3;i++) {
+            float mean=speedSum[i]/Mathf.Max(1,speedSamples);
+            Check(longestSlow[i]<.15f,"no repeated walking pauses helper "+i+" longest="+longestSlow[i].ToString("F3"));
+            Check(mean>.9f && mean<1.5f,"matches walking pace helper "+i+" average="+mean.ToString("F2"));
+        }
+        yield return new WaitForSeconds(.1f);
+        foreach(var h in flock) Check((bool)Get(h,"following"),"brief pause retains walking follow");
         yield return new WaitForSeconds(4f);
+        foreach(var h in flock) Check(!(bool)Get(h,"following"),"stationary owner releases independent behaviour");
         foreach(var h in flock) Check(Vector3.Distance(h.transform.position,player.transform.position)<1.1f,
             "settles close after walk; gap="+Vector3.Distance(h.transform.position,player.transform.position).ToString("F2"));
         yield return ContinuousFeeding(player, flock, home);
+        yield return RealSeedContact(player, flock, home);
         Finish();
     }
 
@@ -273,10 +296,18 @@ public sealed class HelperChickNearHomeVerification : MonoBehaviour
         int playerMeals=0, returnFrames=0, conflictFrames=0;
         var consumedIds=new HashSet<int>();
         bool duplicate=false;
+        float maximumBeakGap=0f, maximumFoodSlide=0f;
+        var visualPositions=new Dictionary<EdibleObject,Vector3>();
+        foreach(var seed in food) if(seed!=null && seed.ContactVisual!=null)
+            visualPositions[seed]=seed.ContactVisual.localPosition;
         consumeObserver = edible => {
             if (!consumedIds.Add(edible.GetInstanceID())) duplicate=true;
             if(eater.CurrentTarget==edible) playerMeals++;
-            for(int i=0;i<3;i++) if(Get(flock[i],"foodTarget") as EdibleObject == edible) helperMeals[i]++;
+            for(int i=0;i<3;i++) if(Get(flock[i],"foodTarget") as EdibleObject == edible) {
+                helperMeals[i]++;
+                var beak=(Transform)Get(flock[i],"beakEatPoint");
+                maximumBeakGap=Mathf.Max(maximumBeakGap,Vector3.Distance(beak.position,edible.BitePosition));
+            }
         };
         EdibleObject.Consumed+=consumeObserver;
         float nextOwnerPeck=0f;
@@ -304,10 +335,14 @@ public sealed class HelperChickNearHomeVerification : MonoBehaviour
                 if(t>1f && (bool)Get(h,"following")) returnFrames++;
                 var target=Get(h,"foodTarget") as EdibleObject;
                 if(target!=null && !claimed.Add(target)) conflictFrames++;
+                if(target!=null && target.ContactVisual!=null && visualPositions.TryGetValue(target,out var initial))
+                    maximumFoodSlide=Mathf.Max(maximumFoodSlide,Vector3.Distance(initial,target.ContactVisual.localPosition));
             }
         }
         EdibleObject.Consumed-=consumeObserver; consumeObserver=null;
         Check(playerMeals>=5,"owner really eats alongside helpers; meals="+playerMeals);
+        Check(maximumBeakGap<=.0121f,"helper consumes only at physical beak contact; max gap="+maximumBeakGap.ToString("F4"));
+        Check(maximumFoodSlide<.0001f,"helper food never slides toward beak; max slide="+maximumFoodSlide.ToString("F4"));
         for(int i=0;i<3;i++) {
             Check(helperMeals[i]>=6,"continuous dense feeding helper "+i+" meals="+helperMeals[i]);
             Check(((Collider[])Get(flock[i],"overlaps")).Length>=512,"dense scan grows and reuses capacity helper "+i);
@@ -317,6 +352,50 @@ public sealed class HelperChickNearHomeVerification : MonoBehaviour
         eater.CancelEat();
         eater.enabled=false;
     }
+    private IEnumerator RealSeedContact(ChickPlayerController player, HelperChickController[] flock, Vector3 home)
+    {
+        foreach(var seed in food) if(seed!=null) seed.gameObject.SetActive(false);
+        player.TeleportTo(home+Vector3.up*.01f,Quaternion.identity);
+        foreach(var h in flock) h.enabled=false;
+        var helper=flock[0];
+        string[] names={"CornSeed","SunflowerSeed","RiceGrain","WheatGrain_Test"};
+        foreach(string name in names)
+        {
+            var prefab=UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Edibles/"+name+".prefab");
+            var instance=Instantiate(prefab,home+Vector3.forward*1.25f,Quaternion.Euler(0f,37f,0f));
+            instance.name="BeakContact_TEMP_"+name;
+            temporary.Add(instance);
+            float bottom=float.PositiveInfinity;
+            foreach(var renderer in instance.GetComponentsInChildren<Renderer>())
+                bottom=Mathf.Min(bottom,renderer.bounds.min.y);
+            instance.transform.position+=Vector3.up*(home.y+.001f-bottom);
+            var seed=instance.GetComponent<EdibleObject>();
+            Vector3 visualStart=seed.ContactVisual.localPosition;
+            Vector3 seedStart=seed.transform.position;
+            Call(helper,"Teleport",home+Vector3.forward*.9f,Quaternion.identity);
+            Set(helper,"lastPlayerPosition",player.transform.position);
+            Physics.SyncTransforms();
+            Call(helper,"TryClaim",seed);
+            Call(helper,"TryBeginEat");
+            Check(Get(helper,"eatPhase").ToString()=="None","no remote bite at old suction distance: "+name);
+            float gap=float.PositiveInfinity, slide=0f;
+            consumeObserver=edible=>{
+                if(edible==seed) gap=Vector3.Distance(((Transform)Get(helper,"beakEatPoint")).position,seed.BitePosition);
+            };
+            EdibleObject.Consumed+=consumeObserver;
+            helper.enabled=true;
+            for(float t=0;t<5f && !seed.IsConsumed;t+=Time.deltaTime) {
+                yield return null;
+                slide=Mathf.Max(slide,Vector3.Distance(visualStart,seed.ContactVisual.localPosition));
+            }
+            Check(seed.IsConsumed && gap<=.0121f,"real prefab contact "+name+" consumed="+seed.IsConsumed+" gap="+gap.ToString("F4"));
+            Check(slide<.0001f && Vector3.Distance(seedStart,seed.transform.position)<.0001f,"stationary real seed "+name);
+            helper.enabled=false;
+            EdibleObject.Consumed-=consumeObserver; consumeObserver=null;
+            seed.gameObject.SetActive(false);
+        }
+    }
+
     private void Finish() { Result=(failures==0?"PASS\n":"FAIL\n")+report; Debug.Log("NEAR HOME VERIFICATION\n"+Result); Cleanup(); }
     private void Cleanup() {
         if(cleaned) return; cleaned=true;
