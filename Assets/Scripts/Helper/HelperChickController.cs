@@ -70,6 +70,10 @@ public sealed class HelperChickController : MonoBehaviour
     private CharacterController body;
     private Animator animator;
     private PlayerUpgrades upgrades;
+    public int UpgradeIndex { get; private set; }
+    private float PersonalMoveMultiplier => upgrades != null ? upgrades.GetHelperMoveMultiplier(UpgradeIndex) : 1f;
+    private float PersonalClimbHeight => Mathf.Max(jumpHeight, player.CurrentJumpHeight) +
+        (upgrades != null ? upgrades.GetHelperClimbBonus(UpgradeIndex) : 0f);
     private ChickPlayerController player;
     private CharacterController playerBody;
     private ChickEatingController playerEater;
@@ -158,8 +162,9 @@ public sealed class HelperChickController : MonoBehaviour
     }
 
     public void Initialize(PlayerUpgrades playerUpgrades, ChickPlayerController owner,
-        IReadOnlyList<HelperChickController> flock = null)
+        IReadOnlyList<HelperChickController> flock = null, int upgradeIndex = 0)
     {
+        UpgradeIndex = Mathf.Clamp(upgradeIndex, 0, PlayerUpgrades.MaxHelperChicks - 1);
         companions = flock;
         upgrades = playerUpgrades;
         player = owner;
@@ -250,7 +255,7 @@ public sealed class HelperChickController : MonoBehaviour
         float playerSpeed = playerVelocity.magnitude;
         // Brief changes in speed must not turn a walking procession into repeated idle/catch-up cycles.
         ownerStillTime = playerSpeed > .12f || player.IsJumping ? 0f : ownerStillTime + dt;
-        float leash = forageRadius * (upgrades != null ? upgrades.HelperRangeMultiplier : 1f);
+        float leash = forageRadius * (upgrades != null ? upgrades.GetHelperRangeMultiplier(UpgradeIndex) : 1f);
         float playerDistance = Flat(transform.position - playerPosition).magnitude;
 
         bool ownerAbove = !player.IsJumping && playerPosition.y - transform.position.y > .12f;
@@ -359,7 +364,7 @@ public sealed class HelperChickController : MonoBehaviour
         float urgency = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(personalRestDistance, urgentFollowDistance, ownerDistance));
         // Distance controls pace. Never add the owner's velocity or copy its turn into our motion.
         float limit = following ? Mathf.Max(walkSpeed, playerSpeed + Mathf.Lerp(.15f, catchUpBonus, urgency)) : wanderSpeed;
-        float speed = Mathf.Min(limit, Mathf.Min(distance * followGain, distance / Mathf.Max(.001f, dt)));
+        float speed = Mathf.Min(limit * PersonalMoveMultiplier, Mathf.Min(distance * followGain, distance / Mathf.Max(.001f, dt)));
         return toSlot.normalized * speed;
     }
 
@@ -603,7 +608,7 @@ public sealed class HelperChickController : MonoBehaviour
     private bool TryLedgeHop(Vector3 destination, bool keepFood)
     {
         Vector3 feet = transform.position;
-        float maxRise = Mathf.Max(jumpHeight, player.CurrentJumpHeight);
+        float maxRise = PersonalClimbHeight;
         Vector3 towardPlayer = FlatOrDefault(destination - feet, transform.forward).normalized;
         // No obstacle on our route means no jump, even when the owner jumps beside us.
         if (!FindBlock(Vector3.zero, towardPlayer, .4f, true, out RaycastHit obstacle)) return false;
@@ -902,7 +907,7 @@ public sealed class HelperChickController : MonoBehaviour
         Vector3 stand = bite - facing * impactOffset;
         // Probe from the food's surface height, not from below a ledge the helper can jump onto.
         if (!TryGround(stand, floor.point.y, out Vector3 ground) ||
-            Mathf.Abs(ground.y - transform.position.y) > Mathf.Max(jumpHeight, player.CurrentJumpHeight) ||
+            Mathf.Abs(ground.y - transform.position.y) > PersonalClimbHeight ||
             !edible.IsSurfaceAccessibleFrom(ground + Vector3.up * body.height * .5f))
         {
             Ignore(edible);
@@ -954,7 +959,7 @@ public sealed class HelperChickController : MonoBehaviour
         enteredEatState = false;
         startDeadline = Time.time + .25f;
 
-        float fraction = upgrades != null ? upgrades.HelperEatSpeedFraction : .5f;
+        float fraction = upgrades != null ? upgrades.GetHelperEatSpeedFraction(UpgradeIndex) : .5f;
         animator.SetFloat(EatSpeed, baseEatAnimationSpeed * fraction);
         animator.ResetTrigger(Jump);
         animator.SetTrigger(Eat);

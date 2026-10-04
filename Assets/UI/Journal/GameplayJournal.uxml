@@ -147,7 +147,7 @@
                                 <ui:Image name="sprint-duration-art" class="upgrade-art" />
                                 <ui:VisualElement class="upgrade-details">
                                     <ui:Label text="Sprint Süresi" class="upgrade-name" />
-                                    <ui:Label text="Daha uzun süre koşabil." class="upgrade-description" />
+                                    <ui:Label text="Daha uzun süre koş." class="upgrade-description" />
                                     <ui:VisualElement name="sprint-duration-levels" class="level-row" />
                                 </ui:VisualElement>
                                 <ui:Button name="sprint-duration-price" class="upgrade-price">
@@ -192,7 +192,7 @@
                                 <ui:Image name="glide-art" class="upgrade-art" />
                                 <ui:VisualElement class="upgrade-details">
                                     <ui:Label text="Süzülme" class="upgrade-name" />
-                                    <ui:Label text="Kanatlarını aç, havada yavaşça süzül." class="upgrade-description" />
+                                    <ui:Label text="Kanatlarını aç, yavaşça süzül." class="upgrade-description" />
                                     <ui:VisualElement name="glide-levels" class="level-row" />
                                 </ui:VisualElement>
                                 <ui:Button name="glide-price" class="upgrade-price">

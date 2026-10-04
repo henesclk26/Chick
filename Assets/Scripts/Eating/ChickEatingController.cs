@@ -171,7 +171,7 @@ public sealed class ChickEatingController : MonoBehaviour
         return true;
     }
 
-    private EdibleObject FindTarget()
+    private EdibleObject FindTarget(EdibleObject exclude = null)
     {
         Collider[] candidates = nearby;
         // Bounded broad phase covers the metadata cap; narrow phase uses each food's multiplier.
@@ -190,7 +190,7 @@ public sealed class ChickEatingController : MonoBehaviour
         {
             var edible = candidates[i].GetComponentInParent<EdibleObject>();
             candidates[i] = null;
-            if (!IsTargetValid(edible)) continue;
+            if (edible == exclude || !IsTargetValid(edible)) continue;
             Vector3 delta = edible.BitePosition - transform.position;
             Vector3 planar = Vector3.ProjectOnPlane(delta, Vector3.up);
             float alignment = Vector3.Dot(planar.normalized, transform.forward);
@@ -239,6 +239,14 @@ public sealed class ChickEatingController : MonoBehaviour
         impactHandled = true;
         if (atContact && IsTargetValid(target)) LastImpactSucceeded = target.Consume();
         RestoreContactVisual();
+        // A purchased double collection can take one additional reachable seed, never a
+        // companion's reserved meal or an extra bite from the same multi-bite fruit.
+        if (LastImpactSucceeded && target != null && target.IsConsumed && upgrades != null &&
+            upgrades.DoubleCollectChance > 0f && Random.value < upgrades.DoubleCollectChance)
+        {
+            EdibleObject extra = FindTarget(target);
+            if (extra != null && extra.BiteHandler == null) extra.Consume();
+        }
     }
 
     // Animation Event: first recovery crest (frame 30). Skip the two extra pecks.

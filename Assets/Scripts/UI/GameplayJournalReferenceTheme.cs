@@ -110,6 +110,23 @@ public static class GameplayJournalReferenceTheme
         root.Query<NavGlyph>().ForEach(g => g.MarkDirtyRepaint());
     }
 
+    public static void AddOliveSurface(VisualElement parent)
+    {
+        var surface = new AtlasSurface(new Rect(225, 186, 193, 24), new Rect(225, 186, 193, 24), 0);
+        surface.AddToClassList("section-olive-art");
+        Underlay(parent, surface);
+    }
+
+    // Paper-grain wear for flat olive buttons, so they match the hand-worn paper and frame.
+    // Drawn above the button colour but below its label, egg or glyph.
+    public static void AddWear(VisualElement button)
+    {
+        if (button == null || button.Q(className: "button-wear") != null) return;
+        int index = 0;
+        while (index < button.childCount && button[index].ClassListContains("reference-surface")) index++;
+        button.Insert(index, new WornPaint(button.name + "/" + string.Join(".", button.GetClasses())));
+    }
+
     public static Image CreateLevelEgg(bool filled)
     {
         if (goldEgg == null) goldEgg = Resources.Load<Texture2D>("Journal/GoldEgg");
@@ -199,7 +216,8 @@ public static class GameplayJournalReferenceTheme
                 Add(new Rect(0,0,65,65), new Rect(source.x,source.y,65,65));
                 Add(new Rect(w-44,0,44,44), new Rect(source.xMax-44,source.y,44,44));
                 Add(new Rect(0,h-37,37,37), new Rect(source.x,source.yMax-37,37,37));
-                Add(new Rect(w-65,h-65,65,65), new Rect(source.xMax-65,source.yMax-65,65,65));
+                // 60, not 65: the row above holds the reference's scroll-box edge, which showed as a stray dash.
+                Add(new Rect(w-60,h-60,60,60), new Rect(source.xMax-60,source.yMax-60,60,60));
             }
             var mesh = context.Allocate(pieces.Count * 4, pieces.Count * 6, Atlas);
             ushort index = 0;
@@ -216,6 +234,64 @@ public static class GameplayJournalReferenceTheme
                 mesh.SetNextVertex(new Vertex { position = new Vector3(d.x,d.yMax,Vertex.nearZ), tint = Color.white, uv = new Vector2(u0,v1) });
                 mesh.SetNextIndex(index); mesh.SetNextIndex((ushort)(index+1)); mesh.SetNextIndex((ushort)(index+2));
                 mesh.SetNextIndex((ushort)(index+2)); mesh.SetNextIndex((ushort)(index+3)); mesh.SetNextIndex(index);
+                index += 4;
+            }
+        }
+    }
+
+    // Tiles the journal paper's own grain (ButtonGrain, derived from the panel tile) over
+    // flat olive buttons, so they carry the same light wear as the background.
+    private sealed class WornPaint : VisualElement
+    {
+        private static Texture2D grain;
+        private readonly Vector2 offset;
+
+        public WornPaint(string key)
+        {
+            // FNV-1a: a stable offset, so neighbouring buttons do not repeat the same patch.
+            uint hash = 2166136261;
+            foreach (char c in key) hash = (hash ^ c) * 16777619;
+            if (grain == null) grain = Resources.Load<Texture2D>("Journal/ButtonGrain");
+            if (grain != null) offset = new Vector2(hash % (uint)grain.width, (hash >> 16) % (uint)grain.height);
+            AddToClassList("button-wear");
+            pickingMode = PickingMode.Ignore;
+            style.position = Position.Absolute;
+            style.left = 0; style.top = 0; style.right = 0; style.bottom = 0;
+            generateVisualContent += Paint;
+        }
+
+        private void Paint(MeshGenerationContext context)
+        {
+            float w = contentRect.width, h = contentRect.height;
+            if (w <= 0 || h <= 0 || grain == null) return;
+            float tw = grain.width, th = grain.height;
+            var pieces = new List<Rect>();
+            var sources = new List<Rect>();
+            // Fixed 1:1 tiling, as the panel paper does, starting at a per-button offset.
+            for (float y = 0; y < h;)
+            {
+                float sy = y == 0 ? offset.y : 0, ph = Mathf.Min(th - sy, h - y);
+                for (float x = 0; x < w;)
+                {
+                    float sx = x == 0 ? offset.x : 0, pw = Mathf.Min(tw - sx, w - x);
+                    pieces.Add(new Rect(x, y, pw, ph));
+                    sources.Add(new Rect(sx, sy, pw, ph));
+                    x += pw;
+                }
+                y += ph;
+            }
+            var mesh = context.Allocate(pieces.Count * 4, pieces.Count * 6, grain);
+            ushort index = 0;
+            for (int i = 0; i < pieces.Count; i++)
+            {
+                Rect d = pieces[i], s = sources[i];
+                float u0 = s.x / tw, u1 = s.xMax / tw, v0 = 1 - s.y / th, v1 = 1 - s.yMax / th;
+                mesh.SetNextVertex(new Vertex { position = new Vector3(d.x, d.y, Vertex.nearZ), tint = Color.white, uv = new Vector2(u0, v0) });
+                mesh.SetNextVertex(new Vertex { position = new Vector3(d.xMax, d.y, Vertex.nearZ), tint = Color.white, uv = new Vector2(u1, v0) });
+                mesh.SetNextVertex(new Vertex { position = new Vector3(d.xMax, d.yMax, Vertex.nearZ), tint = Color.white, uv = new Vector2(u1, v1) });
+                mesh.SetNextVertex(new Vertex { position = new Vector3(d.x, d.yMax, Vertex.nearZ), tint = Color.white, uv = new Vector2(u0, v1) });
+                mesh.SetNextIndex(index); mesh.SetNextIndex((ushort)(index + 1)); mesh.SetNextIndex((ushort)(index + 2));
+                mesh.SetNextIndex((ushort)(index + 2)); mesh.SetNextIndex((ushort)(index + 3)); mesh.SetNextIndex(index);
                 index += 4;
             }
         }

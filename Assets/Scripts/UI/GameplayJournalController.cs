@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 
 [DefaultExecutionOrder(-50)]
 [RequireComponent(typeof(UIDocument))]
-public sealed class GameplayJournalController : MonoBehaviour
+public sealed partial class GameplayJournalController : MonoBehaviour
 {
     [SerializeField] private MainMenuGameplayGate gameplayGate;
     [SerializeField] private GameTimeManager timeManager;
@@ -74,7 +74,10 @@ public sealed class GameplayJournalController : MonoBehaviour
         new LiveUpgrade("helper-speed", PlayerUpgrades.HelperEatSpeed, "Yardımcı Gagalama"),
         new LiveUpgrade("helper-range", PlayerUpgrades.HelperRange, "Yardımcı Menzili"),
         new LiveUpgrade("double-jump", PlayerUpgrades.DoubleJump, "Çift Zıplama"),
-        new LiveUpgrade("glide", PlayerUpgrades.Glide, "Süzülme")
+        new LiveUpgrade("glide", PlayerUpgrades.Glide, "Süzülme"),
+        new LiveUpgrade("double-collect", PlayerUpgrades.DoubleCollect, "Çift Toplama"),
+        new LiveUpgrade("helper-move", PlayerUpgrades.HelperMoveSpeed, "Takip Hızı"),
+        new LiveUpgrade("helper-climb", PlayerUpgrades.HelperClimb, "Engel Aşma")
     };
 
     public static bool IsAnyOpen { get; private set; }
@@ -130,7 +133,7 @@ public sealed class GameplayJournalController : MonoBehaviour
         if (helperRangePrice != null) helperRangePrice.clicked += HelperRangePriceClicked;
         if (sprintSpeedPrice != null) sprintSpeedPrice.clicked += SprintSpeedPriceClicked;
         if (sprintDurationPrice != null) sprintDurationPrice.clicked += SprintDurationPriceClicked;
-        if (doubleCollectPrice != null) doubleCollectPrice.clicked += UpgradePreviewClicked;
+        if (doubleCollectPrice != null) doubleCollectPrice.clicked += DoubleCollectPriceClicked;
         if (doubleJumpPrice != null) doubleJumpPrice.clicked += DoubleJumpPriceClicked;
         if (glidePrice != null) glidePrice.clicked += GlidePriceClicked;
         // Upgrades forward statistic changes too, since eaten food is the egg balance.
@@ -184,6 +187,8 @@ public sealed class GameplayJournalController : MonoBehaviour
         }
         if (costLabel != null) costLabel.text = patternCost + " PUAN";
         GameplayJournalReferenceTheme.Apply(root);
+        BuildUpgradeSections();
+        Refresh();
         root.style.display = DisplayStyle.None;
     }
 
@@ -204,7 +209,7 @@ public sealed class GameplayJournalController : MonoBehaviour
         if (helperRangePrice != null) helperRangePrice.clicked -= HelperRangePriceClicked;
         if (sprintSpeedPrice != null) sprintSpeedPrice.clicked -= SprintSpeedPriceClicked;
         if (sprintDurationPrice != null) sprintDurationPrice.clicked -= SprintDurationPriceClicked;
-        if (doubleCollectPrice != null) doubleCollectPrice.clicked -= UpgradePreviewClicked;
+        if (doubleCollectPrice != null) doubleCollectPrice.clicked -= DoubleCollectPriceClicked;
         if (doubleJumpPrice != null) doubleJumpPrice.clicked -= DoubleJumpPriceClicked;
         if (glidePrice != null) glidePrice.clicked -= GlidePriceClicked;
         if (upgrades != null) upgrades.Changed -= Refresh;
@@ -249,6 +254,7 @@ public sealed class GameplayJournalController : MonoBehaviour
         root.style.display = DisplayStyle.Flex;
         root.style.visibility = Visibility.Hidden;
         ShowUpgrades();
+        ShowUpgradeSection(0);
         Refresh();
         upgradesTab?.Focus();
         backdropRoutine = StartCoroutine(RevealWithBackdrop());
@@ -415,20 +421,24 @@ public sealed class GameplayJournalController : MonoBehaviour
     private void RefreshUpgrades()
     {
         if (upgrades == null) return;
+        selectedCompanion = Mathf.Clamp(selectedCompanion, 0, Mathf.Max(0, upgrades.HelperChickCount - 1));
         foreach (LiveUpgrade card in LiveUpgrades)
         {
             Button button = root.Q<Button>(card.Prefix + "-price");
             if (button == null) continue;
-            FillLevels(card.Prefix + "-levels", upgrades.GetLevel(card.Id), upgrades.GetMaxLevel(card.Id));
-            int price = upgrades.GetNextPrice(card.Id);
+            string id = ResolveCardId(card.Id);
+            FillLevels(card.Prefix + "-levels", upgrades.GetLevel(id), upgrades.GetMaxLevel(id));
+            int price = upgrades.GetNextPrice(id);
             bool maxed = price < 0;
             button.EnableInClassList("max-price", maxed);
-            button.EnableInClassList("unaffordable", !maxed && (AvailableEggs < price || upgrades.IsLocked(card.Id)));
+            button.EnableInClassList("unaffordable", !maxed && (AvailableEggs < price || upgrades.IsLocked(id)));
+            button.SetEnabled(!maxed && !upgrades.IsLocked(id));
             Label cost = root.Q<Label>(card.Prefix + "-cost");
             if (cost != null) cost.text = maxed ? "MAX" : price.ToString();
             Image egg = root.Q<Image>(card.Prefix + "-egg");
             if (egg != null) egg.style.display = maxed ? DisplayStyle.None : DisplayStyle.Flex;
         }
+        RefreshUpgradeSections();
     }
 
     private void PeckPriceClicked() => PurchaseClicked(LiveUpgrades[0]);
@@ -440,18 +450,20 @@ public sealed class GameplayJournalController : MonoBehaviour
     private void HelperRangePriceClicked() => PurchaseClicked(LiveUpgrades[6]);
     private void DoubleJumpPriceClicked() => PurchaseClicked(LiveUpgrades[7]);
     private void GlidePriceClicked() => PurchaseClicked(LiveUpgrades[8]);
+    private void DoubleCollectPriceClicked() => PurchaseClicked(LiveUpgrades[9]);
 
     private void PurchaseClicked(LiveUpgrade card)
     {
         if (upgrades == null) { UpgradePreviewClicked(); return; }
-        int price = upgrades.GetNextPrice(card.Id);
+        string id = ResolveCardId(card.Id);
+        int price = upgrades.GetNextPrice(id);
         string message;
         if (price < 0) message = card.Name + " en yüksek seviyede.";
-        else if (upgrades.IsLocked(card.Id)) message = "Önce Yardımcı Civciv yükseltmesini almalısın.";
-        else if (upgrades.TryPurchase(card.Id))
-            message = upgrades.IsMaxed(card.Id)
+        else if (upgrades.IsLocked(id)) message = "Önce bu civcivi almalısın.";
+        else if (upgrades.TryPurchase(id))
+            message = upgrades.IsMaxed(id)
                 ? card.Name + " en yüksek seviyeye ulaştı!"
-                : card.Name + " " + upgrades.GetLevel(card.Id) + ". seviyeye yükseldi!";
+                : card.Name + " " + upgrades.GetLevel(id) + ". seviyeye yükseldi!";
         else message = "Bu yükseltme için " + (price - AvailableEggs) + " yumurta daha gerekli.";
         if (upgradesStatus != null) upgradesStatus.text = message;
         PulseCard(root.Q<Button>(card.Prefix + "-price"));

@@ -50,7 +50,7 @@ public sealed class HelperChickSpawner : MonoBehaviour
         HelperChickController helper = Instantiate(helperPrefab, player.transform.position + offset, player.transform.rotation);
         helper.name = "HelperChick_" + (index + 1);
         active.Add(helper);
-        helper.Initialize(upgrades, player, active);
+        helper.Initialize(upgrades, player, active, index);
     }
 
     private void DespawnLast()

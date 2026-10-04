@@ -17,6 +17,9 @@ public sealed class PlayerUpgrades : MonoBehaviour
     public const string HelperChick = "helper-chick";
     public const string HelperEatSpeed = "helper-eat-speed";
     public const string HelperRange = "helper-range";
+    public const string HelperMoveSpeed = "helper-move-speed";
+    public const string HelperClimb = "helper-climb";
+    public const string DoubleCollect = "double-collect";
     public const string DoubleJump = "double-jump";
     public const string Glide = "glide";
     public const int MaxHelperChicks = 3;
@@ -42,6 +45,9 @@ public sealed class PlayerUpgrades : MonoBehaviour
         new UpgradeDefinition { id = HelperChick, levelPrices = new[] { 20, 20, 20 } },
         new UpgradeDefinition { id = HelperEatSpeed, levelPrices = new[] { 30 } },
         new UpgradeDefinition { id = HelperRange, levelPrices = new[] { 25 } },
+        new UpgradeDefinition { id = HelperMoveSpeed, levelPrices = new[] { 10, 20, 30 } },
+        new UpgradeDefinition { id = HelperClimb, levelPrices = new[] { 18, 30, 45 } },
+        new UpgradeDefinition { id = DoubleCollect, levelPrices = new[] { 25, 40, 60 } },
         new UpgradeDefinition { id = DoubleJump, levelPrices = new[] { 200 } },
         new UpgradeDefinition { id = Glide, levelPrices = new[] { 200 } }
     };
@@ -93,15 +99,47 @@ public sealed class PlayerUpgrades : MonoBehaviour
     public bool GlideUnlocked => GetLevel(Glide) > 0;
     // Each purchased level adds one independent companion.
     public int HelperChickCount => Mathf.Min(GetLevel(HelperChick), MaxHelperChicks);
-    public float HelperRangeMultiplier => Mathf.Pow(helperRangeMultiplierPerLevel, GetLevel(HelperRange));
+    public float HelperRangeMultiplier => GetHelperRangeMultiplier(0);
     public float HelperRoamRadius => helperRoamRadius * HelperRangeMultiplier;
     public float HelperEatSpeedFraction =>
-        helperEatSpeedFraction * Mathf.Pow(helperEatSpeedMultiplierPerLevel, GetLevel(HelperEatSpeed));
+        GetHelperEatSpeedFraction(0);
+
+    public float DoubleCollectChance => .15f * GetLevel(DoubleCollect);
+    public static bool IsHelperUpgrade(string id) => id == HelperEatSpeed || id == HelperRange ||
+        id == HelperMoveSpeed || id == HelperClimb;
+    public static string HelperUpgradeId(int index, string id) => $"helper/{index}/{id}";
+    public int GetHelperLevel(int index, string id) => GetLevel(HelperUpgradeId(index, id));
+    public float GetHelperRangeMultiplier(int index) => HelperEffectAt(HelperRange, GetHelperLevel(index, HelperRange));
+    public float GetHelperEatSpeedFraction(int index) => helperEatSpeedFraction * HelperEffectAt(HelperEatSpeed, GetHelperLevel(index, HelperEatSpeed));
+    public float GetHelperMoveMultiplier(int index) => HelperEffectAt(HelperMoveSpeed, GetHelperLevel(index, HelperMoveSpeed));
+    public float GetHelperClimbBonus(int index) => HelperEffectAt(HelperClimb, GetHelperLevel(index, HelperClimb));
+
+    // Climb is an added height in metres; the others are multipliers. The journal previews next levels with this.
+    public float HelperEffectAt(string kind, int level) => kind switch
+    {
+        HelperEatSpeed => Mathf.Pow(helperEatSpeedMultiplierPerLevel, level),
+        HelperRange => Mathf.Pow(helperRangeMultiplierPerLevel, level),
+        HelperMoveSpeed => 1f + .15f * level,
+        HelperClimb => .1f * level,
+        _ => 0f
+    };
+
+    private static bool ParseHelperId(string id, out int index, out string kind)
+    {
+        index = -1; kind = null;
+        if (string.IsNullOrEmpty(id)) return false;
+        string[] parts = id.Split('/');
+        if (parts.Length != 3 || parts[0] != "helper" || !int.TryParse(parts[1], out index) ||
+            index < 0 || index >= MaxHelperChicks || !IsHelperUpgrade(parts[2])) return false;
+        kind = parts[2];
+        return true;
+    }
 
     // Helper upgrades mean nothing until the helper itself is bought.
-    public bool IsLocked(string id) => (id == HelperEatSpeed || id == HelperRange) && GetLevel(HelperChick) == 0;
+    public bool IsLocked(string id) => ParseHelperId(id, out int index, out _) ? index >= HelperChickCount :
+        IsHelperUpgrade(id) && HelperChickCount == 0;
 
-    public int GetLevel(string id) => levels.TryGetValue(id, out int level) ? level : 0;
+    public int GetLevel(string id) => !string.IsNullOrEmpty(id) && levels.TryGetValue(IsHelperUpgrade(id) ? HelperUpgradeId(0, id) : id, out int level) ? level : 0;
     public int GetMaxLevel(string id) => Find(id)?.levelPrices?.Length ?? 0;
     public bool IsMaxed(string id) => GetLevel(id) >= GetMaxLevel(id);
 
@@ -151,8 +189,9 @@ public sealed class PlayerUpgrades : MonoBehaviour
 
     public bool TryPurchase(string id)
     {
+        if (IsHelperUpgrade(id)) id = HelperUpgradeId(0, id);
         int price = GetNextPrice(id);
-        if (price < 0 || AvailableEggs < price || IsLocked(id)) return false;
+        if (price < 0 || AvailableEggs < price || IsLocked(id) || spentEggs > int.MaxValue - price) return false;
         spentEggs += price;
         levels[id] = GetLevel(id) + 1;
         Changed?.Invoke();
@@ -233,12 +272,25 @@ public sealed class PlayerUpgrades : MonoBehaviour
                 int level = Mathf.Clamp(saved.level, 0, GetMaxLevel(saved.id));
                 if (level > 0) levels[saved.id] = level;
             }
+        // Preserve legacy flock-wide purchases for chicks already owned, not future chicks.
+        // Dropping the legacy keys makes this migration one-time on the next save.
+        foreach (string kind in new[] { HelperEatSpeed, HelperRange, HelperMoveSpeed, HelperClimb })
+        {
+            if (!levels.TryGetValue(kind, out int legacy)) continue;
+            for (int i = 0; i < HelperChickCount; i++)
+            {
+                string key = HelperUpgradeId(i, kind);
+                if (!levels.ContainsKey(key)) levels[key] = legacy;
+            }
+            levels.Remove(kind);
+        }
         Changed?.Invoke();
     }
 
     private UpgradeDefinition Find(string id)
     {
         if (string.IsNullOrEmpty(id) || upgrades == null) return null;
+        if (ParseHelperId(id, out _, out string kind)) id = kind;
         foreach (UpgradeDefinition definition in upgrades)
             if (definition != null && definition.id == id) return definition;
         return null;
