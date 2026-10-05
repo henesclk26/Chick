@@ -20,7 +20,6 @@ Button.primary:hover { background-color: rgb(255, 210, 88); }
 Button.quiet { background-color: rgb(35, 66, 44); }
 #save-status { font-size: 13px; color: rgb(255, 241, 194); white-space: normal; margin-top: 15px; -unity-text-outline-width: 1px; -unity-text-outline-color: rgba(22, 40, 27, 0.76); text-shadow: 0px 2px 5px rgba(15, 27, 20, 0.72); }
 #world-caption { position: absolute; right: 7%; bottom: 9%; font-size: 12px; letter-spacing: 2px; color: rgb(255, 225, 124); -unity-font-style: bold; -unity-text-outline-width: 1px; -unity-text-outline-color: rgba(22, 40, 27, 0.76); text-shadow: 0px 2px 5px rgba(18, 30, 22, 0.55); }
-#footer { position: absolute; left: 7%; bottom: 22px; color: rgb(255, 235, 168); font-size: 10px; letter-spacing: 2px; -unity-text-outline-width: 1px; -unity-text-outline-color: rgba(22, 40, 27, 0.76); text-shadow: 0px 2px 5px rgba(18, 30, 22, 0.55); }
 .hidden { display: none; }
 #settings-page { flex-grow: 1; align-items: center; justify-content: center; background-color: rgba(235, 234, 210, 0.6); }
 .settings-card { width: 650px; max-height: 94%; padding: 22px 34px; border-radius: 25px; background-color: rgb(255, 249, 231); border-width: 1px 1px 5px 1px; border-color: rgb(221, 211, 177); }

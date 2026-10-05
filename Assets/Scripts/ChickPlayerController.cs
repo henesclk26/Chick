@@ -54,6 +54,9 @@ public sealed class ChickPlayerController : MonoBehaviour
 
     private CharacterController controller;
     private ChickEatingController eatingController;
+    // Optional pond behaviours; without them the bird moves exactly as before.
+    private ChickDrinkingController drinkingController;
+    private ChickWaterWading waterWading;
     private Transform movementCamera;
     private FreeOrbitThirdPersonCamera orbitCamera;
     private float verticalVelocity;
@@ -116,9 +119,10 @@ public sealed class ChickPlayerController : MonoBehaviour
     public int GroundJumpCount { get; private set; }
     public bool IsRunning { get; private set; }
     public bool IsSitting { get; private set; }
+    public bool IsDrinking => drinkingController != null && drinkingController.IsBusy;
     public float CurrentJumpHeight => (chickenForm ? jumpHeight : chickJumpHeight) * (DebugJumpHeight2x ? 2f : 1f);
     public bool CanChangeForm => !GrowthControlsLocked && !EggLayingPose && controller != null && controller.isGrounded && !jumping &&
-        (eatingController == null || !eatingController.IsBusy) && peckTimer <= 0f &&
+        (eatingController == null || !eatingController.IsBusy) && !IsDrinking && peckTimer <= 0f &&
         peepTimer <= 0f && damageTimer <= 0f && downTimer <= 0f && flapTimer <= 0f;
 
     public bool TryBeginEggLaying()
@@ -152,6 +156,7 @@ public sealed class ChickPlayerController : MonoBehaviour
         idleTimer = peckTimer = peepTimer = damageTimer = downTimer = flapTimer = 0f;
         landingLockTimer = 0f;
         eating = false;
+        if (drinkingController != null) drinkingController.Cancel();
         visualYawVelocity = steeringYawVelocity = 0f;
         steeringActive = rightMouseTurning = false;
         animator.Play("idle", 0, 0f);
@@ -164,6 +169,7 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
         EndEggLaying();
         if (controller == null) controller = GetComponent<CharacterController>();
         if (eatingController != null) eatingController.CancelEat();
+        if (drinkingController != null) drinkingController.Cancel();
         bool capsuleWasEnabled = controller != null && controller.enabled;
         if (controller != null) controller.enabled = false;
         transform.SetPositionAndRotation(position, rotation);
@@ -206,6 +212,8 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
         controller = GetComponent<CharacterController>();
         BirdGroundTraversal.Configure(controller);
         eatingController = GetComponent<ChickEatingController>();
+        drinkingController = GetComponent<ChickDrinkingController>();
+        waterWading = GetComponent<ChickWaterWading>();
         if (upgrades == null) upgrades = FindFirstObjectByType<PlayerUpgrades>(FindObjectsInactive.Include);
 
         if (animator == null)
@@ -266,18 +274,19 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
         airJumpFlapTimer = Mathf.Max(0f, airJumpFlapTimer - Time.deltaTime);
         eating = eatingController != null && eatingController.IsEating;
         bool eatBusy = eatingController != null && eatingController.IsBusy;
+        bool drinkBusy = IsDrinking;
         bool pecking = peckTimer > 0f;
         bool peeping = peepTimer > 0f;
         bool damaged = damageTimer > 0f;
         bool downNow = downTimer > 0f;
-        bool actionLocked = GrowthControlsLocked || eatBusy || pecking || peeping || damaged || downNow;
+        bool actionLocked = GrowthControlsLocked || eatBusy || drinkBusy || pecking || peeping || damaged || downNow;
 
         if (jumping)
         {
             airborneTimer += Time.deltaTime;
         }
 
-        if (hasMovementInput || jumping || eatBusy)
+        if (hasMovementInput || jumping || eatBusy || drinkBusy)
         {
             idleTimer = 0f;
         }
@@ -353,6 +362,18 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
             animator.SetBool(ToCrouch, false);
             idleTimer = 0f;
         }
+        // Nothing to eat but pond water in reach: drink. Holding the button also starts it once the
+        // bird stands still at the water, and keeps it sipping.
+        else if (drinkingController != null && grounded && !actionLocked && !jumping &&
+                 (canEat || (!inputLocked && !hasMovementInput && eatingController.EatHeld)) &&
+                 drinkingController.TryBegin())
+        {
+            drinkBusy = true;
+            actionLocked = true;
+            animator.ResetTrigger(Jump);
+            animator.SetBool(ToCrouch, false);
+            idleTimer = 0f;
+        }
 
         bool canStartExtraAction = grounded && !actionLocked && !jumping && !hasMovementInput;
         if (canStartExtraAction && peckPressed)
@@ -392,7 +413,7 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
         peeping = peepTimer > 0f;
         damaged = damageTimer > 0f;
         downNow = downTimer > 0f;
-        actionLocked = GrowthControlsLocked || eatBusy || pecking || peeping || damaged || downNow;
+        actionLocked = GrowthControlsLocked || eatBusy || drinkBusy || pecking || peeping || damaged || downNow;
 
         animator.SetBool(Peck, pecking);
         animator.SetBool(Peep, peeping);
@@ -473,7 +494,7 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
         }
 
         float cameraYaw = orbitCamera.OrbitYaw;
-        if ((eatingController != null && eatingController.IsBusy) ||
+        if ((eatingController != null && eatingController.IsBusy) || IsDrinking ||
             peckTimer > 0f || peepTimer > 0f || damageTimer > 0f || downTimer > 0f)
         {
             // Keep the last camera angle in sync so an action ending while RMB
@@ -575,6 +596,8 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
             ? (running ? runSpeed : moveSpeed)
             : (running ? chickRunSpeed : chickMoveSpeed);
         if (running) speed *= SprintMultiplier * (DebugSprintSpeed5x ? 5f : 1f);
+        // Pond water slows the stride as it deepens.
+        if (waterWading != null) speed *= waterWading.SpeedMultiplier;
         return (right * input.x + forward * input.y) * speed;
     }
 
@@ -681,6 +704,10 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
         else if (downNow)
         {
             baseState = "down";
+        }
+        else if (IsDrinking)
+        {
+            baseState = drinkingController.BaseState;
         }
         else if (eatingNow)
         {

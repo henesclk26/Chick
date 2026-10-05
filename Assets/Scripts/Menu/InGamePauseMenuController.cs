@@ -18,7 +18,6 @@ public sealed class InGamePauseMenuController : MonoBehaviour
     private VisualElement root;
     private VisualElement home;
     private VisualElement backdrop;
-    private VisualElement footer;
     private VisualElement pauseOverlay;
     private VisualElement settingsPage;
     private Button resumeButton;
@@ -41,7 +40,6 @@ public sealed class InGamePauseMenuController : MonoBehaviour
         root = document.rootVisualElement;
         home = root.Q("home");
         backdrop = root.Q("menu-backdrop");
-        footer = root.Q("footer");
         pauseOverlay = root.Q("pause-overlay");
         settingsPage = root.Q("settings-page");
         resumeButton = root.Q<Button>("pause-resume");
@@ -118,7 +116,6 @@ public sealed class InGamePauseMenuController : MonoBehaviour
         root.style.display = DisplayStyle.Flex;
         home?.AddToClassList("hidden");
         backdrop?.AddToClassList("hidden");
-        footer?.AddToClassList("hidden");
         if (settingsPage != null)
         {
             settingsPage.AddToClassList("hidden");

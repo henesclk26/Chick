@@ -188,7 +188,9 @@ public static class JournalSectionsVerification
         var journal = UnityEngine.Object.FindFirstObjectByType<GameplayJournalController>();
         var root = journal.GetComponent<UIDocument>().rootVisualElement;
         string tab = root.Query<Button>(className: "section-active").First()?.name ?? "unknown";
-        string output = "C:/Users/buğra/.codex/visualizations/2026/09/11/01a0901a-eb66-7b73-ab1a-772150cd073e/" + tab + "-runtime.png";
+        // Project-relative and git-ignored, so the capture works on every machine.
+        System.IO.Directory.CreateDirectory("Captures/JournalPreview");
+        string output = "Captures/JournalPreview/" + tab + "-runtime.png";
         ScreenCapture.CaptureScreenshot(output);
         var metrics = root.Query<VisualElement>(className: "upgrade-card").ToList()
             .Where(c => c.worldBound.width > 0 && c.resolvedStyle.display != DisplayStyle.None)

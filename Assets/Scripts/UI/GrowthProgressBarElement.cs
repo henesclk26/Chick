@@ -84,10 +84,8 @@ public partial class GrowthProgressBarElement : VisualElement
             pickingMode = PickingMode.Ignore
         };
         frame.style.position = Position.Absolute;
-        frame.style.unitySliceLeft = 90;
-        frame.style.unitySliceTop = 0;
-        frame.style.unitySliceRight = 90;
-        frame.style.unitySliceBottom = 0;
+        // Nine-slice borders come from the Frame sprite itself (JournalGrowthHUDImporter); setting
+        // them here as well makes UI Toolkit warn that the style overrides the sprite.
         frame.style.unitySliceScale = FrameHeight / NativeFrameHeight;
         Add(frame);
 

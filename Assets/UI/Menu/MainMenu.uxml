@@ -54,7 +54,6 @@
                 <ui:Label text="ESC ile geri dön" class="pause-hint" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:Label name="footer" text="CİVCİK  /  GELİŞTİRME SÜRÜMÜ" picking-mode="Ignore" />
         <ui:VisualElement name="confirmation" class="modal hidden">
             <ui:VisualElement class="dialog">
                 <ui:Label text="YENİ BİR SABAH" class="eyebrow" />

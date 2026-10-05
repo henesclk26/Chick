@@ -10,8 +10,8 @@ public static class GrowthSmokeAuthoring
     const string Folder = "Assets/Art/Effects/GrowthSmoke";
     public static string Build()
     {
-        if (EditorApplication.isPlaying || Application.dataPath != "E:/Yeni klasör/Chick/Assets")
-            throw new InvalidOperationException("Use the intended project in edit mode.");
+        if (EditorApplication.isPlaying)
+            throw new InvalidOperationException("Exit play mode before authoring growth smoke.");
         if (!AssetDatabase.IsValidFolder("Assets/Art/Effects")) AssetDatabase.CreateFolder("Assets/Art", "Effects");
         if (!AssetDatabase.IsValidFolder(Folder)) AssetDatabase.CreateFolder("Assets/Art/Effects", "GrowthSmoke");
         var shader = Shader.Find("Universal Render Pipeline/Lit");

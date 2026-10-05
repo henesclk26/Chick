@@ -2,7 +2,7 @@
 
 ## Project identity
 
-The intended Unity project is `D:/Yeni klasör/Chick`. Do not edit the similarly named Desktop copy. Before Unity MCP mutations, confirm the active Editor points to this project. The intended map contains the `Farm Reference Map` hierarchy object.
+The project is developed on several machines, each at a different disk location; never rely on an absolute path. The intended Unity project is this Git repository (the current working directory). Do not edit any similarly named copy outside it, such as a Desktop copy. Before Unity MCP mutations, confirm the active Editor's project path matches the working directory and that the open map contains the `Farm Reference Map` hierarchy object.
 
 ## Execution
 

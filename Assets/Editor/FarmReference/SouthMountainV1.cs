@@ -157,8 +157,7 @@ namespace FarmReferenceTools
   public static string Apply()
   {
    if(EditorApplication.isPlaying)throw new InvalidOperationException("Author in edit mode.");
-   if(Application.dataPath!="E:/Yeni klasör/Chick/Assets")throw new InvalidOperationException("Wrong project.");
-   var root=GameObject.Find("Farm Reference Map");farm=root.transform;terrain=root.GetComponentInChildren<Terrain>();
+   var root=GameObject.Find("Farm Reference Map");if(root==null)throw new InvalidOperationException("Farm root missing.");farm=root.transform;terrain=root.GetComponentInChildren<Terrain>();
    var shader=Shader.Find("Chick/DistantMountain");if(shader==null||!shader.isSupported)throw new InvalidOperationException("Mountain shader not ready.");
    var mat=AssetDatabase.LoadAssetAtPath<Material>(Folder+"/MountainPalette.mat");
    if(mat==null){mat=new Material(shader);AssetDatabase.CreateAsset(mat,Folder+"/MountainPalette.mat");}

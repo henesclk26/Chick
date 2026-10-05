@@ -1,0 +1,12 @@
+/* Faint build version in the lower-left corner, beneath the sprint gauge. */
+#GameVersionLabel {
+    position: absolute;
+    left: 12px;
+    bottom: 6px;
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    -unity-font-definition: url("../../Resources/Journal/ReferenceBold.ttf");
+    color: rgba(255, 255, 255, 0.4);
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+}

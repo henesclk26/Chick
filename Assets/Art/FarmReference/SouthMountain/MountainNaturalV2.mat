@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: MountainNaturalV2
+  m_Shader: {fileID: 4800000, guid: 07be4ad7a139860468ac4fb934cd178d, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _DetailStrength: 1
+    - _ForestAmount: 1
+    - _HazeStrength: 0.4
+    - _Patchwork: 0.8
+    - _RockAmount: 1
+    - _VertexColorBlend: 0.12
+    m_Colors:
+    - _AlpineGrass: {r: 0.46, g: 0.53, b: 0.31, a: 1}
+    - _DryGrass: {r: 0.63, g: 0.61, b: 0.34, a: 1}
+    - _ForestColor: {r: 0.08, g: 0.17, b: 0.1, a: 1}
+    - _HazeColor: {r: 0.53, g: 0.65, b: 0.72, a: 1}
+    - _MeadowDark: {r: 0.26, g: 0.41, b: 0.17, a: 1}
+    - _MeadowLight: {r: 0.43, g: 0.58, b: 0.24, a: 1}
+    - _RockDark: {r: 0.35, g: 0.34, b: 0.32, a: 1}
+    - _RockLight: {r: 0.62, g: 0.6, b: 0.54, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

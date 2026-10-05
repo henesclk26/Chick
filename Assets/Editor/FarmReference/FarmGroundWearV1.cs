@@ -115,8 +115,6 @@ namespace FarmReferenceTools
         public static string Apply()
         {
             if(EditorApplication.isPlaying)throw new InvalidOperationException("Exit play mode before authoring ground.");
-            if(!Application.dataPath.Replace('\\','/').Equals("E:/Yeni klasör/Chick/Assets",StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("This pass belongs to E:/Yeni klasör/Chick.");
             var root=GameObject.Find("Farm Reference Map");
             if(root==null)throw new InvalidOperationException("Farm root missing.");
             var terrain=root.GetComponentInChildren<Terrain>();

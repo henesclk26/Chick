@@ -41,6 +41,7 @@ public sealed class ChickEatingController : MonoBehaviour
     private bool assistInvalidated;
     private float eatClipLength = 80f / 60f;
     private float impactNormalizedTime = 21f / 80f;
+    private float recoveryNormalizedTime = 30f / 80f;
     private float bufferedEatUntil = float.NegativeInfinity;
     private float formReachScale = 1f;
     // "Toplama Menzili" level; widens horizontal reach only, never the vertical contact limit.
@@ -55,6 +56,12 @@ public sealed class ChickEatingController : MonoBehaviour
     public bool IsEating => phase == EatPhase.Eating;
     public bool IsBusy => phase != EatPhase.Ready;
     public bool EatPressedThisFrame => isActiveAndEnabled && eatAction.WasPressedThisFrame();
+    // Drinking reuses the eat button and the eat clip's dip; these expose what it needs.
+    public bool EatHeld => isActiveAndEnabled && eatAction.IsPressed();
+    public Vector3 PredictedContactPoint => PredictedContact;
+    public float ImpactNormalizedTime => impactNormalizedTime;
+    public float RecoveryNormalizedTime => recoveryNormalizedTime;
+    public float FormReachScale => formReachScale;
 
     // Called once by the player before locomotion is evaluated. One slot, no held-click auto-eat.
     public bool ReadEatRequest()
@@ -125,6 +132,11 @@ public sealed class ChickEatingController : MonoBehaviour
         foreach (var clip in animator.runtimeAnimatorController.animationClips)
         foreach (var clipEvent in clip.events)
         {
+            if (clipEvent.functionName == nameof(OnEatRecovery))
+            {
+                recoveryNormalizedTime = clipEvent.time / clip.length;
+                continue;
+            }
             if (clipEvent.functionName != nameof(OnEatImpact)) continue;
             eatClipLength = clip.length;
             impactNormalizedTime = clipEvent.time / clip.length;

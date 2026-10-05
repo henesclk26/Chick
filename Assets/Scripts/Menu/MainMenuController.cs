@@ -53,9 +53,9 @@ public sealed class MainMenuController : MonoBehaviour
         try
         {
             var data = saves.Load(); HasValidSave = data != null;
-            status.text = data != null ? "GÜN " + data.day + "  ·  Çiftliğin seni bekliyor." : "İlk macerana hazır mısın?";
+            ShowStatus(string.Empty);
         }
-        catch (Exception) { HasValidSave = false; status.text = "Kayıt okunamadı. Yeni oyun başlatabilirsin."; }
+        catch (Exception) { HasValidSave = false; ShowStatus("Kayıt okunamadı. Yeni oyun başlatabilirsin."); }
         resume.SetEnabled(HasValidSave && !busy);
     }
     public void RequestNew()
@@ -80,7 +80,7 @@ public sealed class MainMenuController : MonoBehaviour
     }
     private IEnumerator StartGame(bool fresh)
     {
-        if (gameplayGate == null) { status.text = "SampleScene oyun başlangıç bağlantısı eksik."; CancelNew(); yield break; }
+        if (gameplayGate == null) { ShowStatus("SampleScene oyun başlangıç bağlantısı eksik."); CancelNew(); yield break; }
         busy = true; home.SetEnabled(false); popup.AddToClassList("hidden"); loading.RemoveFromClassList("hidden");
         if (fresh)
         {
@@ -99,8 +99,14 @@ public sealed class MainMenuController : MonoBehaviour
     private void Fail(Exception error)
     {
         busy = false; home.SetEnabled(true); loading.AddToClassList("hidden");
-        status.text = "İşlem tamamlanamadı. Depolama alanını kontrol edip tekrar dene.";
+        ShowStatus("İşlem tamamlanamadı. Depolama alanını kontrol edip tekrar dene.");
         Debug.LogWarning("Menu operation failed: " + error?.Message);
+    }
+    // The status line only appears for problems; a healthy menu shows no extra text.
+    private void ShowStatus(string message)
+    {
+        status.text = message;
+        status.style.display = string.IsNullOrEmpty(message) ? DisplayStyle.None : DisplayStyle.Flex;
     }
     private void OpenSettings() { if (!busy) { home.AddToClassList("hidden"); settings.Show(BackFromSettings); } }
     private void BackFromSettings() { home.RemoveFromClassList("hidden"); root.Q<Button>("settings-button").Focus(); }
