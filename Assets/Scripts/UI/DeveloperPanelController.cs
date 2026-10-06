@@ -20,6 +20,7 @@ public sealed class DeveloperPanelController : MonoBehaviour
     [SerializeField] private Transform barnSpawn;
     [SerializeField] private Transform fieldSpawn;
     [SerializeField] private Transform coopSpawn;
+    [SerializeField] private Transform foldSpawn;
 
     private readonly List<KeyValuePair<Button, Action>> bindings = new List<KeyValuePair<Button, Action>>();
     private VisualElement root;
@@ -61,11 +62,12 @@ public sealed class DeveloperPanelController : MonoBehaviour
         Bind("spawn-barn", GoToBarn);
         Bind("spawn-field", GoToField);
         Bind("spawn-coop", GoToCoop);
+        Bind("spawn-fold", GoToFold);
         Bind("infinite-sprint", ToggleInfiniteSprint);
         Bind("sprint-speed-5x", ToggleSprintSpeed);
         Bind("jump-height-2x", ToggleJumpHeight);
         Bind("grant-eggs", GrantEggs);
-        if (timeLabel == null || statusLabel == null || bindings.Count != 15)
+        if (timeLabel == null || statusLabel == null || bindings.Count != 16)
             Debug.LogError("DeveloperPanel.uxml has a missing control.", this);
 #else
         enabled = false;
@@ -279,6 +281,7 @@ public sealed class DeveloperPanelController : MonoBehaviour
     private void GoToBarn() { Teleport(barnSpawn, "Ahır avlusu"); }
     private void GoToField() { Teleport(fieldSpawn, "Tarla"); }
     private void GoToCoop() { Teleport(coopSpawn, "Kümes avlusu"); }
+    private void GoToFold() { Teleport(foldSpawn, "Koyun ağılı"); }
 
     private void Teleport(Transform destination, string label)
     {

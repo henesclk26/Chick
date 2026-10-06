@@ -65,6 +65,11 @@
                             <ui:Label text="Kümes avlusu" class="destination-name" />
                             <ui:Label text="→" class="destination-arrow" />
                         </ui:Button>
+                        <ui:Button name="spawn-fold" class="destination-button">
+                            <ui:Label text="04" class="destination-number" />
+                            <ui:Label text="Koyun ağılı" class="destination-name" />
+                            <ui:Label text="→" class="destination-arrow" />
+                        </ui:Button>
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
