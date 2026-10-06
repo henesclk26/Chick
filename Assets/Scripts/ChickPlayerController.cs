@@ -353,8 +353,8 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
             animator.SetBool(ToCrouch, false);
             idleTimer = 0f;
         }
-        // No food in reach: a peck at a strawberry plant shakes a berry down onto the ground instead.
-        else if (canEat && StrawberryPlant.TryKnockNear(transform.position, transform.forward, chickenForm ? 1.7f : 1f))
+        // No food in reach: a peck at a berry plant (strawberry, blackberry) shakes a berry down onto the ground instead.
+        else if (canEat && BerryPlant.TryKnockNear(transform.position, transform.forward, chickenForm ? 1.7f : 1f))
         {
             peckTimer = peckLockSeconds;
             actionLocked = true;

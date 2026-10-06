@@ -148,7 +148,7 @@ namespace FarmReferenceTools
 
    var water=EnsureMaterial("PondWater","Chick/PondWater",null);
    var droplet=EnsureMaterial("PondDroplet","Chick/PondDroplet",null);
-   var reedMat=EnsureMaterial("PondReeds","Chick/DistantMountain",m=>{m.SetColor("_BaseColor",Color.white);m.SetFloat("_HazeStrength",0);});
+   var reedMat=EnsureMaterial("PondReeds","Chick/DistantMountain",m=>{m.SetColor("_BaseColor",Color.white);m.SetFloat("_HazeStrength",0);m.SetFloat("_FoliageBend",1);m.EnableKeyword("_FOLIAGE_BEND");});
 
    var surface=new GameObject("Water Surface");surface.transform.SetParent(pondGo.transform,false);
    surface.AddComponent<MeshFilter>().sharedMesh=SaveMesh(WaterMesh(shore,min,max,pondGo.transform.position));
@@ -393,6 +393,12 @@ namespace FarmReferenceTools
      go.transform.position=new Vector3(p.x,GroundAt(terrain,p),p.y);
      go.transform.rotation=Quaternion.Euler(0,range(0,360),0);
      go.transform.localScale=source.transform.localScale*range(.85f,1.25f);
+     // Copy() re-instantiates the prefab, which drops the meadow tuft's scene setup; restore it so bank plants
+     // bend away from the player like the meadow (interactive material, not static batched) and stay walk-through.
+     var sourceRenderer=source.GetComponent<Renderer>();var copyRenderer=go.GetComponent<Renderer>();
+     if(sourceRenderer!=null&&copyRenderer!=null)copyRenderer.sharedMaterials=sourceRenderer.sharedMaterials;
+     GameObjectUtility.SetStaticEditorFlags(go,GameObjectUtility.GetStaticEditorFlags(source));
+     foreach(var c in go.GetComponentsInChildren<Collider>())UnityEngine.Object.DestroyImmediate(c);
     }
    }
    report.AppendLine("Decoration: "+reedCount+" reed clumps, "+stoneCount+" shore stones, "+plantCount+" bank plants.");

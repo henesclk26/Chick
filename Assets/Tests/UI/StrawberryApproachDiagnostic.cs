@@ -17,7 +17,7 @@ public sealed class StrawberryApproachDiagnostic : MonoBehaviour
     private readonly StringBuilder report = new();
     private ChickPlayerController player;
     private ChickEatingController eater;
-    private StrawberryPlant plant;
+    private BerryPlant plant;
     private Mouse mouse;
     private Keyboard keyboard;
     private InputSettings originalInput, testInput;
@@ -46,13 +46,13 @@ public sealed class StrawberryApproachDiagnostic : MonoBehaviour
         player.enabled = true;
         Time.timeScale = 1f;
         player.GetComponent<PlayerGrowthController>().SetForm(PlayerGrowthController.Form.Chick);
-        plant = FindFirstObjectByType<StrawberryPlant>();
+        plant = FindObjectsByType<BerryPlant>(FindObjectsSortMode.None).First(p => p.FoodKey == "strawberry");
 
         // Knock 6 berries down from the front half, like a player pecking around the plant.
         for (int i = 0; i < 10; i++)
         {
             Vector3 dir = Quaternion.Euler(0f, i * 36f, 0f) * Vector3.back;
-            StrawberryPlant.TryKnockNear(plant.transform.position + dir * .34f, -dir, 1f);
+            BerryPlant.TryKnockNear(plant.transform.position + dir * .34f, -dir, 1f);
         }
         yield return new WaitForSeconds(.8f);
 

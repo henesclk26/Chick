@@ -53,14 +53,24 @@ float3 FoliageBendOS(float3 positionOS)
 
         float2 away = pivotWS.xz - closest.xz;
         float contact = saturate(1.0 - length(away) / touchRange);
-        contact = contact * contact * (3.0 - 2.0 * contact);
+        contact = contact * contact * contact * (contact * (contact * 6.0 - 15.0) + 10.0);   // soft lean-in at the edge
         contact *= life * life * (3.0 - 2.0 * life);   // ease back up as this part of the path ages
         contact *= saturate(1.0 - abs(pivotWS.y - closest.y) / _FoliageBendParams.y);
         if (contact <= 0.0)
             continue;
 
         // Off-centre contact pushes the plant away; a plant walked over leans along the walking direction.
-        float2 walk = segmentSq > 1e-8 ? segment * rsqrt(segmentSq) : _FoliageBendMotion.xy;
+        // A freshly started segment is only a frame or two of movement, so its direction is noise: blend
+        // from the smoothed walking direction until the segment is long enough to trust.
+        float2 walk = _FoliageBendMotion.xy;
+        if (segmentSq > 1e-8)
+        {
+            float segmentLen = sqrt(segmentSq);
+            float2 blended = lerp(walk, segment / segmentLen, saturate(segmentLen / 0.12));
+            float blendedLen = length(blended);
+            if (blendedLen > 1e-4)
+                walk = blended / blendedLen;
+        }
         float2 dir = away + walk * (_FoliageBendMotion.w * 0.5);
         float len = length(dir);
         if (len > 1e-4)

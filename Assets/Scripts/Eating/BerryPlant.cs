@@ -2,24 +2,40 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Makes a strawberry plant's ripe berries edible. They hang out of reach until the player pecks at the
-/// plant: then the nearest hanging berry drops to the ground toward the player and can be eaten there.
-/// Added to the StrawberryPlant model on import, so every placed plant (model or prefab) gets it.
-/// Unripe berries ("Strawberry_Unripe_*") stay decoration.
+/// Makes a berry plant's ripe berries edible (strawberry plant, blackberry bush). They hang out of reach until
+/// the player pecks at the plant: then the nearest hanging berry drops to the ground toward the player and can
+/// be eaten there. Added to the plant models on import (BerryPlantImporter), so every placed plant (model or
+/// prefab) gets it. Unripe berries ("*_Unripe_*") stay decoration.
 /// </summary>
 [DisallowMultipleComponent]
-public sealed class StrawberryPlant : MonoBehaviour
+public sealed class BerryPlant : MonoBehaviour
 {
     private const int EdibleLayer = 9;
-    private static readonly List<StrawberryPlant> ActivePlants = new List<StrawberryPlant>();
+    private static readonly List<BerryPlant> ActivePlants = new List<BerryPlant>();
 
     [Tooltip("Ripe berries are the children whose names start with this and do not contain \"Unripe\".")]
     [SerializeField] private string berryPrefix = "Strawberry_";
+    [Tooltip("Food statistics key; also prefixes each berry's save id.")]
+    [SerializeField] private string foodKey = "strawberry";
+    [Tooltip("Name shown in the food statistics.")]
+    [SerializeField] private string foodName = "Çilek";
     [Tooltip("How close (m, from the plant's centre) a chick must peck to shake a berry loose; scaled up for the chicken.")]
     [SerializeField, Min(.1f)] private float knockReach = .45f;
-    [Tooltip("Distance from the plant's centre where dropped berries land, clear of the pot.")]
+    [Tooltip("Distance from the plant's centre where dropped berries land, clear of the plant's base.")]
     [SerializeField, Min(.05f)] private float dropRadius = .25f;
     [SerializeField, Min(.1f)] private float fallSeconds = .45f;
+
+    public string FoodKey => foodKey;
+
+    /// <summary>Import-time setup for a plant whose berries are not strawberries.</summary>
+    public void Configure(string prefix, string key, string displayName, float reach, float drop)
+    {
+        berryPrefix = prefix;
+        foodKey = key;
+        foodName = displayName;
+        knockReach = reach;
+        dropRadius = drop;
+    }
 
     private sealed class Berry
     {
@@ -66,7 +82,7 @@ public sealed class StrawberryPlant : MonoBehaviour
                 ripe.Add(child);
 
         Vector3 plantPosition = transform.position;
-        string plantId = "strawberry-" + Mathf.RoundToInt(plantPosition.x * 100f) + "_" +
+        string plantId = foodKey + "-" + Mathf.RoundToInt(plantPosition.x * 100f) + "_" +
                          Mathf.RoundToInt(plantPosition.y * 100f) + "_" + Mathf.RoundToInt(plantPosition.z * 100f);
         foreach (Transform mesh in ripe)
         {
@@ -92,7 +108,7 @@ public sealed class StrawberryPlant : MonoBehaviour
 
             var edible = pickup.AddComponent<EdibleObject>();
             // Plant position keeps ids unique across several plants with identical child names.
-            edible.ConfigureRuntime(plantId + "-" + mesh.name, EdibleCategory.Other, "strawberry", "Çilek",
+            edible.ConfigureRuntime(plantId + "-" + mesh.name, EdibleCategory.Other, foodKey, foodName,
                 bite, mesh, 1.35f, .06f);
             edible.enabled = false;
 
@@ -108,14 +124,14 @@ public sealed class StrawberryPlant : MonoBehaviour
         !berry.dropped && !berry.falling && berry.pickup.gameObject.activeInHierarchy && !berry.edible.IsConsumed;
 
     /// <summary>
-    /// A peck that found no food: if it was at a strawberry plant, drop its nearest hanging ripe berry toward
+    /// A peck that found no food: if it was at a berry plant, drop its nearest hanging ripe berry toward
     /// the pecker. sizeScale grows the reach for larger forms (chicken). Returns true if a berry fell.
     /// </summary>
     public static bool TryKnockNear(Vector3 peckerPosition, Vector3 facing, float sizeScale)
     {
-        StrawberryPlant best = null;
+        BerryPlant best = null;
         float bestDistance = float.PositiveInfinity;
-        foreach (StrawberryPlant plant in ActivePlants)
+        foreach (BerryPlant plant in ActivePlants)
         {
             if (plant == null || plant.HangingCount == 0) continue;
             Vector3 toPlant = plant.transform.position - peckerPosition;
@@ -141,7 +157,7 @@ public sealed class StrawberryPlant : MonoBehaviour
         }
         if (chosen == null) return false;
 
-        // Land on the ground between the plant and the pecker, a little to either side, clear of the pot.
+        // Land on the ground between the plant and the pecker, a little to either side, clear of the base.
         Vector3 center = transform.position;
         Vector3 toward = Flat(peckerPosition - center);
         if (toward.sqrMagnitude < 1e-4f) toward = Flat(chosen.pickup.position - center);

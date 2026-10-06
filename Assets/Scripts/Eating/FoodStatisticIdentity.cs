@@ -8,7 +8,7 @@ public static class FoodStatisticIdentity
     public static readonly string[] KnownKeys =
     {
         "wheat", "rice", "corn", "sunflower", "watermelon", "tomato",
-        "pumpkin", "apple", "cookie", "bread", "croissant", "donut", "strawberry", "watermelon_flesh"
+        "pumpkin", "apple", "cookie", "bread", "croissant", "donut", "strawberry", "blackberry", "watermelon_flesh"
     };
 
     public static string ResolveKey(EdibleObject edible, string explicitKey = null)
@@ -31,6 +31,7 @@ public static class FoodStatisticIdentity
         if (normalized.Contains("croissant")) return "croissant";
         if (normalized.Contains("donut")) return "donut";
         if (normalized.Contains("strawberry")) return "strawberry";
+        if (normalized.Contains("blackberry")) return "blackberry";
         normalized = Regex.Replace(normalized, @"(?:_|-)?\d+$", string.Empty);
         return string.IsNullOrWhiteSpace(normalized) ? "other" : normalized;
     }
@@ -53,6 +54,7 @@ public static class FoodStatisticIdentity
             case "croissant": return "Kruvasan";
             case "donut": return "Donut";
             case "strawberry": return "Çilek";
+            case "blackberry": return "Böğürtlen";
             case "watermelon_flesh": return "Karpuz";
             case "other": return "Diğer";
             default: return Humanize(key);
@@ -67,7 +69,7 @@ public static class FoodStatisticIdentity
             case "sunflower": return "AY"; case "watermelon": return "KA"; case "tomato": return "DO";
             case "pumpkin": return "KB"; case "apple": return "EL"; case "cookie": return "KU";
             case "bread": return "EK"; case "croissant": return "KR"; case "donut": return "DN";
-            case "strawberry": return "Çİ"; case "watermelon_flesh": return "KP";
+            case "strawberry": return "Çİ"; case "blackberry": return "BÖ"; case "watermelon_flesh": return "KP";
             default: return "YE";
         }
     }
@@ -83,6 +85,7 @@ public static class FoodStatisticIdentity
             case "cookie": return new Color(0.67f, 0.42f, 0.22f); case "bread": return new Color(0.82f, 0.57f, 0.29f);
             case "croissant": return new Color(0.94f, 0.62f, 0.18f); case "donut": return new Color(0.84f, 0.36f, 0.53f);
             case "strawberry": return new Color(0.86f, 0.18f, 0.24f);
+            case "blackberry": return new Color(0.29f, 0.16f, 0.38f);
             case "watermelon_flesh": return new Color(0.94f, 0.33f, 0.31f);
             default: return new Color(0.45f, 0.58f, 0.32f);
         }

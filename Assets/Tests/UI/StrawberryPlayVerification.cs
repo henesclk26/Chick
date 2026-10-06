@@ -19,7 +19,7 @@ public sealed class StrawberryPlayVerification : MonoBehaviour
     private ChickPlayerController player;
     private ChickEatingController eater;
     private FoodStatisticsTracker statistics;
-    private StrawberryPlant plant;
+    private BerryPlant plant;
     private Mouse mouse;
     private Keyboard keyboard;
     private InputSettings originalInput, testInput;
@@ -86,9 +86,9 @@ public sealed class StrawberryPlayVerification : MonoBehaviour
 
         var modelPlant = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Art/StrawberryPlant/StrawberryPlant.fbx");
         var prefabPlant = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Art/StrawberryPlant/StrawberryPlant.prefab");
-        Check(modelPlant.GetComponent<StrawberryPlant>() != null && prefabPlant.GetComponent<StrawberryPlant>() != null,
-            "Model and prefab both carry StrawberryPlant, so every placed plant is edible");
-        var plants = FindObjectsByType<StrawberryPlant>(FindObjectsSortMode.None);
+        Check(modelPlant.GetComponent<BerryPlant>() != null && prefabPlant.GetComponent<BerryPlant>() != null,
+            "Model and prefab both carry BerryPlant, so every placed plant is edible");
+        var plants = FindObjectsByType<BerryPlant>(FindObjectsSortMode.None).Where(p => p.FoodKey == "strawberry").ToArray();
         plant = plants.FirstOrDefault();
         Check(plant != null, $"Scene plants with edible berries: {plants.Length}");
         if (plant == null) { Finish(); yield break; }
