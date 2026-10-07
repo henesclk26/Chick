@@ -13,9 +13,9 @@ import os
 import bpy
 from mathutils import Matrix
 
-MODELS = r"C:\unityProjects\Chick\Assets\Art\SheepFold\Models"
-PROPS = ("FoldWall_A", "FoldWall_B", "FoldShelter", "FoldWaterTrough", "FoldHayRack", "HayBale", "HayBaleStack",
-         "FoldGate_Posts")
+# The repository's Unity models folder, found relative to this script (ArtSource/SheepFold).
+MODELS = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "Assets", "Art", "SheepFold", "Models"))
+PROPS = ("FoldShelter", "FoldWaterTrough", "FoldHayRack", "HayBale", "HayBaleStack", "PastureGate_Posts")
 
 
 def _select(objs):

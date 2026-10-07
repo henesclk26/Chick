@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// A sheep (or lamb) inside a <see cref="SheepPen"/>: idles, grazes and ambles to new spots, lambs keep
-/// near their mother, and a running chick that comes close makes it bolt away. A startled sheep
-/// spooks its neighbours a moment later, so the flock scatters together.
-/// Drives the Animator states Idle / Walk / Graze / Run and scales their playback to the ground speed.
+/// A sheep (or lamb) inside a <see cref="SheepPen"/>: idles, grazes and ambles to new spots, drifts back
+/// towards the flock when it strays, and lambs keep near their mother. The chick does not scare them;
+/// they only step aside when it walks into them.
+/// Drives the Animator states Idle / Walk / Graze and scales the walk's playback to the ground speed.
 /// </summary>
 [DisallowMultipleComponent]
 public sealed class FarmSheep : MonoBehaviour
@@ -17,21 +17,14 @@ public sealed class FarmSheep : MonoBehaviour
 
     [Header("Movement")]
     [SerializeField, Min(.1f)] private float walkSpeed = .55f;
-    [SerializeField, Min(.1f)] private float runSpeed = 2.3f;
     [SerializeField, Min(10f)] private float turnSpeed = 200f;
-    [Tooltip("Ground speed the Walk and Run clips were authored for, so feet do not slide.")]
+    [Tooltip("Ground speed the Walk clip was authored for, so feet do not slide.")]
     [SerializeField, Min(.05f)] private float walkClipSpeed = .65f;
-    [SerializeField, Min(.05f)] private float runClipSpeed = 1.5f;
     [SerializeField, Min(.1f)] private float bodyRadius = .5f;
+    [Tooltip("A sheep further than this (m) from the rest of the flock wanders back towards it.")]
+    [SerializeField, Min(2f)] private float strayDistance = 7f;
 
-    [Header("Startle")]
-    [Tooltip("A running chick closer than this (m) sends the sheep running.")]
-    [SerializeField, Min(.5f)] private float startleRadius = 4.5f;
-    [SerializeField, Min(1f)] private float calmDistance = 6.5f;
-    [Tooltip("Sheep within this distance of a startled one get spooked too.")]
-    [SerializeField, Min(0f)] private float panicSpread = 3.2f;
-
-    private enum Mode { Idle, Graze, Walk, Flee }
+    private enum Mode { Idle, Graze, Walk }
 
     private static readonly List<FarmSheep> Flock = new List<FarmSheep>();
     private ChickPlayerController player;
@@ -39,24 +32,17 @@ public sealed class FarmSheep : MonoBehaviour
     private float modeTimer;
     private Vector3 target;
     private Vector3 velocity;
-    private Vector3 threat;
-    private float pendingStartle = -1f;
-    private Vector3 pendingThreat;
     private string animState;
 
-    public bool IsFleeing => mode == Mode.Flee;
     public bool IsLamb => mother != null;
 
-    public void Configure(SheepPen home, FarmSheep followMother, Animator rig, float walk, float run, float walkClip,
-        float runClip, float body)
+    public void Configure(SheepPen home, FarmSheep followMother, Animator rig, float walk, float walkClip, float body)
     {
         pen = home;
         mother = followMother;
         animator = rig;
         walkSpeed = walk;
-        runSpeed = run;
         walkClipSpeed = walkClip;
-        runClipSpeed = runClip;
         bodyRadius = body;
     }
 
@@ -78,18 +64,6 @@ public sealed class FarmSheep : MonoBehaviour
         float dt = Time.deltaTime;
         if (dt <= 0f || pen == null) return;
 
-        if (player != null && player.isActiveAndEnabled && player.IsRunning)
-        {
-            Vector3 toPlayer = player.transform.position - transform.position;
-            toPlayer.y = 0f;
-            if (toPlayer.sqrMagnitude < startleRadius * startleRadius) Startle(player.transform.position, true);
-        }
-        if (pendingStartle >= 0f && (pendingStartle -= dt) <= 0f)
-        {
-            pendingStartle = -1f;
-            Startle(pendingThreat, false);
-        }
-
         modeTimer -= dt;
         Vector3 desired = Vector3.zero;
         switch (mode)
@@ -103,23 +77,11 @@ public sealed class FarmSheep : MonoBehaviour
                 if (Flat(target - transform.position).magnitude < .35f || modeTimer <= 0f)
                     SetMode(Random.value < .55f ? Mode.Graze : Mode.Idle, Random.Range(2.5f, 7f));
                 break;
-            case Mode.Flee:
-                Vector3 away = Flat(transform.position - threat);
-                float distance = away.magnitude;
-                if (distance > 1e-3f) target = transform.position + away / distance * 3f;
-                desired = Seek(pen.Constrain(target, bodyRadius), runSpeed);
-                // Hemmed in against the wall: slide along it instead of pushing into it.
-                desired += pen.Avoidance(transform.position, bodyRadius, .8f) * runSpeed;
-                if (modeTimer <= 0f && distance > calmDistance * .6f) SetMode(Mode.Idle, Random.Range(1.2f, 2.5f));
-                else if (modeTimer <= -3f) SetMode(Mode.Idle, Random.Range(1.2f, 2.5f));
-                break;
         }
 
-        if (mode != Mode.Flee) desired += pen.Avoidance(transform.position, bodyRadius, .6f) * walkSpeed;
-        desired += Separation() * (mode == Mode.Flee ? runSpeed : walkSpeed);
-        float accel = mode == Mode.Flee ? 7f : 2.2f;
-        velocity = Vector3.MoveTowards(velocity, Vector3.ClampMagnitude(desired, mode == Mode.Flee ? runSpeed : walkSpeed * 1.5f),
-            accel * dt);
+        desired += pen.Avoidance(transform.position, bodyRadius, .6f) * walkSpeed;
+        desired += Separation() * walkSpeed;
+        velocity = Vector3.MoveTowards(velocity, Vector3.ClampMagnitude(desired, walkSpeed * 1.5f), 2.2f * dt);
         if (mode == Mode.Idle || mode == Mode.Graze) velocity = Vector3.MoveTowards(velocity, Vector3.zero, 4f * dt);
 
         Vector3 next = pen.Constrain(transform.position + velocity * dt, bodyRadius);
@@ -134,21 +96,6 @@ public sealed class FarmSheep : MonoBehaviour
         Animate(speed);
     }
 
-    private void Startle(Vector3 from, bool spread)
-    {
-        threat = from;
-        bool wasCalm = mode != Mode.Flee;
-        SetMode(Mode.Flee, Random.Range(1.4f, 2.2f));
-        if (!wasCalm || !spread) return;
-        foreach (var other in Flock)
-        {
-            if (other == this || other.pen != pen || other.IsFleeing || other.pendingStartle >= 0f) continue;
-            if (Flat(other.transform.position - transform.position).magnitude > panicSpread) continue;
-            other.pendingThreat = from;
-            other.pendingStartle = Random.Range(.12f, .4f);
-        }
-    }
-
     private void ChooseNext()
     {
         if (IsLamb && FarFromMother())
@@ -158,7 +105,12 @@ public sealed class FarmSheep : MonoBehaviour
             return;
         }
         float roll = Random.value;
-        if (roll < .4f)
+        if (!IsLamb && roll < .6f && StrayedFromFlock(out Vector3 flockCentre))
+        {
+            target = pen.RandomPoint(bodyRadius, Vector3.Lerp(transform.position, flockCentre, .7f), 2f);
+            SetMode(Mode.Walk, 16f);
+        }
+        else if (roll < .4f)
         {
             target = IsLamb ? pen.RandomPoint(bodyRadius, mother.transform.position, 1.6f)
                 : pen.RandomPoint(bodyRadius, transform.position, 4f);
@@ -166,6 +118,22 @@ public sealed class FarmSheep : MonoBehaviour
         }
         else if (roll < .8f) SetMode(Mode.Graze, Random.Range(4f, 9f));
         else SetMode(Mode.Idle, Random.Range(2f, 4.5f));
+    }
+
+    // Grazing sheep keep loosely together: a sheep far from the others' centre heads back.
+    private bool StrayedFromFlock(out Vector3 centre)
+    {
+        centre = Vector3.zero;
+        int count = 0;
+        foreach (var other in Flock)
+        {
+            if (other == this || other.pen != pen || other.IsLamb) continue;
+            centre += other.transform.position;
+            count++;
+        }
+        if (count == 0) return false;
+        centre /= count;
+        return Flat(centre - transform.position).magnitude > strayDistance;
     }
 
     private bool FarFromMother() =>
@@ -212,12 +180,7 @@ public sealed class FarmSheep : MonoBehaviour
         if (animator == null) return;
         string state;
         float playback = 1f;
-        if (mode == Mode.Flee && speed > .3f)
-        {
-            state = "Run";
-            playback = Mathf.Clamp(speed / runClipSpeed, .7f, 1.8f);
-        }
-        else if (speed > .08f)
+        if (speed > .08f)
         {
             state = "Walk";
             playback = Mathf.Clamp(speed / walkClipSpeed, .5f, 2f);
@@ -226,7 +189,7 @@ public sealed class FarmSheep : MonoBehaviour
         if (state != animState)
         {
             animState = state;
-            animator.CrossFadeInFixedTime(state, state == "Run" ? .15f : .35f, 0);
+            animator.CrossFadeInFixedTime(state, .35f, 0);
         }
         animator.speed = playback;
     }

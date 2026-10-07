@@ -45,6 +45,7 @@ ExportedObj/
 *.blend1.meta
 *.blend2
 *.blend2.meta
+__pycache__/
 *.apk
 *.aab
 *.unitypackage

@@ -30,7 +30,7 @@ public sealed class ChickDrinkingController : MonoBehaviour
     private Phase phase;
     private float phaseTime;
     private bool enteredEat;
-    private FarmPond pond;
+    private FarmWaterBody pond;
     private Vector3 sipPoint;
     private Animator boundAnimator;
     private Transform chest, neck, head;
@@ -55,7 +55,7 @@ public sealed class ChickDrinkingController : MonoBehaviour
 
     private void OnDisable() => Cancel();
 
-    /// <summary>Whether the beak can reach pond water from where the bird stands.</summary>
+    /// <summary>Whether the beak can reach water (pond or trough) from where the bird stands.</summary>
     public bool CanDrinkHere()
     {
         if (!isActiveAndEnabled) return false;
@@ -67,8 +67,10 @@ public sealed class ChickDrinkingController : MonoBehaviour
 
     private bool Probe(Vector3 point, float scale)
     {
-        var found = FarmPond.Find(point, out float depth);
+        var found = FarmWaterBody.Find(point, out float depth);
         if (found == null || depth < .004f || found.SurfaceHeight < point.y - maxReachBelow * scale) return false;
+        // A trough's rim has to be low enough for the beak to get over it from where the feet are.
+        if (!found.CanReachFrom(transform.position.y, scale)) return false;
         pond = found;
         sipPoint = new Vector3(point.x, found.SurfaceHeight + .002f, point.z);
         return true;

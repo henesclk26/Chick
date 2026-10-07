@@ -11,9 +11,10 @@ import sys
 import bpy
 from mathutils import Vector
 
-HERE = os.path.join(os.path.dirname(bpy.data.filepath) if bpy.data.filepath else r"C:\unityProjects\Chick\ArtSource", "SheepFold")
-if not os.path.isdir(HERE):
-    HERE = r"C:\unityProjects\Chick\ArtSource\SheepFold"
+# The scripts live next to the .blend (ArtSource/SheepFold.blend + ArtSource/SheepFold/*.py); open the .blend first.
+if not bpy.data.filepath:
+    raise RuntimeError("Open ArtSource/SheepFold.blend before running this script.")
+HERE = os.path.join(os.path.dirname(bpy.data.filepath), "SheepFold")
 if HERE not in sys.path:
     sys.path.append(HERE)
 

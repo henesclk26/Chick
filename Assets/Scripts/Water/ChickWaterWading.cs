@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Wading through shallow pond water: slows walking with depth, rings the surface at every step
+/// Wading through shallow water (the pond, or inside a trough): slows walking with depth, rings the surface at every step
 /// and splashes when the bird lands in or runs into the water. Movement itself stays with
 /// <see cref="ChickPlayerController"/>, which reads <see cref="SpeedMultiplier"/>.
 /// </summary>
@@ -19,7 +19,7 @@ public sealed class ChickWaterWading : MonoBehaviour
     private const float ChickHeight = .22f;
     private ChickPlayerController player;
     private CharacterController body;
-    private FarmPond pond;
+    private FarmWaterBody pond;
     private float depth;
     private float rippleTimer;
     private bool wasInWater;
@@ -27,7 +27,7 @@ public sealed class ChickWaterWading : MonoBehaviour
 
     public bool InWater => pond != null && depth > .004f;
     public float Depth => depth;
-    public FarmPond Pond => pond;
+    public FarmWaterBody Pond => pond;
     public float SpeedMultiplier { get; private set; } = 1f;
     private float BodyScale => body.height / ChickHeight;
 
@@ -46,9 +46,10 @@ public sealed class ChickWaterWading : MonoBehaviour
 
     private void Update()
     {
-        pond = FarmPond.Find(transform.position, out depth);
+        pond = FarmWaterBody.Find(transform.position, out depth);
         bool grounded = body.isGrounded;
-        bool inWater = InWater && grounded;
+        // Feet above the surface (standing on a trough's rim) are not in the water.
+        bool inWater = InWater && grounded && transform.position.y < pond.SurfaceHeight;
         float scale = BodyScale;
         float immersion = inWater ? Mathf.Clamp01(depth / (chickBellyDepth * scale)) : 0f;
         SpeedMultiplier = Mathf.Lerp(1f, bellyDeepSpeed, Mathf.SmoothStep(0f, 1f, immersion));
