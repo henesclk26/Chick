@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Makes a berry plant's ripe berries edible (strawberry plant, blackberry bush). They hang out of reach until
+/// Makes a berry plant's ripe berries edible (strawberry plant, blackberry and strawberry bushes, tomato plant). They hang out of reach until
 /// the player pecks at the plant: then the nearest hanging berry drops to the ground toward the player and can
 /// be eaten there. Added to the plant models on import (BerryPlantImporter), so every placed plant (model or
 /// prefab) gets it. Unripe berries ("*_Unripe_*") stay decoration.

@@ -3,14 +3,15 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// Adds <see cref="BerryPlant"/> to the berry plant models on import (StrawberryPlant, BlackberryBush), so every
+/// Adds <see cref="BerryPlant"/> to the berry plant models on import (StrawberryPlant, BlackberryBush,
+/// StrawberryBush, TomatoPlant), so every
 /// plant placed from a model or its prefab variant gets edible, droppable berries and a solid base, leaves and
 /// berries without per-instance setup.
 /// </summary>
 public sealed class BerryPlantImporter : AssetPostprocessor
 {
     // Bump when the setup below changes, so Unity reimports the plant models.
-    public override uint GetVersion() => 2;
+    public override uint GetVersion() => 5;
 
     private void OnPostprocessModel(GameObject root)
     {
@@ -26,6 +27,20 @@ public sealed class BerryPlantImporter : AssetPostprocessor
             // ~1.3 m bush on a rocky mound (~0.55 m radius): reach in from outside the leaves, drop clear of the rocks.
             plant.Configure("Blackberry_", "blackberry", "Böğürtlen", .85f, .68f);
             SetUpColliders(root, "Blackberry_", "Mound");
+        }
+        else if (assetPath.EndsWith("/StrawberryBush.fbx", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!root.TryGetComponent(out BerryPlant plant)) plant = root.AddComponent<BerryPlant>();
+            // Same ~1.3 m bush on a rocky mound as the blackberry, so the same reach and drop distance.
+            plant.Configure("Strawberry_", "strawberry", "Çilek", .85f, .68f);
+            SetUpColliders(root, "Strawberry_", "Mound");
+        }
+        else if (assetPath.EndsWith("/TomatoPlant.fbx", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!root.TryGetComponent(out BerryPlant plant)) plant = root.AddComponent<BerryPlant>();
+            // Bush-sized (~1.4 m wide); whole tomatoes, counted apart from the seeds of the tomato slices.
+            plant.Configure("Tomato_", "tomato_fruit", "Domates", .85f, .68f);
+            SetUpColliders(root, "Tomato_", "Mound");
         }
     }
 
