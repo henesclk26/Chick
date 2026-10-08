@@ -9,9 +9,9 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.UIElements;
 
-// Opt-in Play Mode check for the tomato plant: a peck drops a whole tomato, which is then eaten like a strawberry
-// (no seeds) and counted as "Domates". Never attached to a saved scene; never writes the player's save.
-public sealed class TomatoPlayVerification : MonoBehaviour
+// Opt-in Play Mode check for the lettuce: a peck drops one leaf, which lies down flat and is then eaten from the
+// ground like a strawberry and counted as "Marul". Never attached to a saved scene; never writes the player's save.
+public sealed class LettucePlayVerification : MonoBehaviour
 {
     public static string Result = "Not run";
     private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -31,11 +31,11 @@ public sealed class TomatoPlayVerification : MonoBehaviour
         report.AppendLine((ok ? "PASS " : "FAIL ") + message);
         Result = "Running\n" + report;
     }
-    private EdibleObject[] Tomatoes() => plant.GetComponentsInChildren<EdibleObject>(true);
-    // Height of a fallen tomato's lowest point over the terrain under it (plants may be sunk a little into the ground).
-    private static float AboveGround(EdibleObject tomato)
+    private EdibleObject[] Leaves() => plant.GetComponentsInChildren<EdibleObject>(true);
+    // Height of a fallen leaf's lowest point over the terrain under it (plants may be sunk a little into the ground).
+    private static float AboveGround(EdibleObject leaf)
     {
-        Bounds bounds = tomato.GetComponentInChildren<Renderer>().bounds;
+        Bounds bounds = leaf.GetComponentInChildren<Renderer>().bounds;
         Terrain terrain = Terrain.activeTerrain;
         float ground = terrain.SampleHeight(bounds.center) + terrain.transform.position.y;
         return bounds.min.y - ground;
@@ -68,7 +68,7 @@ public sealed class TomatoPlayVerification : MonoBehaviour
         testInput.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
         testInput.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
         InputSystem.settings = testInput;
-        mouse = InputSystem.AddDevice<Mouse>("TomatoTestMouse");
+        mouse = InputSystem.AddDevice<Mouse>("LettuceTestMouse");
 
         // Release gameplay without starting the day clock or loading/writing any save.
         foreach (var clock in FindObjectsByType<GameTimeManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -87,33 +87,37 @@ public sealed class TomatoPlayVerification : MonoBehaviour
         Time.timeScale = 1f;
         player.GetComponent<PlayerGrowthController>().SetForm(PlayerGrowthController.Form.Chick);
 
-        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Art/TomatoPlant/TomatoPlant.prefab");
-        Check(prefab != null && prefab.GetComponent<BerryPlant>() != null, "The TomatoPlant prefab carries BerryPlant");
-        plant = FindObjectsByType<BerryPlant>(FindObjectsSortMode.None).FirstOrDefault(p => p.FoodKey == "tomato_fruit");
-        Check(plant != null, "A tomato plant is in the scene");
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Art/LettucePlant/LettucePlant.prefab");
+        Check(prefab != null && prefab.GetComponent<BerryPlant>() != null, "The LettucePlant prefab carries BerryPlant");
+        plant = FindObjectsByType<BerryPlant>(FindObjectsSortMode.None).FirstOrDefault(p => p.FoodKey == "lettuce");
+        Check(plant != null, "A lettuce is in the scene");
         if (plant == null) { Finish(); yield break; }
 
-        var tomatoes = Tomatoes();
-        int ripe = tomatoes.Length;
+        var leaves = Leaves();
+        int ripe = leaves.Length;
         int modelled = plant.GetComponentsInChildren<Transform>(true)
-            .Count(t => t.name.StartsWith("Tomato_") && !t.name.Contains("Unripe") && t.GetComponent<Renderer>() != null);
-        Check(ripe > 0 && ripe == modelled && plant.HangingCount == ripe && tomatoes.All(t => !t.enabled && !t.CanBeEaten()),
-            $"Every ripe tomato ({ripe} of {modelled}) hangs and cannot be eaten yet");
-        Check(plant.GetComponentsInChildren<Transform>(true).Where(t => t.name.StartsWith("Tomato_Unripe"))
-            .All(t => t.GetComponentInParent<EdibleObject>() == null), "Green tomatoes stay decoration");
+            .Count(t => t.name.StartsWith("Lettuce_") && t.GetComponent<Renderer>() != null);
+        Check(ripe > 0 && ripe == modelled && plant.HangingCount == ripe && leaves.All(t => !t.enabled && !t.CanBeEaten()),
+            $"Every leaf ({ripe} of {modelled}) is on the plant and cannot be eaten yet");
 
         yield return StandAtPlant(1.6f);
         yield return Click();
         yield return new WaitForSeconds(.2f);
         Check(plant.HangingCount == ripe, "Pecking far from the plant drops nothing");
 
-        // First peck at the plant: a tomato falls toward the chick and can be eaten on the ground.
+        // First peck at the plant: a leaf falls toward the chick, lies down flat and can be eaten on the ground.
         yield return StandAtPlant(.62f);
         yield return Click();
-        Check(plant.HangingCount == ripe - 1, $"One peck at the plant drops one tomato ({plant.HangingCount} left hanging)");
+        Check(plant.HangingCount == ripe - 1, $"One peck at the plant drops one leaf ({plant.HangingCount} left on the plant)");
         yield return new WaitForSeconds(.7f);
-        var dropped = Tomatoes().FirstOrDefault(t => t.enabled);
-        Check(dropped != null && dropped.CanBeEaten(), "The fallen tomato is edible");
+        var dropped = Leaves().FirstOrDefault(t => t.enabled);
+        Check(dropped != null && dropped.CanBeEaten(), "The fallen leaf is edible");
+        if (dropped != null)
+        {
+            Bounds lying = dropped.GetComponentInChildren<Renderer>().bounds;
+            Check(lying.size.y < Mathf.Max(lying.size.x, lying.size.z) * .6f,
+                $"It lies down flat ({lying.size.y:0.00} m tall, {Mathf.Max(lying.size.x, lying.size.z):0.00} m long)");
+        }
         if (dropped != null)
         {
             float ground = plant.transform.position.y;
@@ -125,17 +129,16 @@ public sealed class TomatoPlayVerification : MonoBehaviour
             Vector3 stand = dropped.BitePosition + approach * .14f;
             player.TeleportTo(new Vector3(stand.x, ground + .05f, stand.z), Quaternion.LookRotation(-approach));
             yield return new WaitForSeconds(.6f);
-            int before = Eaten("tomato_fruit");
-            int seeds = Eaten("tomato");
+            int before = Eaten("lettuce");
             yield return Click();
             float deadline = Time.time + 3f;
             while (!dropped.IsConsumed && Time.time < deadline) yield return null;
             yield return new WaitForSeconds(.4f);
-            Check(dropped.IsConsumed && Eaten("tomato_fruit") == before + 1 && Eaten("tomato") == seeds,
-                $"Eating it counts one Domates, not tomato seeds ({before} -> {Eaten("tomato_fruit")})");
+            Check(dropped.IsConsumed && Eaten("lettuce") == before + 1,
+                $"Eating it counts one Marul ({before} -> {Eaten("lettuce")})");
         }
 
-        // Every tomato can be shaken down.
+        // Every leaf, the heart's too, can be shaken down.
         yield return new WaitForSeconds(1f);
         int guard = 0;
         while (plant.HangingCount > 0 && guard++ < 40)
@@ -144,10 +147,10 @@ public sealed class TomatoPlayVerification : MonoBehaviour
             yield return Click();
             yield return new WaitForSeconds(1f);
         }
-        Check(plant.HangingCount == 0, $"All tomatoes can be shaken down ({plant.HangingCount} left after {guard} pecks)");
-        float highest = Tomatoes().Where(t => !t.IsConsumed).Select(AboveGround).DefaultIfEmpty(0f).Max();
-        Check(highest < .04f, $"Every fallen tomato lies on the ground (highest {highest:0.000} m over it)");
-        Check(EdibleObject.CaptureConsumedIds().Any(id => id.StartsWith("tomato_fruit-")), "Eaten tomatoes are saved by id");
+        Check(plant.HangingCount == 0, $"All leaves can be shaken down ({plant.HangingCount} left after {guard} pecks)");
+        float highest = Leaves().Where(t => !t.IsConsumed).Select(AboveGround).DefaultIfEmpty(0f).Max();
+        Check(highest < .04f, $"Every fallen leaf lies on the ground (highest {highest:0.000} m over it)");
+        Check(EdibleObject.CaptureConsumedIds().Any(id => id.StartsWith("lettuce-")), "Eaten leaves are saved by id");
         Finish();
     }
 
@@ -156,7 +159,7 @@ public sealed class TomatoPlayVerification : MonoBehaviour
     private void Finish()
     {
         Result = (failures == 0 ? "PASS" : "FAIL " + failures) + "\n" + report;
-        Debug.Log("TOMATO VERIFICATION\n" + Result);
+        Debug.Log("LETTUCE VERIFICATION\n" + Result);
         Cleanup();
     }
 

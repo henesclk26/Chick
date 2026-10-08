@@ -24,17 +24,21 @@ public sealed class BerryPlant : MonoBehaviour
     [Tooltip("Distance from the plant's centre where dropped berries land, clear of the plant's base.")]
     [SerializeField, Min(.05f)] private float dropRadius = .25f;
     [SerializeField, Min(.1f)] private float fallSeconds = .45f;
+    [Tooltip("The pieces are leaves modelled flat in their own frame (blade in local XZ): they fall and lie down " +
+             "flat instead of keeping the pose they hang in.")]
+    [SerializeField] private bool layFlat;
 
     public string FoodKey => foodKey;
 
     /// <summary>Import-time setup for a plant whose berries are not strawberries.</summary>
-    public void Configure(string prefix, string key, string displayName, float reach, float drop)
+    public void Configure(string prefix, string key, string displayName, float reach, float drop, bool flat = false)
     {
         berryPrefix = prefix;
         foodKey = key;
         foodName = displayName;
         knockReach = reach;
         dropRadius = drop;
+        layFlat = flat;
     }
 
     private sealed class Berry
@@ -49,6 +53,7 @@ public sealed class BerryPlant : MonoBehaviour
         public bool falling, dropped;
         public Vector3 from, to;
         public Quaternion meshFrom, meshTo;
+        public Vector3 meshPosFrom, meshPosTo;
         public float t;
     }
 
@@ -92,19 +97,25 @@ public sealed class BerryPlant : MonoBehaviour
             pickup.transform.SetPositionAndRotation(bounds.center, Quaternion.identity);
             mesh.SetParent(pickup.transform, true);
 
+            // On the ground a berry keeps its hanging shape; a leaf lies flat, so its footprint and height come
+            // from its own (flat) mesh bounds.
+            Vector3 ground = bounds.extents;
+            if (layFlat && mesh.TryGetComponent(out MeshFilter filter) && filter.sharedMesh != null)
+                ground = Vector3.Scale(filter.sharedMesh.bounds.extents, mesh.lossyScale);
+
             var trigger = pickup.AddComponent<SphereCollider>();
             trigger.isTrigger = true;
-            trigger.radius = Mathf.Max(bounds.extents.x, bounds.extents.z) * .8f;
+            trigger.radius = Mathf.Max(ground.x, ground.z) * .8f;
             trigger.enabled = false;
 
             var groundSolid = pickup.AddComponent<BoxCollider>();
-            float width = Mathf.Max(bounds.extents.x, bounds.extents.z) * 1.6f;
-            groundSolid.size = new Vector3(width, bounds.size.y, width);
+            float width = Mathf.Max(ground.x, ground.z) * (layFlat ? 1.2f : 1.6f);
+            groundSolid.size = new Vector3(width, ground.y * 2f, width);
             groundSolid.enabled = false;
 
             var bite = new GameObject("BitePoint").transform;
             bite.SetParent(pickup.transform, false);
-            bite.localPosition = new Vector3(0f, -bounds.extents.y * .45f, 0f);
+            bite.localPosition = new Vector3(0f, -(layFlat ? ground.y : bounds.extents.y) * .45f, 0f);
 
             var edible = pickup.AddComponent<EdibleObject>();
             // Plant position keeps ids unique across several plants with identical child names.
@@ -115,7 +126,7 @@ public sealed class BerryPlant : MonoBehaviour
             berries.Add(new Berry
             {
                 pickup = pickup.transform, mesh = mesh, edible = edible, trigger = trigger,
-                hangingSolid = mesh.GetComponent<SphereCollider>(), groundSolid = groundSolid, halfHeight = bounds.extents.y
+                hangingSolid = mesh.GetComponent<SphereCollider>(), groundSolid = groundSolid, halfHeight = ground.y
             });
         }
     }
@@ -177,12 +188,26 @@ public sealed class BerryPlant : MonoBehaviour
             groundY = hit.point.y;
             found = true;
         }
-        landing.y = groundY + chosen.halfHeight * .9f;
+        // A curled leaf's rim dips below its bounds' middle plane, so it rests a touch higher than a berry.
+        landing.y = groundY + chosen.halfHeight * (layFlat ? 1.1f : .9f);
 
         chosen.from = chosen.pickup.position;
         chosen.to = landing;
         chosen.meshFrom = chosen.mesh.localRotation;
-        chosen.meshTo = Quaternion.Euler(Random.Range(-25f, 25f), Random.Range(0f, 360f), Random.Range(-25f, 25f)) * chosen.meshFrom;
+        chosen.meshPosFrom = chosen.meshPosTo = chosen.mesh.localPosition;
+        if (layFlat)
+        {
+            // Lie the leaf down on its back (blade in local XZ, so identity is flat), turned at random, and
+            // centre it on the pickup so it rests on the ground.
+            chosen.meshTo = Quaternion.Euler(Random.Range(-6f, 6f), Random.Range(0f, 360f), Random.Range(-6f, 6f));
+            Vector3 centre = chosen.mesh.TryGetComponent(out MeshFilter filter) && filter.sharedMesh != null
+                ? Vector3.Scale(filter.sharedMesh.bounds.center, chosen.mesh.lossyScale) : Vector3.zero;
+            chosen.meshPosTo = -(chosen.meshTo * centre);
+        }
+        else
+        {
+            chosen.meshTo = Quaternion.Euler(Random.Range(-25f, 25f), Random.Range(0f, 360f), Random.Range(-25f, 25f)) * chosen.meshFrom;
+        }
         chosen.t = 0f;
         chosen.falling = true;
         return true;
@@ -202,12 +227,14 @@ public sealed class BerryPlant : MonoBehaviour
             position.y = Mathf.Lerp(berry.from.y, berry.to.y, t * t) + Mathf.Sin(Mathf.InverseLerp(.8f, 1f, t) * Mathf.PI) * .025f;
             berry.pickup.position = position;
             berry.mesh.localRotation = Quaternion.Slerp(berry.meshFrom, berry.meshTo, t);
+            berry.mesh.localPosition = Vector3.Lerp(berry.meshPosFrom, berry.meshPosTo, Mathf.SmoothStep(0f, 1f, t));
             if (t < 1f) continue;
             berry.falling = false;
             berry.dropped = true;
             berry.trigger.enabled = true;
             if (berry.hangingSolid != null) berry.hangingSolid.enabled = false;
-            berry.groundSolid.enabled = true;
+            // A fallen leaf stays passable, like other flat food on the ground: the chick walks onto it and eats.
+            berry.groundSolid.enabled = !layFlat;
             berry.edible.enabled = true;
         }
     }

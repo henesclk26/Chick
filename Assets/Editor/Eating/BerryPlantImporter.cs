@@ -4,14 +4,15 @@ using UnityEngine;
 
 /// <summary>
 /// Adds <see cref="BerryPlant"/> to the berry plant models on import (StrawberryPlant, BlackberryBush,
-/// StrawberryBush, TomatoPlant), so every
+/// StrawberryBush, TomatoPlant,
+/// LettucePlant), so every
 /// plant placed from a model or its prefab variant gets edible, droppable berries and a solid base, leaves and
 /// berries without per-instance setup.
 /// </summary>
 public sealed class BerryPlantImporter : AssetPostprocessor
 {
     // Bump when the setup below changes, so Unity reimports the plant models.
-    public override uint GetVersion() => 5;
+    public override uint GetVersion() => 6;
 
     private void OnPostprocessModel(GameObject root)
     {
@@ -41,6 +42,13 @@ public sealed class BerryPlantImporter : AssetPostprocessor
             // Bush-sized (~1.4 m wide); whole tomatoes, counted apart from the seeds of the tomato slices.
             plant.Configure("Tomato_", "tomato_fruit", "Domates", .85f, .68f);
             SetUpColliders(root, "Tomato_", "Mound");
+        }
+        else if (assetPath.EndsWith("/LettucePlant.fbx", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!root.TryGetComponent(out BerryPlant plant)) plant = root.AddComponent<BerryPlant>();
+            // ~0.85 m head on a ~1 m mound; every leaf (heart included) drops, lies flat and is eaten.
+            plant.Configure("Lettuce_", "lettuce", "Marul", .8f, .62f, flat: true);
+            SetUpColliders(root, "Lettuce_", "Mound");
         }
     }
 
