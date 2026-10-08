@@ -5,14 +5,14 @@ using UnityEngine;
 /// <summary>
 /// Adds <see cref="BerryPlant"/> to the berry plant models on import (StrawberryPlant, BlackberryBush,
 /// StrawberryBush, TomatoPlant,
-/// LettucePlant), so every
+/// LettucePlant and the Lettuce in Art/Lettuce), so every
 /// plant placed from a model or its prefab variant gets edible, droppable berries and a solid base, leaves and
 /// berries without per-instance setup.
 /// </summary>
 public sealed class BerryPlantImporter : AssetPostprocessor
 {
     // Bump when the setup below changes, so Unity reimports the plant models.
-    public override uint GetVersion() => 6;
+    public override uint GetVersion() => 8;
 
     private void OnPostprocessModel(GameObject root)
     {
@@ -48,6 +48,16 @@ public sealed class BerryPlantImporter : AssetPostprocessor
             if (!root.TryGetComponent(out BerryPlant plant)) plant = root.AddComponent<BerryPlant>();
             // ~0.85 m head on a ~1 m mound; every leaf (heart included) drops, lies flat and is eaten.
             plant.Configure("Lettuce_", "lettuce", "Marul", .8f, .62f, flat: true);
+            SetUpColliders(root, "Lettuce_", "Mound");
+        }
+        else if (assetPath.EndsWith("/Art/Lettuce/Lettuce.fbx", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!root.TryGetComponent(out BerryPlant plant)) plant = root.AddComponent<BerryPlant>();
+            // ~1 m head on a ~0.9 m mound: each peck knocks the nearest leaf off; it slides down off its own side,
+            // just clear of the mound, leaving its chewed stub (Stub_NN), and on the ground takes two pecks (Half_NN
+            // after the first). At the end only the stubs are left.
+            plant.Configure("Lettuce_", "lettuce", "Marul", .9f, .48f, flat: true, stubs: "Stub_", halves: "Half_",
+                inPlace: true);
             SetUpColliders(root, "Lettuce_", "Mound");
         }
     }
