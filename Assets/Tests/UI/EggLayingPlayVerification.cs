@@ -53,6 +53,20 @@ public sealed class EggLayingPlayVerification : MonoBehaviour
         eatenSeedCount = 50, eggLayingVersion = 1, eggCycleSelected = true,
         eggCycleSeedCount = count, nextEggGolden = golden
     };
+    // Z lifts the nearby egg onto the back; Z again by the barn's basket drops it in for gold.
+    private bool CarryToBasket(Vector3 returnTo)
+    {
+        Set(growth, "requireZRelease", false);
+        bool picked = (bool)Call(growth, "HandleEggPickup", true, true) && LaidEggPresentation.Carried != null;
+        var basket = EggBasket.Active;
+        if (!picked || basket == null) return false;
+        player.TeleportTo(basket.transform.position + Vector3.forward * .8f, Quaternion.identity);
+        Set(growth, "requireZRelease", false);
+        bool dropped = (bool)Call(growth, "HandleEggPickup", true, true) && LaidEggPresentation.Carried == null;
+        player.TeleportTo(returnTo, Quaternion.identity);
+        Tick(.01f);
+        return dropped;
+    }
     private bool Visible() => root.Q("GrowthProgressHUD").style.display.value == DisplayStyle.Flex;
     private void Eat()
     {
@@ -184,8 +198,8 @@ public sealed class EggLayingPlayVerification : MonoBehaviour
         yield return new WaitForSecondsRealtime(2f);
         Check(white != null && white.isActiveAndEnabled, "Egg remains after the old disappearance deadline");
         player.TeleportTo(footprint + Vector3.right * 2f, Quaternion.identity);
-        Check(LaidEggPresentation.FindNearest(player.transform, .75f) == null && !white.TryCollect(player.transform, wallet, .75f),
-            "Distant egg cannot be collected");
+        Check(LaidEggPresentation.FindNearest(player.transform, .75f) == null && !white.TryPickUp(player.transform, .75f),
+            "Distant egg cannot be picked up");
         player.TeleportTo(footprint, Quaternion.identity);
         Tick(.01f);
         Call(growth, "HandleEggPickup", false, true);
@@ -200,9 +214,14 @@ public sealed class EggLayingPlayVerification : MonoBehaviour
         previewPickup = false;
         Tick(.01f);
         bool handled = (bool)Call(growth, "HandleEggPickup", true, true);
-        Check(handled && wallet.WhiteEggsLaid == 1 && wallet.AvailableEggs == balance + 1 &&
-            LaidEggPresentation.ActiveEggCount == 0 && !white.TryCollect(player.transform, wallet, .75f),
-            "White pickup grants exactly +1 once and removes only the collected egg");
+        Check(handled && LaidEggPresentation.Carried == white && wallet.WhiteEggsLaid == 0 && wallet.AvailableEggs == balance,
+            "Z picks the white egg up onto the back without paying gold yet");
+        Set(growth, "requireZRelease", false);
+        player.TeleportTo(EggBasket.Active.transform.position + Vector3.forward * .8f, Quaternion.identity);
+        Check((bool)Call(growth, "HandleEggPickup", true, true) && wallet.WhiteEggsLaid == 1 && wallet.AvailableEggs == balance + 1 &&
+            LaidEggPresentation.Carried == null && LaidEggPresentation.ActiveEggCount == 0,
+            "Dropping it in the basket pays exactly 1 gold once");
+        player.TeleportTo(footprint, Quaternion.identity);
         yield return new WaitForSecondsRealtime(.4f);
 
         Restore(Cycle(50, true));
@@ -253,8 +272,8 @@ public sealed class EggLayingPlayVerification : MonoBehaviour
         CaptureEgg(whitePreview, "white-model");
         whitePreview.gameObject.SetActive(false); Destroy(whitePreview.gameObject);
         Tick(.01f);
-        Check((bool)Call(growth, "HandleEggPickup", true, true) && wallet.GoldenEggsLaid == 1 &&
-            wallet.WhiteEggsLaid == 1 && wallet.AvailableEggs == balance + 5, "Golden pickup grants +5 to the same Tab egg balance");
+        Check(CarryToBasket(player.transform.position) && wallet.GoldenEggsLaid == 1 &&
+            wallet.WhiteEggsLaid == 1 && wallet.AvailableEggs == balance + 5, "Golden egg in the basket pays 5 gold to the same Tab balance");
         Check(LaidEggPresentation.CaptureAll().Length == 0, "Collected eggs are excluded from future saves");
         var journal = FindFirstObjectByType<GameplayJournalController>(FindObjectsInactive.Include);
         var balanceLabel = journal.GetComponent<UIDocument>().rootVisualElement.Q<Label>("points-label");

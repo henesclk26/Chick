@@ -5,8 +5,11 @@ using UnityEngine.UIElements;
 // the approved three-page journal. Art is cropped from references, never baked UI text.
 public sealed partial class GameplayJournalController
 {
-    private readonly Button[] sectionTabs = new Button[3];
-    private readonly VisualElement[] sectionPages = new VisualElement[3];
+    // Sections: 0 chicken, 1 helper chicks, 2 abilities (barn tabs: 0 and 2), 3 first helper chick (coop, none owned).
+    private const int ChickenSection = 0, CompanionSection = 1, AbilitySection = 2, FirstChickSection = 3;
+    private readonly Button[] sectionTabs = new Button[4];
+    private readonly VisualElement[] sectionPages = new VisualElement[4];
+    private VisualElement sectionTabBar;
     private readonly Button[] companionSlots = new Button[PlayerUpgrades.MaxHelperChicks];
     private int selectedCompanion;
     private Label companionCount, companionTitle, companionHint;
@@ -28,6 +31,7 @@ public sealed partial class GameplayJournalController
         companionAtlas = Resources.Load<Texture2D>("Journal/CompanionAtlas");
         abilitiesAtlas = Resources.Load<Texture2D>("Journal/AbilitiesAtlas");
         var tabs = Element("upgrade-section-tabs", "upgrade-section-tabs");
+        sectionTabBar = tabs;
         upgradesPage.Insert(0, tabs);
         string[] names = { "Tavuk", "Yardımcı Civcivler", "Yetenekler" };
         string[] keys = { "chicken", "companions", "abilities" };
@@ -50,6 +54,9 @@ public sealed partial class GameplayJournalController
         chickenScroll.Add(chickenGrid);
         foreach (string prefix in new[] { "peck", "range", "sprint-speed", "sprint-duration", "double-collect" })
             MoveCard(prefix, chickenGrid, "grid-card");
+        chickenGrid.Add(NewUpgradeCard("auto-basket", "Otomatik Sepet", "Yumurtlayınca yumurta kendiliğinden sepete gider.",
+            () => PurchaseClicked(LiveUpgrades[12])));
+        SetImage("auto-basket-art", Resources.Load<Texture2D>("Journal/BasketArt"));
         root.Q<Button>("double-collect-price").Q<Label>(className: "price-text").name = "double-collect-cost";
         var chickenAtlas = Resources.Load<Texture2D>("Journal/ChickenAtlas");
         SetAtlasArt(root.Q<Image>("sprint-speed-art"), chickenAtlas, new Rect(381, 487, 119, 119));
@@ -74,7 +81,7 @@ public sealed partial class GameplayJournalController
             var status = Text("Satın alınmadı", "companion-slot-status"); status.name = "status";
             copy.Add(status);
             var price = Element("purchase", "companion-purchase");
-            var egg = GameplayJournalReferenceTheme.CreateLevelEgg(false); egg.AddToClassList("slot-price-egg");
+            var egg = GameplayJournalReferenceTheme.CreateCoin(); egg.AddToClassList("slot-price-egg");
             price.Add(egg);
             var cost = Text("", "slot-price-text"); cost.name = "cost"; price.Add(cost);
             copy.Add(price); slot.Add(copy);
@@ -141,7 +148,7 @@ public sealed partial class GameplayJournalController
             status.Add(new CheckGlyph());
             status.Add(Text("Açıldı", "ability-status-text"));
             card.Add(status);
-            var buttonEgg = GameplayJournalReferenceTheme.CreateLevelEgg(false);
+            var buttonEgg = GameplayJournalReferenceTheme.CreateCoin();
             buttonEgg.name = abilities[i] + "-action-egg"; buttonEgg.AddToClassList("action-egg");
             button.Add(buttonEgg);
             var action = Text("Yeteneği Aç", "ability-action"); action.name = abilities[i] + "-action";
@@ -156,11 +163,29 @@ public sealed partial class GameplayJournalController
         var futureButton = new Button { text = "Kilitli" }; futureButton.AddToClassList("upgrade-price"); futureButton.SetEnabled(false);
         future.Add(futureButton); abilityGrid.Add(future);
         sectionPages[2].Add(Text("Yeni yetenekler keşfettikçe burada görünür.", "ability-footer"));
+        // The coop before the first chick: only the original "Yardımcı Civciv" purchase card.
+        sectionPages[FirstChickSection] = Element("first-chick-section", "upgrade-section");
+        upgradesPage.Add(sectionPages[FirstChickSection]);
+        var firstChickGrid = Element("first-chick-grid", "upgrade-grid");
+        sectionPages[FirstChickSection].Add(firstChickGrid);
+        MoveCard("helper", firstChickGrid, "grid-card");
+        SetAtlasArt(root.Q<Image>("helper-art"), companionAtlas, new Rect(722, 275, 131, 114));
         // The obsolete list keeps the old helper-price binding but is no longer visible.
         root.Q("upgrade-list").style.display = DisplayStyle.None;
         foreach (string className in new[] { "upgrade-price", "companion-purchase", "upgrade-section-tab", "side-button", "owned-card", "selected-badge" })
             root.Query(className: className).ForEach(GameplayJournalReferenceTheme.AddWear);
         ShowUpgradeSection(0);
+    }
+
+    // The barn shows chicken upgrades and abilities; the coop shows the helper chicks, or only the first
+    // chick's purchase while none is owned.
+    private void ShowStationSections()
+    {
+        bool coop = station == UpgradeStation.Kind.Coop;
+        if (sectionTabBar != null) sectionTabBar.style.display = coop ? DisplayStyle.None : DisplayStyle.Flex;
+        if (sectionTabs[CompanionSection] != null) sectionTabs[CompanionSection].style.display = DisplayStyle.None;
+        if (!coop) ShowUpgradeSection(ChickenSection);
+        else ShowUpgradeSection(upgrades != null && upgrades.HelperChickCount > 0 ? CompanionSection : FirstChickSection);
     }
 
     public void ShowUpgradeSection(int index)
@@ -193,6 +218,9 @@ public sealed partial class GameplayJournalController
     {
         if (companionCount == null || upgrades == null) return;
         int owned = upgrades.HelperChickCount;
+        // Buying the first chick at the coop moves on to its upgrades.
+        if (isOpen && station == UpgradeStation.Kind.Coop && owned > 0 && !sectionPages[FirstChickSection].ClassListContains("hidden"))
+            ShowUpgradeSection(CompanionSection);
         companionCount.text = $"Civcivlerim {owned} / {PlayerUpgrades.MaxHelperChicks}";
         companionTitle.text = owned > 0 ? "Civciv " + (selectedCompanion + 1) : "Yardımcı Civciv";
         companionHint.text = owned > 0 ? "Yalnızca bu civciv gelişir." : "Başlamak için soldan bir civciv al.";
@@ -214,7 +242,7 @@ public sealed partial class GameplayJournalController
             SetAtlasArt(slot.Q<Image>("portrait"), companionAtlas, bought ? OwnedPortrait : LockedPortrait);
             slot.Q<Label>("cost").text = i == owned ? upgrades.GetNextPrice(PlayerUpgrades.HelperChick).ToString() : "Önceki civcivi al";
             slot.Q("purchase").EnableInClassList("unaffordable", i != owned || AvailableEggs < upgrades.GetNextPrice(PlayerUpgrades.HelperChick));
-            slot.tooltip = bought ? "Bu civcivin yükseltmelerini göster" : i == owned ? "Yumurta karşılığında civciv al" : "Civcivler sırayla alınır";
+            slot.tooltip = bought ? "Bu civcivin yükseltmelerini göster" : i == owned ? "Altın karşılığında civciv al" : "Civcivler sırayla alınır";
         }
         string[] prefixes = { "helper-speed", "helper-range", "helper-move", "helper-climb" };
         string[] ids = { PlayerUpgrades.HelperEatSpeed, PlayerUpgrades.HelperRange, PlayerUpgrades.HelperMoveSpeed, PlayerUpgrades.HelperClimb };
@@ -310,7 +338,7 @@ public sealed partial class GameplayJournalController
         details.Add(Text(title, "upgrade-name")); details.Add(Text(description, "upgrade-description"));
         details.Add(Element(prefix + "-levels", "level-row")); card.Add(details);
         var button = new Button(clicked) { name = prefix + "-price" }; button.AddToClassList("upgrade-price");
-        var egg = GameplayJournalReferenceTheme.CreateLevelEgg(false); egg.name = prefix + "-egg"; egg.AddToClassList("price-egg"); button.Add(egg);
+        var egg = GameplayJournalReferenceTheme.CreateCoin(); egg.name = prefix + "-egg"; egg.AddToClassList("price-egg"); button.Add(egg);
         var cost = Text("", "price-text"); cost.name = prefix + "-cost"; button.Add(cost); card.Add(button);
         return card;
     }

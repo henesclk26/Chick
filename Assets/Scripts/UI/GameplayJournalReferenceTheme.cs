@@ -9,6 +9,7 @@ public static class GameplayJournalReferenceTheme
     private static Texture2D atlas;
     private static Texture2D goldEgg;
     private static Texture2D whiteEgg;
+    private static Texture2D coin;
     private static Texture2D Atlas => atlas != null ? atlas : (atlas = Resources.Load<Texture2D>("Journal/ReferenceAtlas"));
     // Atlas rows (top-down) of the "Yükseltmeler" tab that the reference artwork shows as selected.
     private const float BakedTabTop = 176f;
@@ -132,6 +133,13 @@ public static class GameplayJournalReferenceTheme
         if (goldEgg == null) goldEgg = Resources.Load<Texture2D>("Journal/GoldEgg");
         if (whiteEgg == null) whiteEgg = Resources.Load<Texture2D>("Journal/Egg");
         return new Image { image = filled ? goldEgg : whiteEgg, scaleMode = ScaleMode.ScaleToFit, pickingMode = PickingMode.Ignore, uv = new Rect(.1f, .04f, .8f, .9f) };
+    }
+
+    /// <summary>The gold coin shown next to prices (upgrades cost gold).</summary>
+    public static Image CreateCoin()
+    {
+        if (coin == null) coin = Resources.Load<Texture2D>("Journal/Coin");
+        return new Image { image = coin, scaleMode = ScaleMode.ScaleToFit, pickingMode = PickingMode.Ignore };
     }
 
     private static Image Crop(Rect source)

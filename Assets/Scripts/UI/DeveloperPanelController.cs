@@ -184,11 +184,11 @@ public sealed class DeveloperPanelController : MonoBehaviour
         {
             button.SetEnabled(chicken && upgrades != null);
             button.tooltip = !chicken ? "Yalnızca tavuk formunda kullanılabilir."
-                : upgrades == null ? "Yumurta sistemi bulunamadı." : "Bakiyeye 20 harcanabilir yumurta ekler.";
+                : upgrades == null ? "Altın sistemi bulunamadı." : "Bakiyeye 20 harcanabilir altın ekler.";
         }
         var balance = root.Q<Label>("debug-egg-balance");
         if (balance != null) balance.text = upgrades != null
-            ? "Bakiye: " + upgrades.AvailableEggs + " yumurta" : "Bakiye kullanılamıyor";
+            ? "Bakiye: " + upgrades.AvailableEggs + " altın" : "Bakiye kullanılamıyor";
     }
 
     private void GrantEggs()
@@ -196,13 +196,13 @@ public sealed class DeveloperPanelController : MonoBehaviour
         if (growth == null || growth.CurrentForm != PlayerGrowthController.Form.Chicken)
         {
             RefreshEggControls();
-            SetStatus("Yumurta eklemek için tavuk formuna geç.");
+            SetStatus("Altın eklemek için tavuk formuna geç.");
             return;
         }
         bool granted = upgrades != null && upgrades.TryGrantDebugEggs(20);
         RefreshEggControls();
-        SetStatus(granted ? "+20 yumurta eklendi. Bakiye: " + upgrades.AvailableEggs
-            : "Yumurta eklenemedi: sistem veya bakiye sınırını kontrol et.");
+        SetStatus(granted ? "+20 altın eklendi. Bakiye: " + upgrades.AvailableEggs
+            : "Altın eklenemedi: sistem veya bakiye sınırını kontrol et.");
     }
 
     private void ToggleInfiniteSprint()

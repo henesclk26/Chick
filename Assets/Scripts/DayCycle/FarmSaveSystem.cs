@@ -37,6 +37,8 @@ public sealed class FarmSaveData
     public bool eggCycleSelected;
     public bool nextEggGolden;
     public GroundEggSaveEntry[] groundEggs = new GroundEggSaveEntry[0];
+    // Eggs piled in the barn's basket (true = golden); saves without it start with an empty basket.
+    public bool[] basketEggs = new bool[0];
     public UpgradeLevelSaveEntry[] upgradeLevels = new UpgradeLevelSaveEntry[0];
     // Partly eaten multi-peck food (watermelon slices); saves without it load every slice whole.
     public FoodBiteSaveEntry[] foodBites = new FoodBiteSaveEntry[0];

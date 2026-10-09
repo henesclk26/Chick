@@ -4,8 +4,9 @@ using System.Linq;
 using UnityEngine;
 
 /// <summary>
-/// Journal upgrades bought with collected eggs, independently of food statistics.
-/// Owns levels and spent eggs; gameplay mechanics only read levels from here.
+/// Journal upgrades bought with gold, independently of food statistics. Gold is paid when an egg reaches the
+/// barn's basket (white 1, golden 5). The "Eggs" names are the save format's; their values are gold.
+/// Owns levels and spent gold; gameplay mechanics only read levels from here.
 /// </summary>
 [DisallowMultipleComponent]
 public sealed class PlayerUpgrades : MonoBehaviour
@@ -22,6 +23,7 @@ public sealed class PlayerUpgrades : MonoBehaviour
     public const string DoubleCollect = "double-collect";
     public const string DoubleJump = "double-jump";
     public const string Glide = "glide";
+    public const string AutoBasket = "auto-basket";
     public const int MaxHelperChicks = 3;
 
     [Serializable]
@@ -49,7 +51,8 @@ public sealed class PlayerUpgrades : MonoBehaviour
         new UpgradeDefinition { id = HelperClimb, levelPrices = new[] { 18, 30, 45 } },
         new UpgradeDefinition { id = DoubleCollect, levelPrices = new[] { 25, 40, 60 } },
         new UpgradeDefinition { id = DoubleJump, levelPrices = new[] { 200 } },
-        new UpgradeDefinition { id = Glide, levelPrices = new[] { 200 } }
+        new UpgradeDefinition { id = Glide, levelPrices = new[] { 200 } },
+        new UpgradeDefinition { id = AutoBasket, levelPrices = new[] { 100 } }
     };
 
     [Header("Daha Hızlı Gagalama")]
@@ -97,6 +100,8 @@ public sealed class PlayerUpgrades : MonoBehaviour
     public float SprintDurationBonusSeconds => sprintDurationPerLevel * GetLevel(SprintDuration);
     public bool DoubleJumpUnlocked => GetLevel(DoubleJump) > 0;
     public bool GlideUnlocked => GetLevel(Glide) > 0;
+    /// <summary>"Otomatik Sepet": laid eggs go straight into the basket.</summary>
+    public bool AutoBasketUnlocked => GetLevel(AutoBasket) > 0;
     // Each purchased level adds one independent companion.
     public int HelperChickCount => Mathf.Min(GetLevel(HelperChick), MaxHelperChicks);
     public float HelperRangeMultiplier => GetHelperRangeMultiplier(0);
@@ -169,7 +174,7 @@ public sealed class PlayerUpgrades : MonoBehaviour
 #endif
     }
 
-    // Legacy save field names are retained; these counts now increase only on pickup.
+    // Legacy save field names are retained; these counts now increase when an egg reaches the basket.
     public bool TryCollectEgg(bool golden)
     {
         if (AvailableEggs > int.MaxValue - (golden ? 5 : 1)) return false;

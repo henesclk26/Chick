@@ -1,4 +1,4 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="GameVersionHUD.uss" />
-    <ui:Label name="GameVersionLabel" text="v0.17" picking-mode="Ignore" />
+    <ui:Label name="GameVersionLabel" text="v0.18" picking-mode="Ignore" />
 </ui:UXML>

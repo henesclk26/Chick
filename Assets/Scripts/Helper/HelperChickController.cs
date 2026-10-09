@@ -264,7 +264,8 @@ public sealed class HelperChickController : MonoBehaviour
         // Walking inside the food radius must not cancel a meal or the search for the next seed.
         // Without food, use the much tighter companion-follow distances as before.
         bool ownerLeaving = !foraging && playerSpeed > .15f && playerDistance > personalFollowDistance;
-        bool canForage = !following && playerDistance <= leash &&
+        // A sitting owner means rest: finish the current seed, but start no new food trips.
+        bool canForage = !following && !player.IsSitting && playerDistance <= leash &&
                          (foraging || (!ownerAbove && !ownerLeaving));
         UpdateFood(playerPosition, leash, playerDistance, canForage, dt);
         UpdateNavigation(playerPosition, playerDistance, leash, dt);
@@ -440,6 +441,12 @@ public sealed class HelperChickController : MonoBehaviour
             return;
         }
         if (foodTarget != null || jumping || !grounded || player.IsJumping) return;
+        // The owner sat down: stop wandering where we are and stay until it moves again.
+        if (player.IsSitting)
+        {
+            if (!settled) { slotWorld = transform.position; settled = true; }
+            return;
+        }
         // Finish each excursion before choosing the next one. Each chick pauses on its own schedule.
         if (!settled && Flat(slotWorld - transform.position).magnitude > .1f)
         {

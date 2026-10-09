@@ -154,7 +154,12 @@ public static class JournalSectionsVerification
             }
             Check(root.Q<Label>("double-collect-cost").text == upgrades.GetNextPrice(PlayerUpgrades.DoubleCollect).ToString(), "Double collection price advances after purchase");
             Check(root.Q<Label>("double-jump-action").text == "Kullanımda" && !root.Q<Button>("double-jump-price").enabledSelf, "Owned ability cannot charge again");
-            Click("companions-section-tab"); Click("companion-slot-0"); Click("companion-slot-1");
+            Check(root.Q("companions-section-tab").style.display == DisplayStyle.None, "Barn menu has no helper chick tab");
+            journal.Close(); journal.Open(UpgradeStation.Kind.Coop);
+            Check(!root.Q("first-chick-section").ClassListContains("hidden") && root.Q("upgrade-section-tabs").style.display == DisplayStyle.None, "Coop without chicks shows only the first chick purchase");
+            Click("helper-price");
+            Check(upgrades.HelperChickCount == 1 && !root.Q("companions-section").ClassListContains("hidden"), "Buying the first chick opens the helper chick upgrades");
+            Click("companion-slot-1");
             Click("helper-speed-price"); Click("helper-range-price"); Click("helper-move-price"); Click("helper-climb-price");
             Check(upgrades.GetHelperLevel(1, PlayerUpgrades.HelperEatSpeed) == 1 && upgrades.GetHelperLevel(0, PlayerUpgrades.HelperEatSpeed) == 0, "Live Civciv 2 upgrades never affect Civciv 1");
             Click("shop-tab"); Check(!root.Q("shop-page").ClassListContains("hidden"), "Shop navigation retained");

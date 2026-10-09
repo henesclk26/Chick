@@ -49,6 +49,7 @@ public sealed partial class GameplayJournalController : MonoBehaviour
     private Button doubleJumpPrice;
     private Button glidePrice;
     private bool isOpen;
+    private UpgradeStation.Kind station;
     private Coroutine backdropRoutine;
     private Texture2D backdropTexture;
     private float previousTimeScale = 1f;
@@ -77,7 +78,8 @@ public sealed partial class GameplayJournalController : MonoBehaviour
         new LiveUpgrade("glide", PlayerUpgrades.Glide, "Süzülme"),
         new LiveUpgrade("double-collect", PlayerUpgrades.DoubleCollect, "Çift Toplama"),
         new LiveUpgrade("helper-move", PlayerUpgrades.HelperMoveSpeed, "Takip Hızı"),
-        new LiveUpgrade("helper-climb", PlayerUpgrades.HelperClimb, "Engel Aşma")
+        new LiveUpgrade("helper-climb", PlayerUpgrades.HelperClimb, "Engel Aşma"),
+        new LiveUpgrade("auto-basket", PlayerUpgrades.AutoBasket, "Otomatik Sepet")
     };
 
     public static bool IsAnyOpen { get; private set; }
@@ -141,20 +143,21 @@ public sealed partial class GameplayJournalController : MonoBehaviour
         else if (statistics != null) statistics.Changed += Refresh;
 
         Texture2D goldEgg = Resources.Load<Texture2D>("Journal/GoldEgg");
-        Texture2D egg = Resources.Load<Texture2D>("Journal/Egg");
-        SetImage("balance-egg", egg);
+        // Upgrades cost gold, earned by taking eggs to the basket; the rate shows a golden egg = 5 gold.
+        Texture2D coin = Resources.Load<Texture2D>("Journal/Coin");
+        SetImage("balance-egg", coin);
         SetImage("egg-rate-gold", goldEgg);
-        SetImage("egg-rate-white", egg);
-        SetImage("peck-egg", egg);
-        SetImage("range-egg", egg);
-        SetImage("helper-egg", egg);
-        SetImage("helper-speed-egg", egg);
-        SetImage("helper-range-egg", egg);
-        SetImage("sprint-speed-egg", egg);
-        SetImage("sprint-duration-egg", egg);
-        SetImage("double-collect-egg", egg);
-        SetImage("double-jump-egg", egg);
-        SetImage("glide-egg", egg);
+        SetImage("egg-rate-white", coin);
+        SetImage("peck-egg", coin);
+        SetImage("range-egg", coin);
+        SetImage("helper-egg", coin);
+        SetImage("helper-speed-egg", coin);
+        SetImage("helper-range-egg", coin);
+        SetImage("sprint-speed-egg", coin);
+        SetImage("sprint-duration-egg", coin);
+        SetImage("double-collect-egg", coin);
+        SetImage("double-jump-egg", coin);
+        SetImage("glide-egg", coin);
         SetImage("range-art", goldEgg);
         SetImage("peck-art", chickenSilhouette);
         SetImage("helper-art", chickSilhouette);
@@ -226,7 +229,9 @@ public sealed partial class GameplayJournalController : MonoBehaviour
 
         if (keyboard.tabKey.wasPressedThisFrame)
         {
-            if (isOpen) Close(); else Open();
+            // The menu only opens at a station: the barn (chicken) or the coop (helper chicks).
+            UpgradeStation here = player != null ? UpgradeStation.At(player.transform.position) : null;
+            if (isOpen) Close(); else if (here != null) Open(here.StationKind);
         }
         else if (isOpen && keyboard.escapeKey.wasPressedThisFrame)
         {
@@ -234,11 +239,14 @@ public sealed partial class GameplayJournalController : MonoBehaviour
         }
     }
 
-    public void Open()
+    public void Open() => Open(UpgradeStation.Kind.Barn);
+
+    public void Open(UpgradeStation.Kind at)
     {
         if (isOpen || root == null || DeveloperPanelController.IsAnyOpen || (pauseMenu != null && pauseMenu.IsPaused)) return;
         isOpen = true;
         IsAnyOpen = true;
+        station = at;
         previousTimeScale = Time.timeScale;
         previousPlayerEnabled = player != null && player.enabled;
         previousOrbitEnabled = orbitCamera != null && orbitCamera.enabled;
@@ -254,7 +262,7 @@ public sealed partial class GameplayJournalController : MonoBehaviour
         root.style.display = DisplayStyle.Flex;
         root.style.visibility = Visibility.Hidden;
         ShowUpgrades();
-        ShowUpgradeSection(0);
+        ShowStationSections();
         Refresh();
         upgradesTab?.Focus();
         backdropRoutine = StartCoroutine(RevealWithBackdrop());
@@ -332,7 +340,7 @@ public sealed partial class GameplayJournalController : MonoBehaviour
         upgradesTab?.AddToClassList("side-active");
         statisticsTab?.RemoveFromClassList("side-active");
         shopTab?.RemoveFromClassList("side-active");
-        if (headerTitle != null) headerTitle.text = "YÜKSELTMELER";
+        if (headerTitle != null) headerTitle.text = station == UpgradeStation.Kind.Coop ? "CİVCİV YÜKSELTMELERİ" : "YÜKSELTMELER";
         GameplayJournalReferenceTheme.RefreshNavigation(root);
     }
 
@@ -361,7 +369,7 @@ public sealed partial class GameplayJournalController : MonoBehaviour
         RefreshShop();
     }
 
-    // Spendable eggs: eaten food minus what upgrades have already cost.
+    // Spendable gold: paid for eggs taken to the basket, minus what upgrades have already cost.
     private int AvailableEggs => upgrades != null ? upgrades.AvailableEggs : 0;
 
     private void Refresh()
@@ -464,7 +472,7 @@ public sealed partial class GameplayJournalController : MonoBehaviour
             message = upgrades.IsMaxed(id)
                 ? card.Name + " en yüksek seviyeye ulaştı!"
                 : card.Name + " " + upgrades.GetLevel(id) + ". seviyeye yükseldi!";
-        else message = "Bu yükseltme için " + (price - AvailableEggs) + " yumurta daha gerekli.";
+        else message = "Bu yükseltme için " + (price - AvailableEggs) + " altın daha gerekli.";
         if (upgradesStatus != null) upgradesStatus.text = message;
         PulseCard(root.Q<Button>(card.Prefix + "-price"));
     }

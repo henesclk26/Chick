@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Persistent world pickup; no per-egg Update, physics simulation or lifetime timer.
+// Picked up with Z, the egg rides on the chicken's back until it is dropped into the EggBasket.
 public sealed class LaidEggPresentation : MonoBehaviour
 {
     private const float TargetHeight = .136f; // 15% smaller; shared by white and golden eggs.
@@ -12,14 +13,18 @@ public sealed class LaidEggPresentation : MonoBehaviour
     [SerializeField] private bool golden;
     [SerializeField] private Vector3 groundPosition;
     private bool collected;
+    private bool carried;
+    private Transform carrier;
 
     public bool IsGolden => golden;
     public int Value => golden ? 5 : 1;
     public Vector3 GroundPosition => groundPosition;
     public static int ActiveEggCount => eggs.Count;
+    /// <summary>The egg on the chicken's back, if any. Only one is carried at a time.</summary>
+    public static LaidEggPresentation Carried { get; private set; }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetRegistry() => eggs.Clear();
+    private static void ResetRegistry() { eggs.Clear(); Carried = null; }
     private void OnEnable() { if (!eggs.Contains(this)) eggs.Add(this); }
     private void OnDisable() => eggs.Remove(this);
 
@@ -42,12 +47,24 @@ public sealed class LaidEggPresentation : MonoBehaviour
 
     private static LaidEggPresentation Create(Vector3 floor, float yaw, bool golden, string id)
     {
+        var egg = CreateModel(floor, yaw, golden);
+        if (egg == null) return null;
+        egg.name = golden ? "Golden Egg (Z Collect)" : "White Egg (Z Collect)";
+        var pickup = egg.AddComponent<LaidEggPresentation>();
+        pickup.eggId = id;
+        pickup.golden = golden;
+        pickup.groundPosition = floor;
+        return pickup;
+    }
+
+    /// <summary>The egg model alone (no pickup), standing on <paramref name="floor"/>; also used for eggs in the basket.</summary>
+    public static GameObject CreateModel(Vector3 floor, float yaw, bool golden)
+    {
         // Prebuilt ovoid based on the Animals_3D topology; no runtime subdivision.
         var prefab = Resources.Load<GameObject>("EggLaying/SoftEgg");
         if (prefab == null) prefab = Resources.Load<GameObject>("Prefabs/egg");
         if (prefab == null) { Debug.LogError("Missing Animals_3D egg prefab."); return null; }
         var egg = Instantiate(prefab, floor, Quaternion.Euler(0f, yaw, 0f));
-        egg.name = golden ? "Golden Egg (Z Collect)" : "White Egg (Z Collect)";
         foreach (var animator in egg.GetComponentsInChildren<Animator>(true)) animator.enabled = false;
         foreach (var collider in egg.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
         var renderers = egg.GetComponentsInChildren<Renderer>(true);
@@ -68,11 +85,7 @@ public sealed class LaidEggPresentation : MonoBehaviour
                 renderer.sharedMaterials = materials;
             }
         }
-        var pickup = egg.AddComponent<LaidEggPresentation>();
-        pickup.eggId = id;
-        pickup.golden = golden;
-        pickup.groundPosition = floor;
-        return pickup;
+        return egg;
     }
 
     private static Bounds CombinedBounds(Renderer[] renderers)
@@ -89,7 +102,7 @@ public sealed class LaidEggPresentation : MonoBehaviour
         float best = range * range;
         foreach (var egg in eggs)
         {
-            if (egg == null || egg.collected || !egg.isActiveAndEnabled) continue;
+            if (egg == null || egg.collected || egg.carried || !egg.isActiveAndEnabled) continue;
             float distance = (egg.groundPosition - player.position).sqrMagnitude;
             if (distance > best || !egg.IsReachable(player, range)) continue;
             nearest = egg;
@@ -115,14 +128,50 @@ public sealed class LaidEggPresentation : MonoBehaviour
         return true;
     }
 
-    public bool TryCollect(Transform player, PlayerUpgrades wallet, float range)
+    /// <summary>Lifts the egg onto the chicken's back; fails while another egg is carried.</summary>
+    public bool TryPickUp(Transform player, float range)
     {
-        if (collected || !isActiveAndEnabled || wallet == null || !IsReachable(player, range)) return false;
-        collected = true; // Lock before wallet callbacks, preventing double credit.
-        if (!wallet.TryCollectEgg(golden)) { collected = false; return false; }
-        gameObject.SetActive(false);
-        Destroy(gameObject);
+        if (Carried != null || collected || carried || !isActiveAndEnabled || !IsReachable(player, range)) return false;
+        carried = true;
+        Carried = this;
+        carrier = player;
+        // shortcut: a form switch to chick (developer panel only) hides the egg with the chicken model; drop it there if forms change in play.
+        // Lying along the back between the wings, riding the body bone so it follows sitting and walking.
+        Transform body = FindBone(player.GetComponent<ChickPlayerController>()?.ActiveAnimator?.transform, "body");
+        transform.SetPositionAndRotation((body != null ? body.position : player.position + Vector3.up * .2f) +
+            Vector3.up * .13f - player.forward * .07f, Quaternion.LookRotation(Vector3.up, -player.forward));
+        transform.SetParent(body != null ? body : player, true);
         return true;
+    }
+
+    private static Transform FindBone(Transform root, string name)
+    {
+        if (root == null || root.name == name) return root;
+        foreach (Transform child in root)
+        {
+            var found = FindBone(child, name);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    /// <summary>Hands the carried egg over (to the basket): it leaves the world and the save.</summary>
+    public static bool TryTakeCarried(out bool golden)
+    {
+        golden = false;
+        var egg = Carried;
+        if (egg == null || egg.collected) return false;
+        golden = egg.golden;
+        egg.collected = true;
+        Carried = null;
+        egg.gameObject.SetActive(false);
+        Destroy(egg.gameObject);
+        return true;
+    }
+
+    private void OnDestroy()
+    {
+        if (Carried == this) Carried = null;
     }
 
     public static GroundEggSaveEntry[] CaptureAll()
@@ -130,8 +179,9 @@ public sealed class LaidEggPresentation : MonoBehaviour
         var result = new List<GroundEggSaveEntry>();
         foreach (var egg in eggs)
             if (egg != null && !egg.collected && egg.isActiveAndEnabled)
+                // A carried egg is saved on the ground where the chicken stands.
                 result.Add(new GroundEggSaveEntry { id = egg.eggId, golden = egg.golden,
-                    position = egg.groundPosition, yaw = egg.transform.eulerAngles.y });
+                    position = egg.carried ? egg.carrier.position : egg.groundPosition, yaw = egg.transform.eulerAngles.y });
         return result.ToArray();
     }
 
@@ -140,6 +190,7 @@ public sealed class LaidEggPresentation : MonoBehaviour
         foreach (var egg in eggs.ToArray())
             if (egg != null) { egg.gameObject.SetActive(false); Destroy(egg.gameObject); }
         eggs.Clear();
+        Carried = null;
         if (saved == null) return;
         var ids = new HashSet<string>();
         foreach (var entry in saved)

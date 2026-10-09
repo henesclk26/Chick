@@ -16,7 +16,8 @@ public sealed partial class GrowthProgressController
     public float UpgradeHoldProgress => holdTime / Mathf.Max(.1f, upgradeHoldDuration);
 
     private PlayerGrowthController playerGrowth;
-    private VisualElement notificationRoot, upgradePrompt;
+    private VisualElement notificationRoot, upgradePrompt, stationPromptRoot;
+    private Label stationPromptText;
     private Label readyLabel;
     private Label actionLabel;
     private UpgradeHoldIndicator holdIndicator;
@@ -42,6 +43,18 @@ public sealed partial class GrowthProgressController
         holdIndicator = root.Q<UpgradeHoldIndicator>("UpgradeHoldIndicator");
         rightIconImage = root.Q<Image>("RightIcon");
         BindEggPickupUI(root);
+        stationPromptRoot = root.Q("StationPromptRoot") ?? InteractionPrompt(root, "StationPrompt", "TAB", "");
+        stationPromptText = stationPromptRoot.Q<Label>("StationPromptText");
+        stationPromptRoot.Q("StationPromptPrompt").AddToClassList("keycap-out");
+    }
+
+    // "[TAB] Yükseltmeler" in the barn, "[TAB] Civciv Yükseltmeleri" at the coop; the egg pickup prompt wins.
+    private void PaintStationPrompt(bool available)
+    {
+        if (stationPromptRoot == null) return;
+        UpgradeStation station = available && nearbyEgg == null && !atBasket ? UpgradeStation.At(upgradePlayer.transform.position) : null;
+        stationPromptRoot.style.display = station != null ? DisplayStyle.Flex : DisplayStyle.None;
+        if (station != null) stationPromptText.text = station.PromptText;
     }
 
     private void CaptureUpgradeData(FarmSaveData data)
@@ -106,6 +119,7 @@ public sealed partial class GrowthProgressController
         bool handled = HandleEggPickup(pressed, available);
         TickUpgrade(Time.unscaledDeltaTime, pressed && !handled, held, available);
         PaintUpgradeUI();
+        PaintStationPrompt(available);
     }
 
     private void OnApplicationFocus(bool focus)
@@ -216,12 +230,12 @@ public sealed partial class GrowthProgressController
         if (notificationRoot == null || readyLabel == null || upgradePrompt == null) return;
         bool laid = CurrentUpgradeState == UpgradeState.EggLaidMessage;
         bool ready = CurrentUpgradeState == UpgradeState.GrowthReadyMessage || laid;
-        readyLabel.text = laid ? (lastEggWasGolden ? "ALTIN YUMURTA BIRAKILDI" : "YUMURTA BIRAKILDI")
+        readyLabel.text = laid ? (lastEggWasGolden ? "ALTIN YUMURTA " : "YUMURTA ") + (lastEggToBasket ? "SEPETE EKLENDİ" : "BIRAKILDI")
             : IsChickForm ? "GELİŞİM HAZIR!" : "YUMURTLAMA HAZIR!";
         if (actionLabel != null) actionLabel.text = IsChickForm ? "GELİŞTİR" : "YUMURTLA";
         bool prompt = CurrentUpgradeState == UpgradeState.WaitingForUpgrade ||
             CurrentUpgradeState == UpgradeState.HoldingUpgrade;
-        if (!IsChickForm && nearbyEgg != null && CurrentUpgradeState != UpgradeState.HoldingUpgrade)
+        if (!IsChickForm && (nearbyEgg != null || atBasket) && CurrentUpgradeState != UpgradeState.HoldingUpgrade)
             prompt = false; // The nearby pickup owns Z until collected or walked away from.
         notificationRoot.style.display = ready || prompt ? DisplayStyle.Flex : DisplayStyle.None;
         readyLabel.style.display = ready ? DisplayStyle.Flex : DisplayStyle.None;

@@ -96,11 +96,11 @@
             </ui:VisualElement>
             <ui:VisualElement class="egg-card card">
                 <ui:VisualElement class="egg-info">
-                    <ui:Label text="05  ·  YUMURTA" class="section-heading" />
+                    <ui:Label text="05  ·  ALTIN" class="section-heading" />
                     <ui:Label text="Yalnızca tavuk formunda kullanılabilir" class="section-help" />
-                    <ui:Label name="debug-egg-balance" text="Bakiye: 0 yumurta" class="egg-balance-label" />
+                    <ui:Label name="debug-egg-balance" text="Bakiye: 0 altın" class="egg-balance-label" />
                 </ui:VisualElement>
-                <ui:Button name="grant-eggs" text="+20 YUMURTA" class="step-button egg-grant-button" enabled="false" />
+                <ui:Button name="grant-eggs" text="+20 ALTIN" class="step-button egg-grant-button" enabled="false" />
             </ui:VisualElement>
             </ui:ScrollView>
             <ui:VisualElement class="panel-footer">

@@ -474,6 +474,7 @@ def build_all(collection, material, origin=(3.2, 0, 0)):
     made.append(hay_rack(collection, material, o + Vector((8.0, 1.8, 0))))
     made += hay_bales(collection, material, o + Vector((10.6, -.6, 0)))
     made += gate(collection, material, o + Vector((13.6, .4, 0)))
+    made.append(egg_basket(collection, material, o + Vector((16.4, -.4, 0))))
     return made
 
 
@@ -508,3 +509,52 @@ def diorama(origin=(0, 14, 0)):
                            ("Lamb", (-.4, -.8, 0), -30), ("Lamb", (2.2, -2.3, 0), 110), ("Sheep", (2.9, -.9, 0), 200)):
         place(name, pos, yaw)
     return col
+
+
+# Egg basket by the barn (Unity: EggBasket). Eggs rest on the straw lining at BASKET_FLOOR, inside BASKET_INNER.
+BASKET_TOP_RADIUS, BASKET_BOTTOM_RADIUS, BASKET_HEIGHT = .38, .3, .28
+BASKET_FLOOR, BASKET_INNER = .07, .3
+
+
+def egg_basket(collection, material, location):
+    """Round woven harvest basket with a braided rim, an arched handle and a straw lining."""
+    b = L.Builder(81)
+    rng = b.rng
+    top, r0, r1 = BASKET_HEIGHT, BASKET_BOTTOM_RADIUS, BASKET_TOP_RADIUS
+    b.cylinder((0, 0, 0), (0, 0, .04), r0, r0, "wicker_dark", segments=20, smooth=False)
+    rows, segments = 9, 26
+    for k in range(rows):
+        z = .04 + (k + .5) * (top - .04) / rows
+        radius = r0 + (r1 - r0) * (z / top)
+        for i in range(segments):
+            a = (i + .5 * (k % 2)) * math.tau / segments
+            out = .007 if (i + k) % 2 else -.003
+            p = Vector((math.cos(a) * (radius + out), math.sin(a) * (radius + out), z))
+            seg = math.tau * radius / segments
+            b.box(p, (seg * 1.08, .026, (top - .04) / rows + .004),
+                  "wicker_light" if (i + k) % 3 == 0 else ("wicker" if (i + k) % 2 else "wicker_dark"),
+                  rotation=Euler((0, 0, a + math.pi / 2)), bevel=.006)
+    for i in range(34):
+        a = i * math.tau / 34
+        p = Vector((math.cos(a) * (r1 + .01), math.sin(a) * (r1 + .01), top + .012))
+        b.box(p, (.075, .034, .032), "wicker_dark" if i % 2 else "wicker",
+              rotation=Euler((.5 if i % 2 else -.5, 0, a + math.pi / 2)), bevel=.01)
+    # Handle: two twisted strands arching over the basket along X.
+    for strand in (0, 1):
+        pts = []
+        for j in range(17):
+            t = j / 16
+            a = math.pi * t
+            twist = .014 * math.sin(t * math.pi * 8 + strand * math.pi)
+            pts.append(Vector((-math.cos(a) * (r1 - .01), twist, top + math.sin(a) * .3)))
+        for p0, p1 in zip(pts, pts[1:]):
+            b.cylinder(p0, p1, .014, .014, "wicker_dark" if strand else "wicker", segments=6)
+    # Straw lining the floor and walls; the eggs sit on it.
+    for _ in range(26):
+        a = rng.uniform(0, math.tau)
+        rr = rng.uniform(0, BASKET_INNER - .14)
+        s = rng.uniform(.07, .1)
+        b.ico(Matrix.Translation((math.cos(a) * rr, math.sin(a) * rr, BASKET_FLOOR - .02)) @
+              Matrix.Diagonal((s * 1.3, s, .025, 1)), rng.choice(("hay", "hay_light", "straw_bed")), jitter=.01)
+    straws(b, (0, 0, BASKET_FLOOR), (BASKET_INNER - .12, BASKET_INNER - .12, .01), 30, length=(.06, .1), lift=.3)
+    return b.finish("EggBasket", collection, material, location)
