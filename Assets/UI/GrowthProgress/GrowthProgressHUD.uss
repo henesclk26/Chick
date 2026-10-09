@@ -136,30 +136,28 @@
 .wide-key .interaction-key {
     font-size: 17px;
 }
-/* Station prompt: the TAB key cap sticks out of the box's left edge; the label stays inside. */
+/* Station prompt: a separate TAB key cap, as tall as the label box and aligned with it, a small gap to its left. */
 .keycap-out {
-    margin-left: 32px;
-    padding-left: 40px;
+    margin-left: 86px;
 }
 .keycap-out .interaction-key-slot {
     position: absolute;
-    left: -32px;
-    top: -6px;
-    width: 64px;
-    height: 58px;
+    left: -88px;
+    top: -2px;
+    bottom: -2px;
+    width: 76px;
+    height: auto;
     margin-right: 0;
 }
 .keycap-out .interaction-key-circle {
-    width: 64px;
-    height: 58px;
+    width: 100%;
+    height: 100%;
     border-radius: 12px;
-    border-width: 3px;
-    border-bottom-width: 7px;
+    border-width: 2px;
     border-color: rgb(39, 43, 30);
-    background-color: rgb(255, 250, 230);
+    background-color: rgba(255, 245, 211, .94);
 }
 .keycap-out .interaction-key {
-    bottom: 4px;
     font-size: 18px;
 }
 #UpgradeKey, .interaction-key {

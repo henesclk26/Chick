@@ -3,7 +3,7 @@
 Bones (same names on both animals so Unity clips line up):
 root > body > neck > head > ear.L / ear.R, body > tail, body > leg.FL / leg.FR / leg.BL / leg.BR
 Weights come from the per-face 'part' ids written by sheep.py; the front of the fleece blends into the neck.
-Clips are in place (no root motion) at 30 fps: Idle, Walk, Graze, Run.
+Clips are in place (no root motion) at 30 fps: Idle, Walk, Graze, Run, Lie.
 Rotations are authored in model space (pitch about X, yaw about Z, roll about Y), independent of bone rolls.
 """
 import math
@@ -281,10 +281,31 @@ def graze(arm, prefix, k, neck=40.0, head=32.0):
     return c.finish()
 
 
+def lie(arm, prefix, k, drop):
+    """Lying down to rest: belly on the ground, legs folded underneath, slow breathing and a drowsy head."""
+    c = Clip(arm, prefix + "_Lie", 150)
+    c.cycle("body", [(0, (0, 0, -drop)), (75, (0, 0, -drop + .007 * k))], "loc")
+    c.cycle("root", [(0, (2, 0, 0))])
+    # Leg bones point down; +pitch folds a front leg back under the chest, -pitch a back leg forward.
+    c.cycle("leg.FL", [(0, (86, 0, 0))])
+    c.cycle("leg.FR", [(0, (84, 0, 0))])
+    c.cycle("leg.BL", [(0, (-84, 0, 0))])
+    c.cycle("leg.BR", [(0, (-86, 0, 0))])
+    c.cycle("neck", [(0, (10, 0, 0)), (60, (12, 6, 0)), (100, (12, 6, 0)), (125, (10, 0, 0))])
+    c.cycle("head", [(0, (6, 0, 0)), (60, (9, 4, 4)), (100, (9, 4, 4)), (125, (6, 0, 0))])
+    c.cycle("ear.L", [(0, (0, 0, -18)), (80, (0, 0, -18)), (83, (0, -8, 8)), (88, (0, 0, -18))])
+    c.cycle("ear.R", [(0, (0, 0, 18))])
+    c.cycle("tail", [(0, (0, 0, 0))])
+    return c.finish()
+
+
 def animate(arm, prefix, params):
     k = params["scale"]
     bpy.context.scene.render.fps = FPS
-    clips = [idle(arm, prefix, k), walk(arm, prefix, k), graze(arm, prefix, k), run(arm, prefix, k)]
+    # Lower the body until its belly rests just above the ground.
+    drop = (params["body_center"][2] - params["body_axes"][2] - .04) * k
+    clips = [idle(arm, prefix, k), walk(arm, prefix, k), graze(arm, prefix, k), run(arm, prefix, k),
+             lie(arm, prefix, k, drop)]
     arm.animation_data.action = clips[0]
     return clips
 

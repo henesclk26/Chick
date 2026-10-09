@@ -237,10 +237,10 @@ def bucket(b, base):
     for z, r in ((.05, .142), (.25, .162)):
         b.cylinder(p + Vector((0, 0, z)), p + Vector((0, 0, z + .03)), r + .006, r + .009, "metal_dark", segments=12,
                    smooth=False)
-    for i in range(7):
-        a = math.pi * i / 6
-        q = p + Vector((math.cos(a) * .17, 0, .3 + math.sin(a) * .15))
-        b.box(q, (.012, .012, .05), "metal_dark", rotation=Euler((0, a, 0)))
+    # Wire bail: a continuous arc over the top, hooked into the rim on both sides.
+    arc = [p + Vector((math.cos(math.pi * i / 8) * .17, 0, .3 + math.sin(math.pi * i / 8) * .15)) for i in range(9)]
+    for q0, q1 in zip(arc, arc[1:]):
+        b.cylinder(q0, q1, .007, .007, "metal_dark", segments=5)
 
 
 def pitchfork(b, foot, top):
@@ -475,6 +475,10 @@ def build_all(collection, material, origin=(3.2, 0, 0)):
     made += hay_bales(collection, material, o + Vector((10.6, -.6, 0)))
     made += gate(collection, material, o + Vector((13.6, .4, 0)))
     made.append(egg_basket(collection, material, o + Vector((16.4, -.4, 0))))
+    made.append(wheelbarrow(collection, material, o + Vector((18.6, -.4, 0))))
+    made.append(rake(collection, material, o + Vector((20.2, -.4, 0))))
+    made.append(farm_bucket(collection, material, o + Vector((21.2, -.4, 0))))
+    made.append(straw_patch(collection, material, o + Vector((22.8, -.4, 0))))
     return made
 
 
@@ -558,3 +562,61 @@ def egg_basket(collection, material, location):
               Matrix.Diagonal((s * 1.3, s, .025, 1)), rng.choice(("hay", "hay_light", "straw_bed")), jitter=.01)
     straws(b, (0, 0, BASKET_FLOOR), (BASKET_INNER - .12, BASKET_INNER - .12, .01), 30, length=(.06, .1), lift=.3)
     return b.finish("EggBasket", collection, material, location)
+
+
+def wheelbarrow(collection, material, location):
+    """Old wooden wheelbarrow: plank tray on two handles, one spoked wheel at the front (-Y), a little hay inside."""
+    b = L.Builder(91)
+    rng = b.rng
+    # Handles run from the wheel axle (front, -Y) back and up to the grips.
+    for s in (-1, 1):
+        b.plank((s * .2, -.62, .26), (s * .26, .62, .5), .06, .05, "wood_dark", up=(0, 0, 1))
+        b.box((s * .26, .66, .52), (.05, .12, .05), "wood_light", bevel=.012)
+        b.plank((s * .22, .25, .38), (s * .22, .3, 0), .05, .05, "wood_dark", up=(0, 1, 0))
+    # Tray: bottom, sloped sides and a high front board.
+    b.box((0, -.05, .36), (.5, .72, .04), "wood_mid", bevel=.008)
+    for s in (-1, 1):
+        b.plank((s * .29, -.38, .48), (s * .29, .3, .48), .22, .035, rng.choice(WOODS), up=(s, 0, .35), jitter=.004)
+    b.plank((-.29, -.42, .5), (.29, -.42, .5), .26, .035, "wood_light", up=(0, -1, .4))
+    b.plank((-.29, .31, .45), (.29, .31, .45), .16, .035, "wood_mid", up=(0, 1, .2))
+    b.box((0, -.05, .385), (.52, .74, .012), "metal_dark")
+    # Wheel with rim, hub and spokes, on its axle.
+    wc = Vector((0, -.66, .2))
+    b.cylinder(wc + Vector((-.035, 0, 0)), wc + Vector((.035, 0, 0)), .2, .2, "wood_dark", segments=16, smooth=False)
+    b.cylinder(wc + Vector((-.04, 0, 0)), wc + Vector((.04, 0, 0)), .205, .205, "metal_dark", segments=16, smooth=False, caps=False)
+    b.cylinder(wc + Vector((-.06, 0, 0)), wc + Vector((.06, 0, 0)), .045, .045, "metal", segments=8)
+    b.cylinder(wc + Vector((-.24, 0, 0)), wc + Vector((.24, 0, 0)), .015, .015, "metal_dark", segments=6)
+    hay_heap(b, [((rng.uniform(-.12, .12), rng.uniform(-.25, .2), .42), (.14, .16, .07)) for _ in range(6)], "hay")
+    straws(b, (0, -.05, .48), (.2, .3, .03), 14, lift=.6)
+    return b.finish("Wheelbarrow", collection, material, location)
+
+
+def rake(collection, material, location):
+    """Hay rake lying ready to lean on a wall: long handle along +Z, wooden head with pegs at the bottom."""
+    b = L.Builder(93)
+    b.cylinder((0, 0, .06), (0, 0, 1.55), .018, .016, "wood_light", segments=6)
+    b.box((0, 0, .06), (.5, .045, .05), "wood_mid", bevel=.008)
+    for i in range(9):
+        x = -.22 + i * .055
+        b.cylinder((x, -.01, .05), (x, -.06, -.04), .007, .005, "wood_light", segments=5)
+    b.plank((-.12, 0, .08), (0, 0, .32), .03, .02, "wood_mid", up=(0, 1, 0))
+    b.plank((.12, 0, .08), (0, 0, .32), .03, .02, "wood_mid", up=(0, 1, 0))
+    return b.finish("Rake", collection, material, location)
+
+
+def farm_bucket(collection, material, location):
+    """The shelter's water bucket as its own prop."""
+    b = L.Builder(95)
+    bucket(b, (0, 0, 0))
+    return b.finish("FarmBucket", collection, material, location)
+
+
+def straw_patch(collection, material, location):
+    """A loose patch of trampled straw for the ground around the shelter (about 1.4 m across)."""
+    b = L.Builder(97)
+    rng = b.rng
+    hay_heap(b, [((rng.uniform(-.5, .5), rng.uniform(-.4, .4), -.05), (rng.uniform(.18, .3), rng.uniform(.15, .25), .07))
+                 for _ in range(10)], "straw_bed", resolution=.06, decimate=.35)
+    hay_lumps(b, (0, 0, .02), (.5, .4, .01), 8, size=(.05, .09))
+    straws(b, (0, 0, .03), (.7, .55, .01), 60, lift=.15)
+    return b.finish("StrawPatch", collection, material, location)

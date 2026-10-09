@@ -39,7 +39,16 @@ namespace FarmReferenceTools
   static readonly Vector2 ShelterPos=new Vector2(114.5f,-58.3f),TroughPos=new Vector2(119.6f,-53.6f),
    RackPos=new Vector2(108.6f,-54.6f),StackPos=new Vector2(118.6f,-58.9f),BalePos=new Vector2(106.4f,-56.6f);
   static readonly Vector2 GateInside=new Vector2(111f,-33.4f),PathBend=new Vector2(111.8f,-46f),PathEnd=new Vector2(114f,-55.4f);
-  const int TroddenEarth=4,Soil=5,Pebbles=6,WornMeadow=7;
+  const int SunlitGreen=3,TroddenEarth=4,Soil=5,Pebbles=6,WornMeadow=7;
+  // Shade trees west of the track, where the flock lies in the midday heat.
+  static readonly Vector2[] ShadeTrees={new Vector2(100.5f,-50.5f),new Vector2(103.2f,-47.6f)};
+  // The noon sun shines from the south, so the shade lies just north of the trees.
+  static readonly Vector2 ShadeSpot=new Vector2(101.8f,-46.8f);
+  // Yard clutter around the shelter.
+  static readonly Vector2 WheelbarrowPos=new Vector2(117.9f,-55.9f),BucketPos=new Vector2(118.2f,-54.6f),RakePos=new Vector2(111.75f,-58.8f);
+  static readonly Vector2[] StrawPatches={new Vector2(113.4f,-55.4f),new Vector2(115.9f,-55.8f),new Vector2(108.4f,-53.3f)};
+  // Sleeping places inside the shelter, relative to it (its opening faces +Z).
+  static readonly Vector2[] RestSpots={new Vector2(-1.65f,.45f),new Vector2(-.65f,.65f),new Vector2(.35f,.45f),new Vector2(1.35f,.15f),new Vector2(.4f,-.5f)};
 
   // Trough measurements in Unity model space, from ArtSource/SheepFold/props.py (TROUGH_*).
   const float TroughSurface=.205f,TroughWading=.13f,TroughRim=.235f;
@@ -162,9 +171,14 @@ namespace FarmReferenceTools
    BuildGate(root.transform,terrain,fences.Find(GateSegment),report);
    var obstacles=new List<Vector3>();
    BuildFold(root.transform,terrain,obstacles,report);
+   BuildShadeTrees(root.transform,terrain,obstacles);
+   BuildWildflowers(root.transform,terrain,report);
    var pen=root.AddComponent<SheepPen>();
    AddSceneryObstacles(farm.transform,obstacles);
    pen.Configure(terrain,new Vector2((XMax-XMin)/2-.5f,Depth/2-.5f),obstacles.ToArray());
+   Func<Vector2,Vector3> ground=v=>At(v,Ground(terrain,v));
+   pen.ConfigurePlaces(RestSpots.Select(r=>ground(ShelterPos+r)).ToArray(),ground(ShelterPos+new Vector2(-.75f,2.4f)),ground(ShadeSpot),2.6f,
+    ground(TroughPos+new Vector2(.1f,-.95f)),ground(TroughPos),ground(RackPos+new Vector2(0,1.15f)),ground(RackPos));
    BuildFlock(root.transform,pen,report);
    var spawn=SpawnPoint(farm.transform,terrain);
    Undo.CollapseUndoOperations(undoGroup);
@@ -274,10 +288,12 @@ namespace FarmReferenceTools
     worn=Mathf.Max(worn,1-S(0,2.2f,Box(p,ShelterPos+new Vector2(0,.6f),new Vector2(2.6f,2.2f))+(n-.5f)*1.2f));
     worn=Mathf.Max(worn,1-S(0,1.4f,Box(p,RackPos,new Vector2(1.1f,.7f))+(n-.5f)*.9f));
     mud=1-S(0,1.3f,Box(p,TroughPos,new Vector2(1.1f,.45f))+(n-.5f)*.8f);
-    float weight=Mathf.Max(path,Mathf.Max(worn*.8f,mud*.9f));
+    float grazed=Outside(p)>0?0:Grazed(x,z)*.45f;
+    float weight=Mathf.Max(Mathf.Max(path,grazed),Mathf.Max(worn*.8f,mud*.9f));
     if(weight<=.001f)continue;
     Array.Clear(target,0,layers);
-    if(mud>=Mathf.Max(path,worn)){target[Soil]=.55f+.2f*fine;target[TroddenEarth]=.3f;target[WornMeadow]=.15f-.15f*fine;}
+    if(grazed>=Mathf.Max(Mathf.Max(path,worn*.8f),mud*.9f)){target[SunlitGreen]=.55f+.15f*fine;target[WornMeadow]=.45f-.15f*fine;}
+    else if(mud>=Mathf.Max(path,worn)){target[Soil]=.55f+.2f*fine;target[TroddenEarth]=.3f;target[WornMeadow]=.15f-.15f*fine;}
     else if(path>=worn){target[TroddenEarth]=.5f+.2f*fine;target[WornMeadow]=.38f-.2f*fine;target[Pebbles]=.12f;}
     else{target[WornMeadow]=.5f+.2f*fine;target[TroddenEarth]=.32f-.2f*fine;target[Soil]=.18f;}
     float sum=0;
@@ -300,7 +316,8 @@ namespace FarmReferenceTools
      var p=new Vector2(x,z);
      bool clear=FenceDistance(p)<.45f||PathDistance(p)<.7f||
                 Box(p,ShelterPos,new Vector2(2.5f,1.8f))<=0||Box(p,TroughPos,new Vector2(1.5f,.6f))<.3f||Box(p,RackPos,new Vector2(.95f,.55f))<.2f||
-                (Box(p,ShelterPos+new Vector2(0,1f),new Vector2(3.2f,3f))<=0&&Mathf.PerlinNoise(x*2.3f,z*2.3f)<.55f);
+                (Box(p,ShelterPos+new Vector2(0,1f),new Vector2(3.2f,3f))<=0&&Mathf.PerlinNoise(x*2.3f,z*2.3f)<.55f)||
+                (Outside(p)<=0&&Grazed(x,z)>.5f&&Mathf.PerlinNoise(x*3.1f+5,z*3.1f)<.5f);
      if(clear){cleared+=m[iz,ix];m[iz,ix]=0;}
     }
     dst.SetDetailLayer(dx0,dz0,layer,m);
@@ -309,6 +326,9 @@ namespace FarmReferenceTools
    EditorUtility.SetDirty(dst);
   }
 
+  // 0..1: where the flock has grazed the meadow short, in broad irregular patches.
+  static float Grazed(float x,float z){return S(.52f,.68f,Mathf.PerlinNoise(x*.09f+31,z*.09f+17));}
+
   // Distance from p to an axis-aligned box (0 inside).
   static float Box(Vector2 p,Vector2 c,Vector2 half)
   {
@@ -316,7 +336,18 @@ namespace FarmReferenceTools
    return Mathf.Sqrt(dx*dx+dz*dz);
   }
 
-  static bool IsTuft(Transform t){return t.name.StartsWith("Meadow")||t.name.StartsWith("Exterior Grass");}
+  static bool IsTuft(Transform t){return t.name.StartsWith("Meadow")||t.name.StartsWith("Exterior Grass")||t.name.StartsWith("grass_");}
+
+  // Scenery items: the nature root's children, with grouping objects (e.g. "Exterior Grass Patches") opened up.
+  static IEnumerable<Transform> Scenery(Transform nature)
+  {
+   foreach(Transform child in nature)
+   {
+    if(child.childCount>0&&child.GetComponent<Renderer>()==null&&child.GetComponent<LODGroup>()==null)
+     foreach(Transform item in child)yield return item;
+    else yield return child;
+   }
+  }
 
   static void HideCovered(Transform farm,Transform fences,List<GameObject> hidden,System.Text.StringBuilder report)
   {
@@ -325,7 +356,7 @@ namespace FarmReferenceTools
    var nature=farm.Find("05 Nature and Scenery");
    int count=0;
    if(nature!=null)
-    foreach(Transform child in nature)
+    foreach(Transform child in Scenery(nature))
     {
      if(!child.gameObject.activeSelf)continue;
      var p=new Vector2(child.position.x,child.position.z);
@@ -333,7 +364,9 @@ namespace FarmReferenceTools
      bool tuft=IsTuft(child);
      bool covered=FenceDistance(p)<(tuft?.8f:1.3f)||PathDistance(p)<(tuft?.9f:1.2f)||(p-new Vector2(111f,ZMax)).magnitude<2.2f||
                   Box(p,ShelterPos,new Vector2(2.7f,2.1f))<(tuft?1.2f:1.6f)||Box(p,TroughPos,new Vector2(1.6f,.5f))<1.1f||
-                  Box(p,RackPos,new Vector2(1.1f,.75f))<1f||Box(p,StackPos,new Vector2(1f,.5f))<.8f||Box(p,BalePos,new Vector2(.5f,.3f))<.7f;
+                  Box(p,RackPos,new Vector2(1.1f,.75f))<1f||Box(p,StackPos,new Vector2(1f,.5f))<.8f||Box(p,BalePos,new Vector2(.5f,.3f))<.7f||
+                  ShadeTrees.Any(t=>(p-t).magnitude<2f)||(p-WheelbarrowPos).magnitude<1.1f||(p-BucketPos).magnitude<.6f||
+                  (p-RakePos).magnitude<.6f||StrawPatches.Any(t=>(p-t).magnitude<.9f);
      if(!covered)continue;
      Undo.RecordObject(child.gameObject,"Build sheep pasture");child.gameObject.SetActive(false);hidden.Add(child.gameObject);count++;
     }
@@ -346,7 +379,7 @@ namespace FarmReferenceTools
    var moved=new List<Transform>();var offsets=new List<float>();
    var nature=farm.Find("05 Nature and Scenery");
    if(nature!=null)
-    foreach(Transform child in nature)
+    foreach(Transform child in Scenery(nature))
     {
      if(!child.gameObject.activeSelf)continue;
      var p=child.position;
@@ -481,19 +514,18 @@ namespace FarmReferenceTools
 
    var shelter=Place("FoldShelter",fold,at(ShelterPos),0,"Shelter");
    ShelterColliders(shelter);
-   foreach(float x in new[]{-1.6f,0f,1.6f})obstacles.Add(new Vector3(ShelterPos.x+x,ShelterPos.y-.2f,1.75f));
+   ShelterObstacles(obstacles);
 
    var trough=Place("FoldWaterTrough",fold,at(TroughPos),0,"Water Trough");
    TroughSetup(trough);
-   obstacles.Add(new Vector3(TroughPos.x-.55f,TroughPos.y+.05f,.6f));
-   obstacles.Add(new Vector3(TroughPos.x+.45f,TroughPos.y+.05f,.6f));
-   obstacles.Add(new Vector3(TroughPos.x-1.2f,TroughPos.y,.35f));
+   foreach(float x in new[]{-.6f,0f,.6f})obstacles.Add(new Vector3(TroughPos.x+x,TroughPos.y,.3f));
+   obstacles.Add(new Vector3(TroughPos.x-1.15f,TroughPos.y,.3f));
 
    var rack=Place("FoldHayRack",fold,at(RackPos),0,"Hay Rack");
    foreach(float x in new[]{-.5f,.5f})AddBox(rack,new Vector3(x*1.7f,.75f,0),new Vector3(.9f,1.5f,1f),false);
    AddCameraBlocker(rack,new Vector3(0,1.8f,0),new Vector3(2.2f,.35f,1.5f),Vector3.zero);
-   obstacles.Add(new Vector3(RackPos.x-.5f,RackPos.y,.75f));
-   obstacles.Add(new Vector3(RackPos.x+.5f,RackPos.y,.75f));
+   obstacles.Add(new Vector3(RackPos.x-.5f,RackPos.y,.55f));
+   obstacles.Add(new Vector3(RackPos.x+.5f,RackPos.y,.55f));
 
    var stack=Place("HayBaleStack",fold,at(StackPos),-12,"Hay Bale Stack");
    var sb=LocalBounds(stack);AddBox(stack,sb.center,sb.size,false);
@@ -501,7 +533,87 @@ namespace FarmReferenceTools
    var bale=Place("HayBale",fold,at(BalePos),24,"Hay Bale");
    var bb=LocalBounds(bale);AddBox(bale,bb.center,bb.size,false);
    obstacles.Add(new Vector3(BalePos.x,BalePos.y,.55f));
-   report.AppendLine("Fold: timber shelter, trough with hand pump and live water, covered hay rack, bales (with colliders).");
+   BuildYard(fold,terrain,obstacles);
+   report.AppendLine("Fold: timber shelter, trough with hand pump and live water, covered hay rack, bales, wheelbarrow, rake, bucket and straw (with colliders).");
+  }
+
+  // Shelter walls as a ring of small circles so sheep can walk in through the open front and sleep inside.
+  static void ShelterObstacles(List<Vector3> obstacles)
+  {
+   Action<float,float,float> add=(x,z,r)=>obstacles.Add(new Vector3(ShelterPos.x+x,ShelterPos.y+z,r));
+   for(float x=-2.3f;x<=2.31f;x+=.5f)add(x,-1.62f,.3f);
+   for(float z=-1.6f;z<=1.51f;z+=.5f){add(-2.3f,z,.3f);add(2.3f,z,.3f);}
+   for(float x=.75f;x<=2.21f;x+=.45f)add(x,1.42f,.25f);
+   add(-1.2f,-.97f,.6f);
+   foreach(float x in new[]{0f,.7f,1.4f})add(x,-1.25f,.3f);
+   add(1.6f,1f,.25f);
+  }
+
+  // Wheelbarrow and bucket by the trough, a rake leaning on the shelter, trampled straw in front of it.
+  static void BuildYard(Transform fold,Terrain terrain,List<Vector3> obstacles)
+  {
+   Func<Vector2,Vector3> at=v=>At(v,Ground(terrain,v));
+   var barrow=Place("Wheelbarrow",fold,at(WheelbarrowPos),205,"Wheelbarrow");
+   var wb=LocalBounds(barrow);AddBox(barrow,wb.center,wb.size,false);
+   obstacles.Add(new Vector3(WheelbarrowPos.x,WheelbarrowPos.y,.65f));
+   var bucket=Place("FarmBucket",fold,at(BucketPos),40,"Bucket");
+   var bb=LocalBounds(bucket);AddBox(bucket,bb.center,bb.size,false);
+   obstacles.Add(new Vector3(BucketPos.x,BucketPos.y,.25f));
+   // Leaning against the west wall: the handle tips over towards the wall (+X).
+   var rake=Place("Rake",fold,at(RakePos),0,"Rake");
+   rake.transform.rotation=Quaternion.AngleAxis(-14f,Vector3.forward)*Quaternion.Euler(0,90,0);
+   for(int i=0;i<StrawPatches.Length;i++)Place("StrawPatch",fold,at(StrawPatches[i])+Vector3.up*.01f,i*73f,"Straw "+(i+1));
+  }
+
+  static void BuildShadeTrees(Transform root,Terrain terrain,List<Vector3> obstacles)
+  {
+   var prefab=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/BOKI/LowPolyNature/Prefabs/models/tree_normal.prefab");
+   if(prefab==null)throw new InvalidOperationException("tree_normal prefab missing.");
+   var parent=new GameObject("Shade Trees").transform;parent.SetParent(root,false);
+   for(int i=0;i<ShadeTrees.Length;i++)
+   {
+    var tree=(GameObject)PrefabUtility.InstantiatePrefab(prefab,parent);
+    tree.name="Shade Tree "+(i+1);
+    tree.transform.SetPositionAndRotation(At(ShadeTrees[i],Ground(terrain,ShadeTrees[i])),Quaternion.Euler(0,i*137f+20f,0));
+    tree.transform.localScale=Vector3.one*(i==0?.68f:.6f);
+    obstacles.Add(new Vector3(ShadeTrees[i].x,ShadeTrees[i].y,.6f));
+   }
+  }
+
+  // Clusters of daisies, poppies, buttercups, bellflowers and clover across the meadow, clear of paths and buildings.
+  static void BuildWildflowers(Transform root,Terrain terrain,System.Text.StringBuilder report)
+  {
+   string[] kinds={"Daisy","Poppy","Buttercup","Bellflower","Clover"};
+   var prefabs=kinds.Select(k=>AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Art/MeadowFlowers/Flower_"+k+".fbx")).ToArray();
+   if(prefabs.Any(f=>f==null))throw new InvalidOperationException("Meadow flower models missing.");
+   var parent=new GameObject("Wildflowers").transform;parent.SetParent(root,false);
+   var rng=new System.Random(4242);
+   Func<float> r01=()=>(float)rng.NextDouble();
+   Func<Vector2,float,bool> blocked=(p,m)=>FenceDistance(p)<m+.5f||PathDistance(p)<m+.4f||
+    Box(p,ShelterPos,new Vector2(2.7f,2.1f))<m+1f||Box(p,TroughPos,new Vector2(1.6f,.5f))<m+.8f||Box(p,RackPos,new Vector2(1.1f,.75f))<m+.8f||
+    ShadeTrees.Any(t=>(p-t).magnitude<m+1.2f)||(p-WheelbarrowPos).magnitude<m+.8f||Box(p,StackPos,new Vector2(1f,.5f))<m+.5f;
+   int clusters=0,made=0;
+   for(int attempt=0;attempt<300&&clusters<20;attempt++)
+   {
+    var c=new Vector2(Mathf.Lerp(XMin+3,XMax-3,r01()),Mathf.Lerp(ZMin+3,ZMax-3,r01()));
+    if(blocked(c,1.6f))continue;
+    clusters++;
+    int a=rng.Next(kinds.Length),b=rng.Next(kinds.Length),n=7+rng.Next(9);
+    float radius=.6f+r01()*1f;
+    for(int i=0;i<n;i++)
+    {
+     float ang=r01()*Mathf.PI*2,rr=radius*Mathf.Sqrt(r01());
+     var p=c+new Vector2(Mathf.Cos(ang),Mathf.Sin(ang))*rr;
+     if(blocked(p,.2f))continue;
+     int kind=r01()<.65f?a:b;
+     var flower=(GameObject)PrefabUtility.InstantiatePrefab(prefabs[kind],parent);
+     flower.name=kinds[kind]+" "+made;
+     flower.transform.SetPositionAndRotation(At(p,Ground(terrain,p)),Quaternion.Euler(0,r01()*360f,0)*prefabs[kind].transform.rotation);
+     flower.transform.localScale=prefabs[kind].transform.localScale*(kinds[kind]=="Clover"?.7f+r01()*.25f:.62f+r01()*.22f);
+     made++;
+    }
+   }
+   report.AppendLine("Meadow: "+made+" wildflowers in "+clusters+" clusters, two shade trees, grazed patches.");
   }
 
   // Model space (opening towards +Z), from props.py: walls on a stone footing, open front with a half wall.
@@ -575,7 +687,7 @@ namespace FarmReferenceTools
   {
    var nature=farm.Find("05 Nature and Scenery");
    if(nature==null)return;
-   foreach(Transform child in nature)
+   foreach(Transform child in Scenery(nature))
    {
     if(!child.gameObject.activeSelf||IsTuft(child))continue;
     var p=new Vector2(child.position.x,child.position.z);
@@ -598,7 +710,7 @@ namespace FarmReferenceTools
    var controller=AnimatorController.CreateAnimatorControllerAtPath(path);
    var machine=controller.layers[0].stateMachine;
    var clips=AssetDatabase.LoadAllAssetsAtPath(Models+model+".fbx").OfType<AnimationClip>().Where(c=>!c.name.StartsWith("__preview")).ToDictionary(c=>c.name);
-   foreach(var state in new[]{"Idle","Walk","Graze"})
+   foreach(var state in new[]{"Idle","Walk","Graze","Run","Lie"})
    {
     var s=machine.AddState(state);
     s.motion=clips[state];
@@ -633,11 +745,11 @@ namespace FarmReferenceTools
     capsule.radius=lamb?.2f:.32f;capsule.height=lamb?.78f:1.25f;
     AddContactShadow(go,lamb?new Vector2(.55f,.85f):new Vector2(.95f,1.45f));
     var sheep=go.AddComponent<FarmSheep>();
-    if(lamb)sheep.Configure(pen,adults[i==5?0:2],animator,.45f,.5f,body);
-    else{sheep.Configure(pen,null,animator,.55f,.65f,body);adults.Add(sheep);}
+    if(lamb)sheep.Configure(pen,adults[i==5?0:2],animator,.45f,.5f,body,0);
+    else{sheep.Configure(pen,null,animator,.55f,.65f,body,i);adults.Add(sheep);}
    }
    UnityEngine.Random.state=saved;
-   report.AppendLine("Flock: 5 sheep and 2 lambs grazing (lambs follow Sheep 1 and Sheep 3); they do not run from the chick.");
+   report.AppendLine("Flock: 5 sheep and 2 lambs (lambs follow Sheep 1 and Sheep 3): graze by day, shade at noon, shelter at dusk.");
   }
 
   // A soft dark blob under the animal so it reads as standing on the ground even when the

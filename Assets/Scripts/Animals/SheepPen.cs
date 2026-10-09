@@ -2,7 +2,8 @@ using UnityEngine;
 
 /// <summary>
 /// The walkable inside of the fenced sheep pasture: a rectangle (this transform is its centre, axis aligned)
-/// minus round obstacles such as the shelter, trough and hay rack. Sheep pick targets here and are kept inside it.
+/// minus round obstacles such as the shelter walls, trough and hay rack. Sheep pick targets here and are kept
+/// inside it. It also knows the flock's places: sleeping spots in the shelter, the trees' shade, trough and rack.
 /// </summary>
 [DisallowMultipleComponent]
 public sealed class SheepPen : MonoBehaviour
@@ -13,14 +14,43 @@ public sealed class SheepPen : MonoBehaviour
     [Tooltip("x, z, radius in world space. Written by Tools/Chick/Sheep Pasture.")]
     [SerializeField] private Vector3[] obstacles = new Vector3[0];
 
+    [Header("Places (written by Tools/Chick/Sheep Pasture)")]
+    [SerializeField] private Vector3[] restSpots = new Vector3[0];
+    [Tooltip("Just outside the shelter's open front; sheep walk in through here.")]
+    [SerializeField] private Vector3 shelterDoor;
+    [SerializeField] private Vector3 shadeSpot;
+    [SerializeField, Min(.5f)] private float shadeRadius = 3f;
+    [SerializeField] private Vector3 troughStand, troughCenter, rackStand, rackCenter;
+
     public Vector3 Center => transform.position;
     public Vector2 HalfSize => halfSize;
+    public Vector3 ShelterDoor => shelterDoor;
+    public Vector3 ShadeSpot => shadeSpot;
+    public float ShadeRadius => shadeRadius;
+    public Vector3 TroughStand => troughStand;
+    public Vector3 TroughCenter => troughCenter;
+    public Vector3 RackStand => rackStand;
+    public Vector3 RackCenter => rackCenter;
+    public Vector3 RestSpot(int index) => restSpots.Length > 0 ? restSpots[Mathf.Abs(index) % restSpots.Length] : Center;
 
     public void Configure(Terrain ground, Vector2 usableHalfSize, Vector3[] obstacleCircles)
     {
         terrain = ground;
         halfSize = usableHalfSize;
         obstacles = obstacleCircles;
+    }
+
+    public void ConfigurePlaces(Vector3[] sleeping, Vector3 door, Vector3 shade, float shadeSize, Vector3 troughSide,
+        Vector3 trough, Vector3 rackSide, Vector3 rack)
+    {
+        restSpots = sleeping;
+        shelterDoor = door;
+        shadeSpot = shade;
+        shadeRadius = shadeSize;
+        troughStand = troughSide;
+        troughCenter = trough;
+        rackStand = rackSide;
+        rackCenter = rack;
     }
 
     public float GroundHeight(Vector3 position) =>
