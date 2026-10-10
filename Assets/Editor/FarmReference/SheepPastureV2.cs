@@ -66,9 +66,9 @@ namespace FarmReferenceTools
   [MenuItem(Menu+"Remove Sheep Pasture")]
   static void RemoveMenu(){Debug.Log(Remove());}
 
-  static float S(float a,float b,float v){return Mathf.SmoothStep(0,1,Mathf.InverseLerp(a,b,v));}
+  internal static float S(float a,float b,float v){return Mathf.SmoothStep(0,1,Mathf.InverseLerp(a,b,v));}
   static Vector2 Center=>new Vector2((XMin+XMax)/2,(ZMin+ZMax)/2);
-  static Vector3 At(Vector2 p,float y){return new Vector3(p.x,y,p.y);}
+  internal static Vector3 At(Vector2 p,float y){return new Vector3(p.x,y,p.y);}
 
   // Distance outside the pasture rectangle (0 inside).
   static float Outside(Vector2 p)
@@ -214,7 +214,7 @@ namespace FarmReferenceTools
    return "Sheep pasture removed: terrain restored, "+restored+" objects re-enabled, "+reseated+" re-seated objects put back. Assets are kept for a rebuild.";
   }
 
-  static void CopyWhole(TerrainData src,TerrainData dst)
+  internal static void CopyWhole(TerrainData src,TerrainData dst)
   {
    int res=src.heightmapResolution;
    dst.SetHeights(0,0,src.GetHeights(0,0,res,res));
@@ -223,13 +223,13 @@ namespace FarmReferenceTools
     dst.SetDetailLayer(0,0,layer,src.GetDetailLayer(0,0,src.detailWidth,src.detailHeight,layer));
   }
 
-  static float Height(Terrain terrain,TerrainData d,Vector3 p)
+  internal static float Height(Terrain terrain,TerrainData d,Vector3 p)
   {
    Vector3 tp=terrain.transform.position;
    return d.GetInterpolatedHeight((p.x-tp.x)/d.size.x,(p.z-tp.z)/d.size.z)+tp.y;
   }
 
-  static float Ground(Terrain terrain,Vector2 p){return terrain.SampleHeight(At(p,0))+terrain.transform.position.y;}
+  internal static float Ground(Terrain terrain,Vector2 p){return terrain.SampleHeight(At(p,0))+terrain.transform.position.y;}
 
   static void Reshape(Terrain terrain,TerrainData src,TerrainData dst,System.Text.StringBuilder report)
   {
@@ -336,10 +336,10 @@ namespace FarmReferenceTools
    return Mathf.Sqrt(dx*dx+dz*dz);
   }
 
-  static bool IsTuft(Transform t){return t.name.StartsWith("Meadow")||t.name.StartsWith("Exterior Grass")||t.name.StartsWith("grass_");}
+  internal static bool IsTuft(Transform t){return t.name.StartsWith("Meadow")||t.name.StartsWith("Exterior Grass")||t.name.StartsWith("grass_");}
 
   // Scenery items: the nature root's children, with grouping objects (e.g. "Exterior Grass Patches") opened up.
-  static IEnumerable<Transform> Scenery(Transform nature)
+  internal static IEnumerable<Transform> Scenery(Transform nature)
   {
    foreach(Transform child in nature)
    {
@@ -438,7 +438,7 @@ namespace FarmReferenceTools
    go.transform.localScale=new Vector3(length/FenceMeshWidth,s.y,s.z);
   }
 
-  static GameObject Place(string model,Transform parent,Vector3 position,float yaw,string name)
+  internal static GameObject Place(string model,Transform parent,Vector3 position,float yaw,string name)
   {
    var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(Models+model+".fbx");
    var go=(GameObject)PrefabUtility.InstantiatePrefab(prefab,parent);
@@ -448,7 +448,7 @@ namespace FarmReferenceTools
   }
 
   // A solid box, optionally doubled on the CameraBlocker layer so the orbit camera does not pass through it.
-  static void AddBox(GameObject go,Vector3 center,Vector3 size,bool cameraBlocker,Vector3 euler=default)
+  internal static void AddBox(GameObject go,Vector3 center,Vector3 size,bool cameraBlocker,Vector3 euler=default)
   {
    GameObject holder=go;
    if(euler!=Vector3.zero)

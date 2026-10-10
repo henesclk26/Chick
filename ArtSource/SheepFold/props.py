@@ -479,6 +479,7 @@ def build_all(collection, material, origin=(3.2, 0, 0)):
     made.append(rake(collection, material, o + Vector((20.2, -.4, 0))))
     made.append(farm_bucket(collection, material, o + Vector((21.2, -.4, 0))))
     made.append(straw_patch(collection, material, o + Vector((22.8, -.4, 0))))
+    made.append(pickup_truck(collection, material, o + Vector((27, 0, 0))))
     return made
 
 
@@ -620,3 +621,108 @@ def straw_patch(collection, material, location):
     hay_lumps(b, (0, 0, .02), (.5, .4, .01), 8, size=(.05, .09))
     straws(b, (0, 0, .03), (.7, .55, .01), 60, lift=.15)
     return b.finish("StrawPatch", collection, material, location)
+
+
+def pickup_truck(collection, material, location):
+    """An unbranded late-70s square-body pickup: two-tone white over silver, chrome bumpers and grille, square
+    headlights, an open bed with a wooden floor, chunky tyres. Front faces -Y; about 5.2 x 2 x 1.9 m."""
+    b = L.Builder(101)
+    hw = .98                       # half width of the body
+    front, cab0, cab1, rear = -2.5, -.95, .55, 2.48
+    sill, belt, top = .52, .95, 1.17  # lower body, two-tone line, hood/bed rail height
+    wheels = (-1.62, 1.55)
+    arch = .5                      # half length of a wheel arch opening
+
+    bed0, floor, wall_t = cab1 + .08, .8, .06   # the open bed: start, floor height, side wall thickness
+
+    def body(y0, y1, z0, z1, swatch, x=hw):
+        b.box((0, (y0 + y1) / 2, (z0 + z1) / 2), (2 * x, y1 - y0, z1 - z0), swatch, bevel=.025)
+
+    def wall(y0, y1, z0, z1, swatch):
+        for side in (-1, 1):
+            b.box((side * (hw - wall_t / 2), (y0 + y1) / 2, (z0 + z1) / 2), (wall_t, y1 - y0, z1 - z0), swatch, bevel=.012)
+
+    def shell(y0, y1, z0, z1, swatch):
+        """Solid body ahead of the bed; along the bed only the side walls rise above the floor."""
+        if y1 <= bed0:
+            body(y0, y1, z0, z1, swatch)
+            return
+        if y0 < bed0:
+            body(y0, bed0, z0, z1, swatch)
+            y0 = bed0
+        if z0 < floor:
+            body(y0, y1, z0, min(z1, floor), swatch)
+        if z1 > floor:
+            wall(y0, y1, max(z0, floor), z1, swatch)
+
+    # Lower body (silver), leaving the wheel arches open; upper body (white) runs the full length.
+    edges = [front + .05, wheels[0] - arch, wheels[0] + arch, wheels[1] - arch, wheels[1] + arch, rear]
+    for y0, y1 in zip(edges[0::2], edges[1::2]):
+        shell(y0, y1, sill, belt, "paint_silver")
+    for wy in wheels:
+        shell(wy - arch, wy + arch, belt - .14, belt, "paint_silver")
+        # Dark wheel well behind the tyre, so the arch opening reads as a hole in the body.
+        well_top = belt - .13 if wy < bed0 else floor - .03  # under the bed it must stay below the floor
+        body(wy - arch + .02, wy + arch - .02, sill - .05, well_top, "metal_dark", x=hw - .3)
+    shell(front + .05, rear, belt, top, "paint_white")
+    for s in (-1, 1):
+        b.box((s * (hw + .012), (front + rear) / 2, belt), (.012, rear - front - .1, .03), "chrome")
+    # Hood, grille, square headlights, bumper.
+    b.box((0, (front + cab0) / 2 + .02, top + .03), (2 * hw - .06, cab0 - front - .04, .06), "paint_white", bevel=.03)
+    b.box((0, front - .02, .86), (2 * hw - .1, .06, .5), "metal_dark", bevel=.01)
+    for z in (.7, .82, .94, 1.06):
+        b.box((0, front - .055, z), (1.0, .02, .025), "chrome")
+    b.box((0, front - .06, .88), (.12, .03, .07), "chrome", bevel=.008)
+    for s in (-1, 1):
+        b.box((s * .74, front - .05, .88), (.3, .04, .3), "chrome", bevel=.01)
+        b.box((s * .74, front - .07, .88), (.22, .02, .2), "headlight", bevel=.01)
+        b.box((s * (hw + .015), front + .25, .75), (.02, .12, .06), "marker_orange")
+        # Door seams and handle.
+        for y in (cab0 + .04, cab1 - .14):
+            b.box((s * (hw + .006), y, (sill + top) / 2 + .05), (.01, .015, top - sill - .1), "metal_dark")
+    b.box((0, front - .14, .5), (2 * hw + .08, .2, .2), "chrome", bevel=.03)
+    # Cab: pillars, glass, roof, mirrors, handles.
+    roof_z = 1.88
+    b.box((0, (cab0 + cab1) / 2, top + .02), (2 * hw, cab1 - cab0, .04), "paint_white")
+    b.plank((0, cab0 + .05, top), (0, cab0 + .42, roof_z - .02), 1.86, .06, "glass", up=(0, -1, .5))
+    for s in (-1, 1):
+        b.plank((s * .93, cab0 + .04, top), (s * .93, cab0 + .41, roof_z - .02), .07, .07, "paint_white", up=(0, -1, .5))
+        b.box((s * (hw - .01), (cab0 + .42 + cab1) / 2, (top + roof_z) / 2 - .02), (.04, cab1 - cab0 - .48, roof_z - top - .06),
+              "glass")
+        b.box((s * (hw - .01), cab1 - .06, (top + roof_z) / 2), (.06, .12, roof_z - top), "paint_white")
+        b.box((s * (hw + .02), cab0 + .55, top - .07), (.03, .14, .04), "chrome")
+        b.box((s * (hw + .18), cab0 + .35, top + .25), (.04, .16, .22), "chrome", bevel=.01)
+        b.plank((s * hw, cab0 + .35, top + .2), (s * (hw + .17), cab0 + .35, top + .25), .03, .03, "chrome")
+    b.box((0, cab1 - .03, (top + roof_z) / 2 - .02), (2 * hw - .12, .04, roof_z - top - .06), "glass")
+    b.box((0, (cab0 + .4 + cab1) / 2, roof_z), (2 * hw - .04, cab1 - cab0 - .38, .06), "paint_white", bevel=.03)
+    # Bed: wooden floor boards with steel strips, front bulkhead, wheel-well humps, rails, tailgate, lights.
+    inner = hw - wall_t
+    boards = 7
+    for i in range(boards):
+        x = -inner + (2 * inner) * (i + .5) / boards
+        b.box((x, (bed0 + rear) / 2, floor - .02), (2 * inner / boards - .012, rear - bed0 - .06, .04),
+              "wood_mid" if i % 2 else "wood_light", bevel=.004)
+    for i in range(1, boards):
+        x = -inner + 2 * inner * i / boards
+        b.box((x, (bed0 + rear) / 2, floor + .003), (.025, rear - bed0 - .06, .012), "metal_dark")
+    b.box((0, bed0 + .03, (floor + top) / 2), (2 * hw, .06, top - floor), "paint_white", bevel=.012)
+    for side in (-1, 1):
+        b.box((side * (inner - .17), wheels[1], (floor + belt + .04) / 2), (.34, 2 * arch - .12, belt + .04 - floor),
+              "paint_silver", bevel=.03)
+    for s in (-1, 1):
+        b.box((s * (hw - .03), (bed0 + rear) / 2, top + .06), (.06, rear - bed0, .14), "paint_white", bevel=.015)
+        b.box((s * (hw - .02), rear - .03, .95), (.04, .06, .3), "tail_red", bevel=.008)
+        b.box((s * (hw + .012), rear - .45, .78), (.02, .12, .05), "tail_red")
+    b.box((hw + .01, bed0 + .85, .78), (.02, .2, .18), "paint_silver", bevel=.01)
+    b.box((0, rear - .02, (sill + top + .1) / 2), (2 * hw - .12, .06, top + .1 - sill), "paint_white", bevel=.02)
+    b.box((0, rear + .1, .5), (2 * hw, .16, .16), "chrome", bevel=.02)
+    # Frame, axles and wheels: chunky tyres, chrome hubs.
+    b.box((0, 0, .38), (1.2, rear - front - .3, .14), "metal_dark")
+    for wy in wheels:
+        b.cylinder((-hw + .1, wy, .42), (hw - .1, wy, .42), .06, .06, "metal_dark", segments=6)
+        for s in (-1, 1):
+            x0, x1 = s * (hw - .2), s * (hw + .06)
+            b.cylinder((x0, wy, .42), (x1, wy, .42), .42, .42, "tire", segments=16, smooth=False)
+            b.cylinder((x1, wy, .42), (x1 + s * .01, wy, .42), .24, .24, "paint_silver", segments=16, smooth=False)
+            b.cylinder((x1 + s * .01, wy, .42), (x1 + s * .04, wy, .42), .1, .07, "chrome", segments=10, smooth=False)
+    return b.finish("PickupTruck", collection, material, location)
