@@ -53,9 +53,9 @@ public sealed class BerryPlantImporter : AssetPostprocessor
         else if (assetPath.EndsWith("/Art/Lettuce/Lettuce.fbx", StringComparison.OrdinalIgnoreCase))
         {
             if (!root.TryGetComponent(out BerryPlant plant)) plant = root.AddComponent<BerryPlant>();
-            // ~1 m head on a ~0.9 m mound: each peck knocks the nearest leaf off; it slides down off its own side,
-            // just clear of the mound, leaving its chewed stub (Stub_NN), and on the ground takes two pecks (Half_NN
-            // after the first). At the end only the stubs are left.
+            // ~1 m head on a ~0.9 m mound, eaten from the outside in: each peck knocks a leaf off the outermost layer;
+            // it opens out just past the leaves still standing (the heart's last leaves slip just off the mound), leaving
+            // its chewed stub (Stub_NN), and takes two pecks (Half_NN after the first). At the end only the stubs are left.
             plant.Configure("Lettuce_", "lettuce", "Marul", .9f, .48f, flat: true, stubs: "Stub_", halves: "Half_",
                 inPlace: true);
             SetUpColliders(root, "Lettuce_", "Mound");

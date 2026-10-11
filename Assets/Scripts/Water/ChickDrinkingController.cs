@@ -37,6 +37,9 @@ public sealed class ChickDrinkingController : MonoBehaviour
     private float tilt;
     // 0..1: how strongly the beak is guided onto the water surface this frame.
     private float reach;
+    // Time since the beak started to rise; its guidance fades over RiseFadeSeconds even once the swallow has begun.
+    private float riseTime;
+    private const float RiseFadeSeconds = .18f;
 
     public bool IsBusy => phase != Phase.Ready;
     /// <summary>Base-layer state the player controller should hold while drinking.</summary>
@@ -142,10 +145,12 @@ public sealed class ChickDrinkingController : MonoBehaviour
                     if (pond != null) pond.Ripple(sipPoint, .45f);
                     phase = Phase.Rise;
                     phaseTime = 0f;
+                    riseTime = 0f;
                 }
                 break;
             case Phase.Rise:
-                reach = 1f - Mathf.SmoothStep(0f, 1f, phaseTime / .18f);
+                riseTime += Time.deltaTime;
+                reach = RiseReach();
                 if (!inEat || state.normalizedTime >= eater.RecoveryNormalizedTime || phaseTime > .6f)
                 {
                     SipCount++;
@@ -155,7 +160,10 @@ public sealed class ChickDrinkingController : MonoBehaviour
                 }
                 break;
             case Phase.Swallow:
-                reach = 0f;
+                // The chicken's clip recovers before the guidance has faded: finish fading it rather than snapping
+                // the head up in one frame as it lifts to swallow.
+                riseTime += Time.deltaTime;
+                reach = RiseReach();
                 if (pond != null && head != null && phaseTime < swallowSeconds * .5f && Random.value < Time.deltaTime * 9f)
                     pond.Drip(BeakTip(), scale);
                 if (phaseTime >= swallowSeconds + pauseBetweenSips)
@@ -194,11 +202,14 @@ public sealed class ChickDrinkingController : MonoBehaviour
             }
         }
         if (tilt <= .0001f) return;
+        // Mostly the neck lifts; a large share on the head alone bent it back like a broken neck.
         float angle = swallowTilt * tilt;
-        if (chest != null) chest.rotation = Quaternion.AngleAxis(-angle * .2f, axis) * chest.rotation;
-        neck.rotation = Quaternion.AngleAxis(-angle * .45f, axis) * neck.rotation;
-        head.rotation = Quaternion.AngleAxis(-angle * .55f, axis) * head.rotation;
+        if (chest != null) chest.rotation = Quaternion.AngleAxis(-angle * .15f, axis) * chest.rotation;
+        neck.rotation = Quaternion.AngleAxis(-angle * .4f, axis) * neck.rotation;
+        head.rotation = Quaternion.AngleAxis(-angle * .1f, axis) * head.rotation;
     }
+
+    private float RiseReach() => 1f - Mathf.SmoothStep(0f, 1f, riseTime / RiseFadeSeconds);
 
     // Quick lift, two small gulps at the top, then an easy return to idle.
     private static float SwallowCurve(float t)

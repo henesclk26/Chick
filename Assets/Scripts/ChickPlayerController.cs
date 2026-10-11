@@ -47,6 +47,8 @@ public sealed class ChickPlayerController : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private float sitAfterIdleSeconds = 10f;
     [SerializeField] private float peckLockSeconds = 0.85f;
+    [Tooltip("Pecking a plant to knock food down: one head bob (the chick and chicken peck clips bob every ~0.33 s).")]
+    [SerializeField] private float plantPeckSeconds = 0.32f;
     [SerializeField] private float peepLockSeconds = 0.9f;
     [SerializeField] private float damageLockSeconds = 1.0f;
     [SerializeField] private float downLockSeconds = 1.0f;
@@ -71,6 +73,8 @@ public sealed class ChickPlayerController : MonoBehaviour
     private bool gliding;
     private bool eating;
     private float peckTimer;
+    // The current peck knocks food off a plant: a single, quickly entered head bob.
+    private bool plantPeck;
     private float peepTimer;
     private float damageTimer;
     private float downTimer;
@@ -353,10 +357,11 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
             animator.SetBool(ToCrouch, false);
             idleTimer = 0f;
         }
-        // No food in reach: a peck at a berry plant (strawberry, blackberry, tomato) shakes a berry down onto the ground instead.
+        // No food in reach: a peck at a berry plant (strawberry, blackberry, tomato, lettuce) shakes one piece down instead, in one head bob.
         else if (canEat && BerryPlant.TryKnockNear(transform.position, transform.forward, chickenForm ? 1.7f : 1f))
         {
-            peckTimer = peckLockSeconds;
+            peckTimer = plantPeckSeconds;
+            plantPeck = true;
             actionLocked = true;
             animator.SetBool(Peck, true);
             animator.SetBool(ToCrouch, false);
@@ -379,6 +384,7 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
         if (canStartExtraAction && peckPressed)
         {
             peckTimer = peckLockSeconds;
+            plantPeck = false;
             animator.SetBool(Peck, true);
             idleTimer = 0f;
         }
@@ -795,9 +801,15 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
             return;
         }
 
+        // A plant peck blends in and out quickly, so its single head bob shows fully, without the loop's next one.
+        bool plantPeckBlend = plantPeck && layerIndex == 0 && (stateName == "peck" || currentState.IsName("peck"));
+        // Lifting the head from the water to swallow: a short linear blend shot the head up and stopped it dead
+        // at the top; a longer one lets it rise with the swallow tilt.
+        bool swallowBlend = IsDrinking && layerIndex == 0 && stateName == "idle" && currentState.IsName("eat");
         float transitionDuration = stateName == "jump" || stateName == "jump_descent"
             ? 0.18f
-            : stateName == "eat" ? 0.05f : 0.16f;
+            : swallowBlend ? 0.4f
+            : stateName == "eat" || plantPeckBlend ? 0.05f : 0.16f;
 
         animator.CrossFadeInFixedTime(stateName, transitionDuration, layerIndex, 0f);
     }

@@ -12,6 +12,7 @@ public sealed class BerryPlant : MonoBehaviour
 {
     private const int EdibleLayer = 9;
     private static readonly List<BerryPlant> ActivePlants = new List<BerryPlant>();
+    private static readonly Collider[] Overlaps = new Collider[16];
 
     [Tooltip("Ripe berries are the children whose names start with this and do not contain \"Unripe\".")]
     [SerializeField] private string berryPrefix = "Strawberry_";
@@ -33,8 +34,9 @@ public sealed class BerryPlant : MonoBehaviour
     [Tooltip("Optional: a child named this plus a piece's suffix (e.g. Half_07 for Lettuce_07) is the piece after its " +
              "first peck on the ground; such a piece takes two pecks (the child itself stays hidden, only its mesh is used).")]
     [SerializeField] private string halfPrefix = "";
-    [Tooltip("A knocked piece slides down off its own side of the plant (keeping its heading) instead of flying " +
-             "toward the pecker; dropRadius is then the least distance it lands from the centre.")]
+    [Tooltip("The plant is peeled from the outside in: a knocked piece comes off its outermost layer and lies out along " +
+             "its own side (keeping its heading) just past the pieces still hanging, instead of flying toward the pecker; " +
+             "dropRadius is then the base's edge, which even the last pieces slip just off onto the ground.")]
     [SerializeField] private bool fallInPlace;
 
     public string FoodKey => foodKey;
@@ -64,6 +66,8 @@ public sealed class BerryPlant : MonoBehaviour
         public Collider hangingSolid, groundSolid;
         public float halfHeight;
         public bool falling, dropped;
+        // Landed, but the ground box waits until no character stands in it, so it never shoves one aside.
+        public bool solidPending;
         public Vector3 from, to;
         public Quaternion meshFrom, meshTo;
         public Vector3 meshPosFrom, meshPosTo;
@@ -72,9 +76,15 @@ public sealed class BerryPlant : MonoBehaviour
         public Mesh half;
         public Transform bite;
         public bool bitten;
+        // A piece lying along its own side of the plant: the line it rests on (outer end, inward slope per metre).
+        public bool lying;
+        public Vector3 restFar, restToward;
+        public float restSlope;
     }
 
     private readonly List<Berry> berries = new List<Berry>();
+    // How far the outermost piece hangs from the centre: the full head, for pieces that fall in place.
+    private float headRadius;
 
     public int HangingCount
     {
@@ -136,8 +146,9 @@ public sealed class BerryPlant : MonoBehaviour
 
             var edible = pickup.AddComponent<EdibleObject>();
             // Plant position keeps ids unique across several plants with identical child names.
+            // A leaf dropped in place can rest on the base's rim, a little above the beak of a chick standing beside it.
             edible.ConfigureRuntime(plantId + "-" + mesh.name, EdibleCategory.Other, foodKey, foodName,
-                bite, mesh, 1.35f, .06f);
+                bite, mesh, 1.35f, fallInPlace ? .12f : .06f);
             edible.enabled = false;
 
             string suffix = mesh.name.Substring(berryPrefix.Length);
@@ -161,7 +172,18 @@ public sealed class BerryPlant : MonoBehaviour
                 bite.localPosition = new Vector3(0f, -ground.y * .85f, 0f);
             }
             berries.Add(piece);
+            headRadius = Mathf.Max(headRadius, Flat(pickup.transform.position - plantPosition).magnitude);
         }
+    }
+
+    // How far the furthest still-hanging piece (other than skip) hangs from the centre.
+    private float HangingRadius(Berry skip)
+    {
+        float radius = 0f;
+        foreach (Berry berry in berries)
+            if (berry != skip && IsHanging(berry))
+                radius = Mathf.Max(radius, Flat(berry.pickup.position - transform.position).magnitude);
+        return radius;
     }
 
     // A piece with a half mesh takes two pecks on the ground: the first leaves its half, the second eats it.
@@ -172,9 +194,26 @@ public sealed class BerryPlant : MonoBehaviour
         piece.mesh.GetComponent<MeshFilter>().sharedMesh = piece.half;
         // Peck what is left, not the empty spot where the eaten half lay.
         Vector3 left = piece.mesh.TransformPoint(piece.half.bounds.center);
-        piece.bite.position = new Vector3(left.x, piece.bite.position.y, left.z);
+        if (!piece.lying)
+        {
+            piece.bite.position = new Vector3(left.x, piece.bite.position.y, left.z);
+            return false;
+        }
+        // Lying across the base, what is left may reach up onto it: peck its outer part, which lies lowest.
+        Transform mesh = piece.mesh;
+        Vector3 extents = Vector3.Scale(piece.half.bounds.extents, mesh.lossyScale);
+        float along = Mathf.Abs(Vector3.Dot(mesh.right, piece.restToward)) * extents.x +
+                      Mathf.Abs(Vector3.Dot(mesh.up, piece.restToward)) * extents.y +
+                      Mathf.Abs(Vector3.Dot(mesh.forward, piece.restToward)) * extents.z;
+        Vector3 bite = left + piece.restToward * (along * .7f);
+        bite.y = RestHeight(piece, bite);
+        piece.bite.position = bite;
+        ((SphereCollider)piece.trigger).center = piece.pickup.InverseTransformPoint(bite);
         return false;
     }
+
+    private static float RestHeight(Berry piece, Vector3 point) =>
+        piece.restFar.y + piece.restSlope * Vector3.Dot(Flat(piece.restFar - point), piece.restToward);
 
     private static bool IsHanging(Berry berry) =>
         !berry.dropped && !berry.falling && berry.pickup.gameObject.activeInHierarchy && !berry.edible.IsConsumed;
@@ -203,11 +242,13 @@ public sealed class BerryPlant : MonoBehaviour
 
     private bool Knock(Vector3 peckerPosition)
     {
+        // A head that falls in place is eaten from the outside in: only its outermost hanging layer comes off.
+        float outermost = fallInPlace ? HangingRadius(null) - .04f : float.NegativeInfinity;
         Berry chosen = null;
         float bestDistance = float.PositiveInfinity;
         foreach (Berry berry in berries)
         {
-            if (!IsHanging(berry)) continue;
+            if (!IsHanging(berry) || Flat(berry.pickup.position - transform.position).magnitude < outermost) continue;
             float distance = Flat(berry.pickup.position - peckerPosition).sqrMagnitude;
             if (distance < bestDistance) { chosen = berry; bestDistance = distance; }
         }
@@ -234,14 +275,14 @@ public sealed class BerryPlant : MonoBehaviour
         }
 
         // Land on the ground between the plant and the pecker, a little to either side, clear of the base; or, falling
-        // in place, down off the piece's own side of the plant, its near end just past dropRadius (the base's edge).
+        // in place, beside where the piece grew, on its own side of the plant.
         Vector3 center = transform.position;
         Vector3 own = Flat(chosen.pickup.position - center);
         Vector3 toward = fallInPlace ? own : Flat(peckerPosition - center);
         if (toward.sqrMagnitude < 1e-4f) toward = fallInPlace ? Flat(peckerPosition - center) : own;
         if (toward.sqrMagnitude < 1e-4f) toward = Vector3.forward;
         toward = Quaternion.Euler(0f, fallInPlace ? Random.Range(-12f, 12f) : Random.Range(-35f, 35f), 0f) * toward.normalized;
-        float reach = dropRadius + Random.Range(0f, .05f);
+        Vector3 landing;
         if (fallInPlace)
         {
             // How far the lying piece reaches back toward the plant from its middle.
@@ -249,30 +290,82 @@ public sealed class BerryPlant : MonoBehaviour
             float back = Mathf.Abs(Vector3.Dot(chosen.meshTo * Vector3.right, toward)) * extents.x +
                          Mathf.Abs(Vector3.Dot(chosen.meshTo * Vector3.up, toward)) * extents.y +
                          Mathf.Abs(Vector3.Dot(chosen.meshTo * Vector3.forward, toward)) * extents.z;
-            reach = Mathf.Max(own.magnitude, dropRadius + back) + Random.Range(0f, .04f);
+            // A peeled leaf opens outward just enough to clear the head still standing: an outer leaf lies out past
+            // it, and the fewer leaves are left, the less it is thrown. Even the heart's last leaves land on the ground,
+            // though: they slip just off the base's edge (dropRadius), at most their inner end left on its rim.
+            float head = HangingRadius(chosen);
+            float clear = headRadius > 0f ? Mathf.Clamp01(head / headRadius) : 0f;
+            float reach = Mathf.Max(own.magnitude, head + back * clear, dropRadius + back * .5f) + Random.Range(.01f, .03f);
+            landing = center + toward * reach;
+            landing.y = LieAlong(chosen, landing, toward, back, meshBounds);
         }
-        Vector3 landing = center + toward * reach;
-        // Highest surface under the landing spot that is not part of the plant or a character (the chick,
-        // chicken or helper may be standing right there); the plant's base otherwise.
-        float groundY = center.y;
-        bool found = false;
-        foreach (RaycastHit hit in Physics.RaycastAll(landing + Vector3.up * .6f, Vector3.down, 3f, ~(1 << EdibleLayer), QueryTriggerInteraction.Ignore))
+        else
         {
-            if (hit.collider.transform.IsChildOf(transform) || hit.collider is CharacterController ||
+            landing = center + toward * (dropRadius + Random.Range(0f, .05f));
+            // A curled leaf's rim dips below its bounds' middle plane, so it rests a touch higher than a berry.
+            landing.y = GroundHeight(landing, false) + chosen.halfHeight * (layFlat ? 1.1f : .9f);
+        }
+
+        chosen.from = chosen.pickup.position;
+        chosen.to = landing;
+        chosen.t = 0f;
+        chosen.falling = true;
+        // A falling piece is moved by hand, so a solid one would push the pecker standing below it.
+        if (chosen.hangingSolid != null) chosen.hangingSolid.enabled = false;
+        return true;
+    }
+
+    // A leaf lying along its side of the plant: its outer end on what is under it, the rest propped on the mound,
+    // tilted along its length rather than sunk into it. Its bite moves onto the low outer part. Returns the pickup's height.
+    private float LieAlong(Berry piece, Vector3 landing, Vector3 toward, float back, Bounds meshBounds)
+    {
+        const int Samples = 8;
+        Vector3 far = landing + toward * back;
+        float farY = GroundHeight(far, true);
+        // Steepest rise from the outer end over the leaf's length: the line it rests on.
+        float slope = -.4f;
+        for (int i = 1; i <= Samples; i++)
+        {
+            float distance = 2f * back * i / Samples;
+            slope = Mathf.Max(slope, (GroundHeight(far - toward * distance, true) - farY) / distance);
+        }
+        slope = Mathf.Min(slope, .7f);
+        piece.meshTo = Quaternion.AngleAxis(Mathf.Atan(slope) * Mathf.Rad2Deg, Vector3.Cross(Vector3.up, toward)) * piece.meshTo;
+        piece.meshPosTo = -(piece.meshTo * Vector3.Scale(meshBounds.center, piece.mesh.lossyScale));
+
+        piece.lying = true;
+        piece.restFar = new Vector3(far.x, farY, far.z);
+        piece.restToward = toward;
+        piece.restSlope = slope;
+        float pickupY = farY + slope * back + piece.halfHeight * 1.1f;
+        // Near its outer end, on the line it rests on: low enough for a beak at ground level.
+        Vector3 bite = landing + toward * (back * .85f);
+        bite.y = RestHeight(piece, bite);
+        landing.y = pickupY;
+        piece.bite.localPosition = Quaternion.Inverse(piece.pickup.rotation) * (bite - landing);
+        // Eaters find food by its trigger: keep it on the bite, not on the leaf's far-off middle.
+        ((SphereCollider)piece.trigger).center = piece.bite.localPosition;
+        return pickupY;
+    }
+
+    // Highest surface under a point that is not a character (the chick, chicken or helper may be standing right
+    // there) nor part of this plant, except its base with includeBase; the plant's own height otherwise.
+    private float GroundHeight(Vector3 point, bool includeBase)
+    {
+        float groundY = transform.position.y;
+        bool found = false;
+        foreach (RaycastHit hit in Physics.RaycastAll(point + Vector3.up * .6f, Vector3.down, 3f, ~(1 << EdibleLayer), QueryTriggerInteraction.Ignore))
+        {
+            bool plantPart = hit.collider.transform.IsChildOf(transform) &&
+                             (!includeBase || hit.collider.GetComponentInParent<EdibleObject>() != null);
+            if (plantPart || hit.collider is CharacterController ||
                 hit.collider.GetComponentInParent<ChickPlayerController>() != null ||
                 hit.collider.GetComponentInParent<HelperChickController>() != null ||
                 (found && hit.point.y <= groundY)) continue;
             groundY = hit.point.y;
             found = true;
         }
-        // A curled leaf's rim dips below its bounds' middle plane, so it rests a touch higher than a berry.
-        landing.y = groundY + chosen.halfHeight * (layFlat ? 1.1f : .9f);
-
-        chosen.from = chosen.pickup.position;
-        chosen.to = landing;
-        chosen.t = 0f;
-        chosen.falling = true;
-        return true;
+        return groundY;
     }
 
     private void Update()
@@ -283,6 +376,11 @@ public sealed class BerryPlant : MonoBehaviour
         {
             // A piece that has left the plant (falling, on the ground, eaten or restored as eaten) shows its stub.
             if (berry.stub != null && berry.stub.activeSelf == IsHanging(berry)) berry.stub.SetActive(!IsHanging(berry));
+            if (berry.solidPending && !OverlapsCharacter(berry))
+            {
+                berry.solidPending = false;
+                berry.groundSolid.enabled = berry.pickup.gameObject.activeInHierarchy && !berry.edible.IsConsumed;
+            }
             if (!berry.falling) continue;
             berry.t = Mathf.Min(1f, berry.t + dt / fallSeconds);
             float t = berry.t;
@@ -298,9 +396,22 @@ public sealed class BerryPlant : MonoBehaviour
             berry.trigger.enabled = true;
             if (berry.hangingSolid != null) berry.hangingSolid.enabled = false;
             // A fallen leaf stays passable, like other flat food on the ground: the chick walks onto it and eats.
-            berry.groundSolid.enabled = !layFlat;
+            berry.solidPending = !layFlat;
             berry.edible.enabled = true;
         }
+    }
+
+    // Any chick, chicken or helper capsule inside where the ground box would be.
+    private static bool OverlapsCharacter(Berry berry)
+    {
+        var box = (BoxCollider)berry.groundSolid;
+        Transform pickup = berry.pickup;
+        Vector3 halfExtents = Vector3.Scale(box.size * .5f, pickup.lossyScale);
+        int count = Physics.OverlapBoxNonAlloc(pickup.TransformPoint(box.center), halfExtents, Overlaps, pickup.rotation,
+            ~0, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < count; i++)
+            if (Overlaps[i] is CharacterController) return true;
+        return false;
     }
 
     private static Vector3 Flat(Vector3 value)

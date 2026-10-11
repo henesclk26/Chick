@@ -9,7 +9,7 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.UIElements;
 
 // Opt-in Play Mode check for the lettuce in Assets/Art/Lettuce (a BerryPlant with stubs and half leaves): a peck
-// knocks a leaf off its own side (just clear of the mound) and shows its stub; on the ground the first peck leaves
+// knocks a leaf off the outermost layer, which opens out on its own side (inner leaves nearer the middle) and shows its stub; on the ground the first peck leaves
 // half the leaf and the second eats it, counted once as "Marul"; when every leaf is eaten only the stubs remain.
 // Never attached to a saved scene; never writes the player's save.
 public sealed class LettuceHeadPlayVerification : MonoBehaviour
@@ -35,6 +35,7 @@ public sealed class LettuceHeadPlayVerification : MonoBehaviour
 
     private EdibleObject[] Leaves() => plant.GetComponentsInChildren<EdibleObject>(true);
     private Transform[] Stubs() => plant.GetComponentsInChildren<Transform>(true).Where(t => t.name.StartsWith("Stub_")).ToArray();
+    private static Vector3 Flat(Vector3 v) { v.y = 0f; return v; }
     private static string MeshName(EdibleObject leaf) => leaf.GetComponentInChildren<MeshFilter>(true).sharedMesh.name;
 
     private int Eaten(string key) =>
@@ -59,25 +60,12 @@ public sealed class LettuceHeadPlayVerification : MonoBehaviour
     {
         Vector3 approach = leaf.transform.position - plant.transform.position; approach.y = 0f; approach.Normalize();
         Vector3 stand = leaf.BitePosition + approach * .14f;
-        player.TeleportTo(new Vector3(stand.x, plant.transform.position.y + .05f, stand.z), Quaternion.LookRotation(-approach));
+        // Stand on whatever is there (a heart leaf lies on the mound, which a player jumps onto).
+        float y = plant.transform.position.y;
+        foreach (RaycastHit hit in Physics.RaycastAll(stand + Vector3.up, Vector3.down, 2f, ~(1 << 9), QueryTriggerInteraction.Ignore))
+            if (hit.collider.GetComponentInParent<EdibleObject>() == null && !(hit.collider is CharacterController)) y = Mathf.Max(y, hit.point.y);
+        player.TeleportTo(new Vector3(stand.x, y + .03f, stand.z), Quaternion.LookRotation(-approach));
         yield return new WaitForSeconds(.6f);
-    }
-
-    // Horizontal distance from the plant's centre to the nearest point of a lying leaf's own (oriented) mesh bounds.
-    private float NearestToCentre(Renderer renderer)
-    {
-        Transform t = renderer.transform;
-        Bounds b = renderer.GetComponent<MeshFilter>().sharedMesh.bounds;
-        Vector3 c = plant.transform.position;
-        float nearest = float.PositiveInfinity;
-        for (int i = 0; i <= 10; i++)
-        for (int k = 0; k <= 10; k++)
-        {
-            Vector3 local = new Vector3(Mathf.Lerp(b.min.x, b.max.x, i / 10f), b.center.y, Mathf.Lerp(b.min.z, b.max.z, k / 10f));
-            Vector3 p = t.TransformPoint(local) - c;
-            nearest = Mathf.Min(nearest, new Vector2(p.x, p.z).magnitude);
-        }
-        return nearest;
     }
 
     private IEnumerator Start()
@@ -140,7 +128,8 @@ public sealed class LettuceHeadPlayVerification : MonoBehaviour
         Renderer lying = dropped.GetComponentInChildren<Renderer>();
         Check(lying.bounds.size.y < Mathf.Max(lying.bounds.size.x, lying.bounds.size.z) * .6f,
             $"It lies down flat ({lying.bounds.size.y:0.00} m tall, {Mathf.Max(lying.bounds.size.x, lying.bounds.size.z):0.00} m long)");
-        Check(NearestToCentre(lying) > .4f, $"It lies clear of the mound (nearest {NearestToCentre(lying):0.00} m from the centre)");
+        float hung = Flat(before[dropped] - c).magnitude, landed = Flat(dropped.transform.position - c).magnitude;
+        Check(landed - hung < .6f, $"It opens out beside where it grew ({hung:0.00} m -> {landed:0.00} m from the centre)");
 
         // On the ground: two pecks, half the leaf after the first, eaten (and counted once) after the second.
         int eaten = Eaten("lettuce");
@@ -169,8 +158,24 @@ public sealed class LettuceHeadPlayVerification : MonoBehaviour
         }
         Check(plant.HangingCount == 0 && Stubs().All(s => s.gameObject.activeSelf),
             $"Every leaf can be knocked off and every stub shows ({plant.HangingCount} left after {guard} pecks)");
-        float nearest = Leaves().Where(l => !l.IsConsumed).Select(l => NearestToCentre(l.GetComponentInChildren<Renderer>())).DefaultIfEmpty(1f).Min();
-        Check(nearest > .35f, $"The fallen leaves lie around the mound, not on it (nearest {nearest:0.00} m)");
+        // Peeled layer by layer: the small heart leaves lie close around the mound, the big outer ones reach further out.
+        var byLayer = Leaves().Where(l => !l.IsConsumed).OrderBy(l => Flat(before[l] - c).magnitude).ToArray();
+        int third = byLayer.Length / 3;
+        float Reach(EdibleObject l)
+        {
+            Bounds b = l.GetComponentInChildren<Renderer>().bounds;
+            return new[] { b.min, b.max, new Vector3(b.min.x, 0f, b.max.z), new Vector3(b.max.x, 0f, b.min.z) }
+                .Max(corner => Flat(corner - c).magnitude);
+        }
+        float innerReach = byLayer.Take(third).Average(Reach);
+        float outerReach = byLayer.Skip(byLayer.Length - third).Average(Reach);
+        Check(third > 0 && innerReach + .1f < outerReach,
+            $"Heart leaves lie closer in than outer ones (reaching {innerReach:0.00} m vs {outerReach:0.00} m out)");
+        // Even the heart's last leaves land on the ground beside the mound, not on top of it.
+        float moundRadius = Flat(plant.transform.Find("Mound").GetComponent<Renderer>().bounds.extents).magnitude / Mathf.Sqrt(2f);
+        float nearestMiddle = byLayer.Min(l => Flat(l.transform.position - c).magnitude);
+        Check(nearestMiddle > moundRadius,
+            $"Every fallen leaf lies on the ground, none on the mound (nearest middle {nearestMiddle:0.00} m, mound {moundRadius:0.00} m)");
         guard = 0;
         while (Leaves().Any(l => !l.IsConsumed) && guard++ < 120)
         {
