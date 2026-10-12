@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// Adds <see cref="BerryPlant"/> to the berry plant models on import (StrawberryPlant, BlackberryBush,
-/// StrawberryBush, TomatoPlant,
+/// StrawberryBush, TomatoPlant, PepperPlant, GrapeVine,
 /// LettucePlant and the Lettuce in Art/Lettuce), so every
 /// plant placed from a model or its prefab variant gets edible, droppable berries and a solid base, leaves and
 /// berries without per-instance setup.
@@ -12,7 +12,7 @@ using UnityEngine;
 public sealed class BerryPlantImporter : AssetPostprocessor
 {
     // Bump when the setup below changes, so Unity reimports the plant models.
-    public override uint GetVersion() => 8;
+    public override uint GetVersion() => 10;
 
     private void OnPostprocessModel(GameObject root)
     {
@@ -42,6 +42,21 @@ public sealed class BerryPlantImporter : AssetPostprocessor
             // Bush-sized (~1.4 m wide); whole tomatoes, counted apart from the seeds of the tomato slices.
             plant.Configure("Tomato_", "tomato_fruit", "Domates", .85f, .68f);
             SetUpColliders(root, "Tomato_", "Mound");
+        }
+        else if (assetPath.EndsWith("/PepperPlant.fbx", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!root.TryGetComponent(out BerryPlant plant)) plant = root.AddComponent<BerryPlant>();
+            // Same ~1.3 m bush on a rocky mound as the strawberry bush; the long peppers fall and lie on their side.
+            plant.Configure("Pepper_", "pepper", "Biber", .85f, .68f, lie: true);
+            SetUpColliders(root, "Pepper_", "Mound");
+        }
+        else if (assetPath.EndsWith("/GrapeVine.fbx", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!root.TryGetComponent(out BerryPlant plant)) plant = root.AddComponent<BerryPlant>();
+            // A ~2 m vine row on a rocky bed: a peck eats the nearest bunch right where it hangs (no drop), reaching
+            // from the bunch, so anywhere along the row works.
+            plant.Configure("Grape_", "grape", "Üzüm", .55f, .5f, eatHanging: true);
+            SetUpColliders(root, "Grape_", "Mound");
         }
         else if (assetPath.EndsWith("/LettucePlant.fbx", StringComparison.OrdinalIgnoreCase))
         {

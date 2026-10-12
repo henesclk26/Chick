@@ -2,10 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Makes a berry plant's ripe berries edible (strawberry plant, blackberry and strawberry bushes, tomato plant, lettuces). They hang out of reach until
+/// Makes a berry plant's ripe berries edible (strawberry plant, blackberry and strawberry bushes, tomato and pepper plants, lettuces). They hang out of reach until
 /// the player pecks at the plant: then the nearest hanging berry drops to the ground toward the player and can
-/// be eaten there. Added to the plant models on import (BerryPlantImporter), so every placed plant (model or
-/// prefab) gets it. Unripe berries ("*_Unripe_*") stay decoration.
+/// be eaten there — or, on a plant whose pieces are eaten where they hang (the grape vine), that peck eats it.
+/// Added to the plant models on import (BerryPlantImporter), so every placed plant (model or prefab) gets it.
+/// Unripe berries ("*_Unripe_*") stay decoration.
 /// </summary>
 [DisallowMultipleComponent]
 public sealed class BerryPlant : MonoBehaviour
@@ -28,6 +29,9 @@ public sealed class BerryPlant : MonoBehaviour
     [Tooltip("The pieces are leaves modelled flat in their own frame (blade in local XZ): they fall and lie down " +
              "flat instead of keeping the pose they hang in.")]
     [SerializeField] private bool layFlat;
+    [Tooltip("The pieces are long fruits hanging along their length (peppers): they fall and lie down on their side " +
+             "instead of standing on end.")]
+    [SerializeField] private bool lieDown;
     [Tooltip("Optional: a child named this plus a piece's suffix (e.g. Stub_07 for Lettuce_07) is what is left on the " +
              "plant once that piece is gone; it is hidden while the piece hangs.")]
     [SerializeField] private string stubPrefix = "";
@@ -38,12 +42,19 @@ public sealed class BerryPlant : MonoBehaviour
              "its own side (keeping its heading) just past the pieces still hanging, instead of flying toward the pecker; " +
              "dropRadius is then the base's edge, which even the last pieces slip just off onto the ground.")]
     [SerializeField] private bool fallInPlace;
+    [Tooltip("The pieces are eaten where they hang (grapes): a peck at the plant eats the nearest hanging piece on the " +
+             "pecker's side of the row (the row runs along local X) in that head bob and nothing falls; knockReach is " +
+             "then measured from that piece, not the plant's centre.")]
+    [SerializeField] private bool eatOnPlant;
+
+    // When, in a plant peck's head bob, the beak reaches a piece eaten where it hangs.
+    private const float EatOnPlantDelay = .14f;
 
     public string FoodKey => foodKey;
 
     /// <summary>Import-time setup for a plant whose berries are not strawberries.</summary>
     public void Configure(string prefix, string key, string displayName, float reach, float drop, bool flat = false,
-        string stubs = "", string halves = "", bool inPlace = false)
+        string stubs = "", string halves = "", bool inPlace = false, bool lie = false, bool eatHanging = false)
     {
         berryPrefix = prefix;
         foodKey = key;
@@ -54,6 +65,8 @@ public sealed class BerryPlant : MonoBehaviour
         stubPrefix = stubs;
         halfPrefix = halves;
         fallInPlace = inPlace;
+        lieDown = lie;
+        eatOnPlant = eatHanging;
     }
 
     private sealed class Berry
@@ -80,6 +93,9 @@ public sealed class BerryPlant : MonoBehaviour
         public bool lying;
         public Vector3 restFar, restToward;
         public float restSlope;
+        // Pecked where it hangs (eatOnPlant): eaten once the head bob reaches it.
+        public bool eating;
+        public float eatAt;
     }
 
     private readonly List<Berry> berries = new List<Berry>();
@@ -125,10 +141,12 @@ public sealed class BerryPlant : MonoBehaviour
             mesh.SetParent(pickup.transform, true);
 
             // On the ground a berry keeps its hanging shape; a leaf lies flat, so its footprint and height come
-            // from its own (flat) mesh bounds.
+            // from its own (flat) mesh bounds; a long fruit lies on its side, as long and as thick as it hangs.
             Vector3 ground = bounds.extents;
             if (layFlat && mesh.TryGetComponent(out MeshFilter filter) && filter.sharedMesh != null)
                 ground = Vector3.Scale(filter.sharedMesh.bounds.extents, mesh.lossyScale);
+            else if (lieDown)
+                ground = new Vector3(ground.y, Mathf.Min(ground.x, ground.z), ground.y);
 
             var trigger = pickup.AddComponent<SphereCollider>();
             trigger.isTrigger = true;
@@ -142,7 +160,7 @@ public sealed class BerryPlant : MonoBehaviour
 
             var bite = new GameObject("BitePoint").transform;
             bite.SetParent(pickup.transform, false);
-            bite.localPosition = new Vector3(0f, -(layFlat ? ground.y : bounds.extents.y) * .45f, 0f);
+            bite.localPosition = new Vector3(0f, -(layFlat || lieDown ? ground.y : bounds.extents.y) * .45f, 0f);
 
             var edible = pickup.AddComponent<EdibleObject>();
             // Plant position keeps ids unique across several plants with identical child names.
@@ -216,28 +234,69 @@ public sealed class BerryPlant : MonoBehaviour
         piece.restFar.y + piece.restSlope * Vector3.Dot(Flat(piece.restFar - point), piece.restToward);
 
     private static bool IsHanging(Berry berry) =>
-        !berry.dropped && !berry.falling && berry.pickup.gameObject.activeInHierarchy && !berry.edible.IsConsumed;
+        !berry.dropped && !berry.falling && !berry.eating && berry.pickup.gameObject.activeInHierarchy &&
+        !berry.edible.IsConsumed;
+
+    // The nearest hanging piece (on the ground plane) within reach of a pecker facing it, or null. Only the pieces on
+    // the pecker's side of the row (the row runs along the plant's local X): the far side's are out of its reach.
+    private Berry FacedPiece(Vector3 peckerPosition, Vector3 facing, float reach)
+    {
+        Berry nearest = null;
+        float best = reach;
+        float peckerSide = Vector3.Dot(peckerPosition - transform.position, transform.forward);
+        foreach (Berry berry in berries)
+        {
+            if (!IsHanging(berry) || Vector3.Dot(berry.pickup.position - transform.position, transform.forward) * peckerSide <= 0f)
+                continue;
+            Vector3 toPiece = Flat(berry.pickup.position - peckerPosition);
+            float distance = toPiece.magnitude;
+            if (distance > best) continue;
+            if (distance > .08f && Vector3.Dot(toPiece / distance, Flat(facing).normalized) < .2f) continue;
+            nearest = berry;
+            best = distance;
+        }
+        return nearest;
+    }
+
+    // A piece eaten where it hangs: it goes when the head bob reaches it (see Update).
+    private bool EatHanging(Berry piece)
+    {
+        piece.eating = true;
+        piece.eatAt = Time.time + EatOnPlantDelay;
+        return true;
+    }
 
     /// <summary>
     /// A peck that found no food: if it was at a berry plant, drop its nearest hanging ripe berry toward
-    /// the pecker. sizeScale grows the reach for larger forms (chicken). Returns true if a berry fell.
+    /// the pecker — or, on a plant eaten where it hangs, eat the nearest piece the pecker faces. sizeScale grows the
+    /// reach for larger forms (chicken). Returns true if a berry fell or is being eaten.
     /// </summary>
     public static bool TryKnockNear(Vector3 peckerPosition, Vector3 facing, float sizeScale)
     {
         BerryPlant best = null;
+        Berry bestPiece = null;
         float bestDistance = float.PositiveInfinity;
         foreach (BerryPlant plant in ActivePlants)
         {
             if (plant == null || plant.HangingCount == 0) continue;
+            if (plant.eatOnPlant)
+            {
+                // Reach is from the piece itself: a long vine row is pecked anywhere along it.
+                Berry piece = plant.FacedPiece(peckerPosition, facing, plant.knockReach * sizeScale);
+                float reach = piece != null ? Flat(piece.pickup.position - peckerPosition).magnitude : float.PositiveInfinity;
+                if (reach < bestDistance) { best = plant; bestPiece = piece; bestDistance = reach; }
+                continue;
+            }
             Vector3 toPlant = plant.transform.position - peckerPosition;
             toPlant.y = 0f;
             float distance = toPlant.magnitude;
             if (distance > plant.knockReach * sizeScale) continue;
             // Facing the plant (or standing right at it).
             if (distance > .08f && Vector3.Dot(toPlant / distance, Flat(facing).normalized) < .2f) continue;
-            if (distance < bestDistance) { best = plant; bestDistance = distance; }
+            if (distance < bestDistance) { best = plant; bestPiece = null; bestDistance = distance; }
         }
-        return best != null && best.Knock(peckerPosition);
+        if (best == null) return false;
+        return bestPiece != null ? best.EatHanging(bestPiece) : best.Knock(peckerPosition);
     }
 
     private bool Knock(Vector3 peckerPosition)
@@ -267,6 +326,18 @@ public sealed class BerryPlant : MonoBehaviour
                 ? Quaternion.Euler(0f, Random.Range(-15f, 15f), 0f) *
                   Quaternion.FromToRotation(chosen.meshFrom * Vector3.up, Vector3.up) * chosen.meshFrom
                 : Quaternion.Euler(Random.Range(-6f, 6f), Random.Range(0f, 360f), Random.Range(-6f, 6f));
+            chosen.meshPosTo = -(chosen.meshTo * Vector3.Scale(meshBounds.center, chosen.mesh.lossyScale));
+        }
+        else if (lieDown)
+        {
+            // Tip the fruit over: its long axis (as it hangs) turned level, rolled and headed at random, centred on
+            // the pickup.
+            Vector3 size = meshBounds.size;
+            Vector3 axis = size.x >= size.y && size.x >= size.z ? Vector3.right : size.y >= size.z ? Vector3.up : Vector3.forward;
+            axis = chosen.meshFrom * axis;
+            Vector3 level = Flat(axis).sqrMagnitude > 1e-4f ? Flat(axis).normalized : Vector3.right;
+            chosen.meshTo = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f) * Quaternion.FromToRotation(axis, level) *
+                            Quaternion.AngleAxis(Random.Range(0f, 360f), axis) * chosen.meshFrom;
             chosen.meshPosTo = -(chosen.meshTo * Vector3.Scale(meshBounds.center, chosen.mesh.lossyScale));
         }
         else
@@ -380,6 +451,13 @@ public sealed class BerryPlant : MonoBehaviour
             {
                 berry.solidPending = false;
                 berry.groundSolid.enabled = berry.pickup.gameObject.activeInHierarchy && !berry.edible.IsConsumed;
+            }
+            if (berry.eating && Time.time >= berry.eatAt)
+            {
+                // Eaten where it hangs: counted like any food eaten (statistics, growth, save).
+                berry.eating = false;
+                berry.edible.enabled = true;
+                if (!berry.edible.Consume()) berry.edible.enabled = false;
             }
             if (!berry.falling) continue;
             berry.t = Mathf.Min(1f, berry.t + dt / fallSeconds);

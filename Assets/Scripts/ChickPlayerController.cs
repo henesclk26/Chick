@@ -357,7 +357,7 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
             animator.SetBool(ToCrouch, false);
             idleTimer = 0f;
         }
-        // No food in reach: a peck at a berry plant (strawberry, blackberry, tomato, lettuce) shakes one piece down instead, in one head bob.
+        // No food in reach: a peck at a berry plant (strawberry, blackberry, tomato, pepper, lettuce) shakes one piece down instead, in one head bob; on the grape vine that head bob eats a bunch where it hangs.
         else if (canEat && BerryPlant.TryKnockNear(transform.position, transform.forward, chickenForm ? 1.7f : 1f))
         {
             peckTimer = plantPeckSeconds;
