@@ -70,6 +70,12 @@ public sealed class EdibleObject : MonoBehaviour
     /// </summary>
     public Func<bool> BiteHandler { get; set; }
 
+    /// <summary>
+    /// Food only the player may peck (e.g. walking ants): a helper chick picks its feeding spot once and cannot follow
+    /// a moving target, so it leaves such food alone.
+    /// </summary>
+    public bool IgnoredByHelpers { get; set; }
+
     public bool CanBeEaten(int eatLevel = 0) =>
         isActiveAndEnabled && !IsConsumed && eatLevel >= requiredEatLevel;
 

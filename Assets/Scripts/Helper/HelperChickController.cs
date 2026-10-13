@@ -891,7 +891,7 @@ public sealed class HelperChickController : MonoBehaviour
     }
 
     private bool IsEdible(EdibleObject edible) =>
-        edible != null && beakEatPoint != null && edible.CanBeEaten() && edible.ContactVisual != null &&
+        edible != null && beakEatPoint != null && edible.CanBeEaten() && !edible.IgnoredByHelpers && edible.ContactVisual != null &&
         edible.ContactVisual != edible.transform && edible.ContactVisual.IsChildOf(edible.transform) &&
         (edibleMask.value & (1 << edible.gameObject.layer)) != 0;
 
