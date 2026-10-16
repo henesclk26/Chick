@@ -20,9 +20,9 @@ namespace FarmReferenceTools
   public const string TerrainPath="Assets/Art/Terrain/WestRoadV1/FarmTerrain_WestRoad_v1.asset";
   const string GateSegment="Outer West 09";
   // Road centre line from the end of the yard path, through the gate (x 59.3), up the hill to the west.
-  static readonly Vector2[] Road={new Vector2(66.5f,12.9f),new Vector2(59.3f,12.2f),new Vector2(52f,12.6f),new Vector2(40f,13.4f),
+  internal static readonly Vector2[] Road={new Vector2(66.5f,12.9f),new Vector2(59.3f,12.2f),new Vector2(52f,12.6f),new Vector2(40f,13.4f),
    new Vector2(28f,14.6f),new Vector2(14f,15.5f),new Vector2(0f,16.2f)};
-  const float HalfWidth=1.6f,Edge=1.2f;
+  internal const float HalfWidth=1.6f,Edge=1.2f;
   static readonly Vector2 HumpCenter=new Vector2(64.8f,7.6f);
   const float HumpRadius=5.5f,HumpBlend=3f,YardLevel=-11.75f;
   const int TroddenEarth=4,Pebbles=6,WornMeadow=7;
@@ -33,7 +33,7 @@ namespace FarmReferenceTools
   static void RemoveMenu(){Debug.Log(Remove());}
 
   // Distance to the road centre line and the position along it (m from the yard end).
-  static float RoadDistance(Vector2 p,out float along)
+  internal static float RoadDistance(Vector2 p,out float along)
   {
    float best=float.PositiveInfinity,walked=0;along=0;
    for(int i=1;i<Road.Length;i++)
@@ -46,7 +46,7 @@ namespace FarmReferenceTools
    return best;
   }
 
-  static Vector2 RoadPoint(float along)
+  internal static Vector2 RoadPoint(float along)
   {
    for(int i=1;i<Road.Length;i++)
    {
@@ -138,7 +138,9 @@ namespace FarmReferenceTools
     var p=new Vector2(tp.x+(x0+ix)/(float)(res-1)*size.x,tp.z+(z0+iz)/(float)(res-1)*size.z);
     float h0=h[iz,ix]*size.y+tp.y,y=h0;
     float d=RoadDistance(p,out float along);
-    float centre=smooth[Mathf.Clamp(Mathf.RoundToInt(along),0,smooth.Length-1)];
+    // Interpolated between the metre samples: rounding to the nearest one stepped the road like a staircase.
+    float f=Mathf.Clamp(along,0,smooth.Length-1);int i0=Mathf.Min((int)f,smooth.Length-2);
+    float centre=Mathf.Lerp(smooth[i0],smooth[i0+1],f-i0);
     y=Mathf.Lerp(y,centre,1-S(HalfWidth,HalfWidth+Edge,d));
     // Level the hump south of the windmill down to the yard; never raise ground.
     float w=1-S(HumpRadius,HumpRadius+HumpBlend,(p-HumpCenter).magnitude);
