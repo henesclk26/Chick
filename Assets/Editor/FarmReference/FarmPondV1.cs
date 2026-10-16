@@ -34,7 +34,7 @@ namespace FarmReferenceTools
   [MenuItem(Menu+"Remove Pond (restore field)")]
   static void RemoveMenu(){Debug.Log(Remove());}
 
-  static float S(float a,float b,float v){return Mathf.SmoothStep(0,1,Mathf.InverseLerp(a,b,v));}
+  internal static float S(float a,float b,float v){return Mathf.SmoothStep(0,1,Mathf.InverseLerp(a,b,v));}
 
   public static Vector2[] Shoreline()
   {
@@ -52,7 +52,7 @@ namespace FarmReferenceTools
   }
 
   // Negative inside the shoreline.
-  static float Signed(Vector2[] poly,float x,float z)
+  internal static float Signed(Vector2[] poly,float x,float z)
   {
    bool inside=false;float best=float.PositiveInfinity;var p=new Vector2(x,z);
    for(int i=0,j=poly.Length-1;i<poly.Length;j=i++)
@@ -88,7 +88,7 @@ namespace FarmReferenceTools
    return Mathf.Lerp(target,h0,keep);
   }
 
-  static Material EnsureMaterial(string name,string shaderName,Action<Material> setup)
+  internal static Material EnsureMaterial(string name,string shaderName,Action<Material> setup)
   {
    string path=Folder+"/"+name+".mat";
    var mat=AssetDatabase.LoadAssetAtPath<Material>(path);
@@ -100,7 +100,7 @@ namespace FarmReferenceTools
    return mat;
   }
 
-  static Mesh SaveMesh(Mesh mesh)
+  internal static Mesh SaveMesh(Mesh mesh)
   {
    string path=Folder+"/"+mesh.name+".asset";
    var existing=AssetDatabase.LoadAssetAtPath<Mesh>(path);
@@ -262,7 +262,7 @@ namespace FarmReferenceTools
    EditorUtility.SetDirty(dst);
   }
 
-  static Mesh WaterMesh(Vector2[] shore,Vector2 min,Vector2 max,Vector3 origin)
+  internal static Mesh WaterMesh(Vector2[] shore,Vector2 min,Vector2 max,Vector3 origin)
   {
    const float step=.2f;
    int nx=Mathf.CeilToInt((max.x-min.x+2*ShoreMargin)/step),nz=Mathf.CeilToInt((max.y-min.y+2*ShoreMargin)/step);
@@ -324,8 +324,10 @@ namespace FarmReferenceTools
 
   static bool NearFence(Vector2 p){return p.x>98.5f||p.y<.65f;}
 
-  static void Decorate(Transform pondRoot,Terrain terrain,Vector2[] shore,Material reedMat,Transform farm,System.Text.StringBuilder report)
+  // nearFence: where no decoration goes (this pond's fence lines by default; PondRelocationV1 passes its own).
+  internal static void Decorate(Transform pondRoot,Terrain terrain,Vector2[] shore,Material reedMat,Transform farm,System.Text.StringBuilder report,Func<Vector2,bool> nearFence=null)
   {
+   if(nearFence==null)nearFence=NearFence;
    var rng=new System.Random(4127);
    Func<float,float,float> range=(a,b)=>a+(float)rng.NextDouble()*(b-a);
 
@@ -340,7 +342,7 @@ namespace FarmReferenceTools
     for(int k=0;k<tufts;k++)
     {
      var p=ShorePoint(shore,t+range(-.012f,.012f),range(-.32f,.05f));
-     if(NearFence(p))continue;
+     if(nearFence(p))continue;
      var go=new GameObject("Reed clump "+(++reedCount));go.transform.SetParent(reeds,false);
      go.transform.position=new Vector3(p.x,GroundAt(terrain,p)-.01f,p.y);
      go.transform.rotation=Quaternion.Euler(0,range(0,360),0);
@@ -369,7 +371,7 @@ namespace FarmReferenceTools
     foreach(float t in spots)
     {
      var p=ShorePoint(shore,t,range(.0f,.35f));
-     if(NearFence(p))continue;
+     if(nearFence(p))continue;
      float size=range(.1f,.26f);
      var go=Copy(rocks[rng.Next(rocks.Count)],stones,"Shore stone "+(++stoneCount),size);
      go.transform.position=new Vector3(p.x,GroundAt(terrain,p)-size*.3f,p.y);
@@ -387,7 +389,7 @@ namespace FarmReferenceTools
     for(int i=0;i<26;i++)
     {
      var p=ShorePoint(shore,i/26f+range(-.01f,.01f),range(.25f,1.1f));
-     if(NearFence(p))continue;
+     if(nearFence(p))continue;
      var source=plants[rng.Next(plants.Count)];
      var go=Copy(source,bank,"Bank plant "+(++plantCount),0);
      go.transform.position=new Vector3(p.x,GroundAt(terrain,p),p.y);
