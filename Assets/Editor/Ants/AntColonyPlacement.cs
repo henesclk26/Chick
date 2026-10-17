@@ -11,7 +11,7 @@ using UnityEngine;
 public static class AntColonyPlacement
 {
     private const string AntPath = "Assets/Art/Ants/Ant.fbx";
-    private const string NestPath = "Assets/Art/Ants/AntNest.fbx";
+    private const string NestPath = "Assets/Art/Ants/AntNest_v2.fbx";
     private const string BushPath = "Assets/Art/Ants/AntBush.fbx";
     private const string WheatPath = "Assets/Prefabs/Edibles/WheatGrain.prefab";
     private const string ColonyName = "Ant Colony";

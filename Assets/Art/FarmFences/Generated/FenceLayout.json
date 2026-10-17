@@ -1,0 +1,2465 @@
+{
+    "bays": [
+        {
+            "name": "Outer South 01",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.20259475708008,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 61.99739456176758,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 02",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 62.00259017944336,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 64.79739379882813,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 03",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 64.80259704589844,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 67.59739685058594,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 04",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 67.60260009765625,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 70.39739990234375,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 05",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 70.402587890625,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 73.1973876953125,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 06",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 73.20259094238281,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 75.99739074707031,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 07",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 76.00259399414063,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 78.79739379882813,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 08",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 78.80259704589844,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 81.59739685058594,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 09",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 81.60260009765625,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 84.39739990234375,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 10",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 84.40259552001953,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 87.19739532470703,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 11",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 87.20259857177735,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 89.99739837646485,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 12",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 90.00259399414063,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 92.79739379882813,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 13",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 92.80259704589844,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 95.59739685058594,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 14",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 95.60260009765625,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 98.39739990234375,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 15",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 98.40259552001953,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 101.19739532470703,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 16",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 101.20259857177735,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 103.99739837646485,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 17",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 104.00260162353516,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 106.79740142822266,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 18",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 106.80260467529297,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 109.59740447998047,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 20",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 112.40260314941406,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 115.19740295410156,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 21",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 115.20259094238281,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 117.99739074707031,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 22",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 118.00259399414063,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 120.79739379882813,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 23",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 120.80259704589844,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 123.59739685058594,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 24",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 123.60260009765625,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 126.39739990234375,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer South 25",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 126.40260314941406,
+                "y": -20.357746124267579
+            },
+            "b": {
+                "x": 129.19740295410157,
+                "y": -20.357746124267579
+            }
+        },
+        {
+            "name": "Outer East 01",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": -31.997371673583986
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": -29.169296264648439
+            }
+        },
+        {
+            "name": "Outer East 02",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": -29.164037704467775
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": -26.335962295532228
+            }
+        },
+        {
+            "name": "Outer East 03",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": -26.330703735351564
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": -23.502628326416017
+            }
+        },
+        {
+            "name": "Outer East 04",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": -23.497371673583986
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": -20.669296264648439
+            }
+        },
+        {
+            "name": "Outer East 05",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": -20.664037704467775
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": -17.835962295532228
+            }
+        },
+        {
+            "name": "Outer East 06",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": -17.830703735351564
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": -15.002629280090332
+            }
+        },
+        {
+            "name": "Outer East 07",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": -14.997369766235352
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": -12.169296264648438
+            }
+        },
+        {
+            "name": "Outer East 08",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": -12.164036750793457
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": -9.335963249206543
+            }
+        },
+        {
+            "name": "Outer East 09",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": -9.330704689025879
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": -6.502630233764648
+            }
+        },
+        {
+            "name": "Outer East 10",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": -6.497369766235352
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": -3.6692955493927
+            }
+        },
+        {
+            "name": "Outer East 11",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": -3.664036989212036
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": -0.8359630107879639
+            }
+        },
+        {
+            "name": "Outer East 12",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": -0.8307043313980103
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": 1.997369647026062
+            }
+        },
+        {
+            "name": "Outer East 13",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": 2.0026283264160158
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": 4.830702304840088
+            }
+        },
+        {
+            "name": "Outer East 14",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": 4.835963249206543
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": 7.664036750793457
+            }
+        },
+        {
+            "name": "Outer East 15",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": 7.66929817199707
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": 10.497371673583985
+            }
+        },
+        {
+            "name": "Outer East 16",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": 10.502628326416016
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": 13.33070182800293
+            }
+        },
+        {
+            "name": "Outer East 17",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": 13.335963249206543
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": 16.164037704467775
+            }
+        },
+        {
+            "name": "Outer East 18",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.16773986816407,
+                "y": 16.169296264648439
+            },
+            "b": {
+                "x": 129.16773986816407,
+                "y": 18.997371673583986
+            }
+        },
+        {
+            "name": "Outer East 19",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": 19.002628326416017
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": 21.830703735351564
+            }
+        },
+        {
+            "name": "Outer East 20",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": 21.835962295532228
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": 24.664037704467775
+            }
+        },
+        {
+            "name": "Outer East 21",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": 24.669296264648439
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": 27.497371673583986
+            }
+        },
+        {
+            "name": "Outer East 22",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": 27.502628326416017
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": 30.330703735351564
+            }
+        },
+        {
+            "name": "Outer East 23",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": 30.335962295532228
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": 33.16403579711914
+            }
+        },
+        {
+            "name": "Outer East 24",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.20001220703126,
+                "y": 33.1693000793457
+            },
+            "b": {
+                "x": 129.20001220703126,
+                "y": 35.997371673583987
+            }
+        },
+        {
+            "name": "Outer North 01",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 129.19740295410157,
+                "y": 36.0
+            },
+            "b": {
+                "x": 126.40260314941406,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 02",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 126.39739990234375,
+                "y": 36.0
+            },
+            "b": {
+                "x": 123.60260009765625,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 03",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 123.59739685058594,
+                "y": 36.0
+            },
+            "b": {
+                "x": 120.80259704589844,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 04",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 120.79739379882813,
+                "y": 36.0
+            },
+            "b": {
+                "x": 118.00259399414063,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 05",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 117.99739074707031,
+                "y": 36.0
+            },
+            "b": {
+                "x": 115.20259094238281,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 06",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 115.19740295410156,
+                "y": 36.0
+            },
+            "b": {
+                "x": 112.40260314941406,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 07",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 112.39739990234375,
+                "y": 36.0
+            },
+            "b": {
+                "x": 109.60260009765625,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 08",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 109.5973892211914,
+                "y": 36.0
+            },
+            "b": {
+                "x": 106.8025894165039,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 09",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 106.79739379882813,
+                "y": 36.0
+            },
+            "b": {
+                "x": 104.00259399414063,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 10",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 103.99739837646485,
+                "y": 36.0
+            },
+            "b": {
+                "x": 101.20259857177735,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 11",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 101.19739532470703,
+                "y": 36.0
+            },
+            "b": {
+                "x": 98.40259552001953,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 12",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 98.39739990234375,
+                "y": 36.0
+            },
+            "b": {
+                "x": 95.60260009765625,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 13",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 95.59739685058594,
+                "y": 36.0
+            },
+            "b": {
+                "x": 92.80259704589844,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 14",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 92.79739379882813,
+                "y": 36.0
+            },
+            "b": {
+                "x": 90.00259399414063,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 15",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 89.99739837646485,
+                "y": 36.0
+            },
+            "b": {
+                "x": 87.20259857177735,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 16",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 87.19739532470703,
+                "y": 36.0
+            },
+            "b": {
+                "x": 84.40259552001953,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 17",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 84.39739227294922,
+                "y": 36.0
+            },
+            "b": {
+                "x": 81.60259246826172,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 18",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 81.59739685058594,
+                "y": 36.0
+            },
+            "b": {
+                "x": 78.80259704589844,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 19",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 78.79739379882813,
+                "y": 36.0
+            },
+            "b": {
+                "x": 76.00259399414063,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 20",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 75.99740600585938,
+                "y": 36.0
+            },
+            "b": {
+                "x": 73.20260620117188,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 21",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 73.19740295410156,
+                "y": 36.0
+            },
+            "b": {
+                "x": 70.40260314941406,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 22",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 70.39739990234375,
+                "y": 36.0
+            },
+            "b": {
+                "x": 67.60260009765625,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 23",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 67.59739685058594,
+                "y": 36.0
+            },
+            "b": {
+                "x": 64.80259704589844,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 24",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 64.79740142822266,
+                "y": 36.0
+            },
+            "b": {
+                "x": 62.00259780883789,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer North 25",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 61.99739456176758,
+                "y": 36.0
+            },
+            "b": {
+                "x": 59.20259475708008,
+                "y": 36.0
+            }
+        },
+        {
+            "name": "Outer West 01",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": 35.99736785888672
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": 33.16929626464844
+            }
+        },
+        {
+            "name": "Outer West 02",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": 33.16403579711914
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": 30.335962295532228
+            }
+        },
+        {
+            "name": "Outer West 03",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": 30.330703735351564
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": 27.502628326416017
+            }
+        },
+        {
+            "name": "Outer West 04",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": 27.497371673583986
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": 24.669296264648439
+            }
+        },
+        {
+            "name": "Outer West 05",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": 24.664037704467775
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": 21.835962295532228
+            }
+        },
+        {
+            "name": "Outer West 06",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": 21.830703735351564
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": 19.002628326416017
+            }
+        },
+        {
+            "name": "Outer West 07",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": 18.99736976623535
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": 16.169294357299806
+            }
+        },
+        {
+            "name": "Outer West 08",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": 16.164037704467775
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": 13.335963249206543
+            }
+        },
+        {
+            "name": "Outer West 10",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": 10.497369766235352
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": 7.6692962646484379
+            }
+        },
+        {
+            "name": "Outer West 11",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": 7.664036750793457
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": 4.835963249206543
+            }
+        },
+        {
+            "name": "Outer West 12",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": 4.830704689025879
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": 2.0026304721832277
+            }
+        },
+        {
+            "name": "Outer West 13",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": 1.9973716735839844
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": -0.8307023048400879
+            }
+        },
+        {
+            "name": "Outer West 14",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": -0.8359630107879639
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": -3.664036989212036
+            }
+        },
+        {
+            "name": "Outer West 15",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": -3.669297933578491
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": -6.497371673583984
+            }
+        },
+        {
+            "name": "Outer West 16",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": -6.502628326416016
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": -9.33070182800293
+            }
+        },
+        {
+            "name": "Outer West 17",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": -9.335963249206543
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": -12.164036750793457
+            }
+        },
+        {
+            "name": "Outer West 18",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": -12.16929817199707
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": -14.997371673583985
+            }
+        },
+        {
+            "name": "Outer West 19",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": -15.002629280090332
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": -17.830703735351564
+            }
+        },
+        {
+            "name": "Outer West 20",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": -17.835962295532228
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": -20.664037704467775
+            }
+        },
+        {
+            "name": "Outer West 21",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": -20.669296264648439
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": -23.497371673583986
+            }
+        },
+        {
+            "name": "Outer West 22",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": -23.502628326416017
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": -26.330703735351564
+            }
+        },
+        {
+            "name": "Outer West 23",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": -26.335962295532228
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": -29.164037704467775
+            }
+        },
+        {
+            "name": "Outer West 24",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 1,
+            "a": {
+                "x": 59.19999694824219,
+                "y": -29.169296264648439
+            },
+            "b": {
+                "x": 59.19999694824219,
+                "y": -31.997371673583986
+            }
+        },
+        {
+            "name": "Barn to field 01",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 59.20237350463867,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 61.7601203918457,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Barn to field 02",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 61.76487350463867,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 64.32261657714844,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Barn to field 03",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 64.32737731933594,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 66.88511657714844,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Barn to field 04",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 66.88987731933594,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 69.44761657714844,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Barn to field 05",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 69.45237731933594,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 72.01011657714844,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Barn to field 06",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 72.01487731933594,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 74.57261657714844,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Barn to field 07",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 74.57737731933594,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 77.13511657714844,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Barn to field 08",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 77.13987731933594,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 79.69761657714844,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Field divider 01",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 84.70249938964844,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 87.39749145507813,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Field divider 02",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 87.40250396728516,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 90.09749603271485,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Field divider 03",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 90.10250091552735,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 92.79749298095703,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Field divider 04",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 92.80249786376953,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 95.49748992919922,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Field divider 05",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 95.50250244140625,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 98.19749450683594,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Field divider 06",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 98.20249938964844,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 100.89749145507813,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Field divider 07",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 100.90250396728516,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 103.59749603271485,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Field divider 08",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 103.60250091552735,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 106.29749298095703,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Field divider 09",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 106.302490234375,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 108.99748229980469,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Field divider 10",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 109.00249481201172,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 111.6974868774414,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Coop to field 01",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 116.70232391357422,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 119.19768524169922,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Coop to field 02",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 119.20232391357422,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 121.69768524169922,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Coop to field 03",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 121.70232391357422,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 124.19768524169922,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Coop to field 04",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 124.20232391357422,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 126.69768524169922,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Coop to field 05",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 126.70232391357422,
+                "y": 9.442254066467286
+            },
+            "b": {
+                "x": 129.1976776123047,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Barn to coop 01",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 90.04774475097656,
+                "y": 0.7016375064849854
+            },
+            "b": {
+                "x": 90.04774475097656,
+                "y": 3.596254587173462
+            }
+        },
+        {
+            "name": "Barn to coop 01 (2)",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 90.04774475097656,
+                "y": -2.098362445831299
+            },
+            "b": {
+                "x": 90.04774475097656,
+                "y": 0.796254575252533
+            }
+        },
+        {
+            "name": "Barn to coop 01 (1)",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 90.04774475097656,
+                "y": -20.298362731933595
+            },
+            "b": {
+                "x": 90.04774475097656,
+                "y": -17.40374755859375
+            }
+        },
+        {
+            "name": "Barn to coop 02",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 90.04774475097656,
+                "y": 3.601637840270996
+            },
+            "b": {
+                "x": 90.04774475097656,
+                "y": 6.496254920959473
+            }
+        },
+        {
+            "name": "Barn to coop 02 (1)",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 90.04774475097656,
+                "y": -17.398361206054689
+            },
+            "b": {
+                "x": 90.04774475097656,
+                "y": -14.503745079040528
+            }
+        },
+        {
+            "name": "Barn to coop 03",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 90.04774475097656,
+                "y": 6.5016374588012699
+            },
+            "b": {
+                "x": 90.04774475097656,
+                "y": 9.396254539489746
+            }
+        },
+        {
+            "name": "Barn to coop 03 (1)",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 90.04774475097656,
+                "y": -14.49836254119873
+            },
+            "b": {
+                "x": 90.04774475097656,
+                "y": -11.603745460510254
+            }
+        },
+        {
+            "name": "Barn to coop 03 (2)",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 90.04774475097656,
+                "y": -11.630362510681153
+            },
+            "b": {
+                "x": 90.04774475097656,
+                "y": -8.735745429992676
+            }
+        },
+        {
+            "name": "Barn to coop 03 (3)",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 90.04774475097656,
+                "y": -8.90836238861084
+            },
+            "b": {
+                "x": 90.04774475097656,
+                "y": -6.013745307922363
+            }
+        },
+        {
+            "name": "Barn to coop 04",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 99.19999694824219,
+                "y": 8.702691078186036
+            },
+            "b": {
+                "x": 99.19999694824219,
+                "y": 11.597308158874512
+            }
+        },
+        {
+            "name": "Barn to coop 05",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 99.19999694824219,
+                "y": 11.602690696716309
+            },
+            "b": {
+                "x": 99.19999694824219,
+                "y": 14.497307777404786
+            }
+        },
+        {
+            "name": "Barn to coop north 01",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 99.19999694824219,
+                "y": 19.502552032470704
+            },
+            "b": {
+                "x": 99.19999694824219,
+                "y": 22.247447967529298
+            }
+        },
+        {
+            "name": "Barn to coop north 02",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 99.19999694824219,
+                "y": 22.252552032470704
+            },
+            "b": {
+                "x": 99.19999694824219,
+                "y": 24.997447967529298
+            }
+        },
+        {
+            "name": "Barn to coop north 03",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 99.19999694824219,
+                "y": 25.002552032470704
+            },
+            "b": {
+                "x": 99.19999694824219,
+                "y": 27.747447967529298
+            }
+        },
+        {
+            "name": "Barn to coop north 04",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 99.19999694824219,
+                "y": 27.752552032470704
+            },
+            "b": {
+                "x": 99.19999694824219,
+                "y": 30.497447967529298
+            }
+        },
+        {
+            "name": "Barn to coop north 05",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 99.19999694824219,
+                "y": 30.502552032470704
+            },
+            "b": {
+                "x": 99.19999694824219,
+                "y": 33.2474479675293
+            }
+        },
+        {
+            "name": "Barn to coop north 06",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "style": 0,
+            "a": {
+                "x": 99.19999694824219,
+                "y": 33.2525520324707
+            },
+            "b": {
+                "x": 99.19999694824219,
+                "y": 35.9974479675293
+            }
+        },
+        {
+            "name": "West 01",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 59.242252349853519,
+                "y": -31.900541305541993
+            },
+            "b": {
+                "x": 59.242252349853519,
+                "y": -34.80255126953125
+            }
+        },
+        {
+            "name": "East 01",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 129.15774536132813,
+                "y": -34.80003356933594
+            },
+            "b": {
+                "x": 129.15774536132813,
+                "y": -31.89906883239746
+            }
+        },
+        {
+            "name": "West 02",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 59.242252349853519,
+                "y": -34.80632400512695
+            },
+            "b": {
+                "x": 59.242252349853519,
+                "y": -37.70621109008789
+            }
+        },
+        {
+            "name": "East 02",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 129.15774536132813,
+                "y": -37.699913024902347
+            },
+            "b": {
+                "x": 129.15774536132813,
+                "y": -34.802268981933597
+            }
+        },
+        {
+            "name": "West 03",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 59.242252349853519,
+                "y": -37.69443130493164
+            },
+            "b": {
+                "x": 59.242252349853519,
+                "y": -40.58304977416992
+            }
+        },
+        {
+            "name": "East 03",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 129.15774536132813,
+                "y": -40.576053619384769
+            },
+            "b": {
+                "x": 129.15774536132813,
+                "y": -37.69094467163086
+            }
+        },
+        {
+            "name": "West 04",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 59.242252349853519,
+                "y": -40.611427307128909
+            },
+            "b": {
+                "x": 59.242252349853519,
+                "y": -43.502464294433597
+            }
+        },
+        {
+            "name": "East 04",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 129.15774536132813,
+                "y": -43.493675231933597
+            },
+            "b": {
+                "x": 129.15774536132813,
+                "y": -40.606651306152347
+            }
+        },
+        {
+            "name": "West 05",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 59.242252349853519,
+                "y": -43.53927993774414
+            },
+            "b": {
+                "x": 59.242252349853519,
+                "y": -46.43728256225586
+            }
+        },
+        {
+            "name": "East 05",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 129.15774536132813,
+                "y": -46.406551361083987
+            },
+            "b": {
+                "x": 129.15774536132813,
+                "y": -43.519466400146487
+            }
+        },
+        {
+            "name": "West 06",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 59.242252349853519,
+                "y": -46.47742462158203
+            },
+            "b": {
+                "x": 59.242252349853519,
+                "y": -49.382408142089847
+            }
+        },
+        {
+            "name": "East 06",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 129.15774536132813,
+                "y": -49.311946868896487
+            },
+            "b": {
+                "x": 129.15774536132813,
+                "y": -46.42776107788086
+            }
+        },
+        {
+            "name": "West 07",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 59.242252349853519,
+                "y": -49.42605972290039
+            },
+            "b": {
+                "x": 59.242252349853519,
+                "y": -52.33320236206055
+            }
+        },
+        {
+            "name": "East 07",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 129.15774536132813,
+                "y": -52.249813079833987
+            },
+            "b": {
+                "x": 129.15774536132813,
+                "y": -49.35637283325195
+            }
+        },
+        {
+            "name": "West 08",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 59.242252349853519,
+                "y": -52.35182571411133
+            },
+            "b": {
+                "x": 59.242252349853519,
+                "y": -55.25798416137695
+            }
+        },
+        {
+            "name": "East 08",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 129.15774536132813,
+                "y": -55.225128173828128
+            },
+            "b": {
+                "x": 129.15774536132813,
+                "y": -52.31841278076172
+            }
+        },
+        {
+            "name": "West 09",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 59.242252349853519,
+                "y": -55.245784759521487
+            },
+            "b": {
+                "x": 59.242252349853519,
+                "y": -58.1530876159668
+            }
+        },
+        {
+            "name": "East 09",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 129.15774536132813,
+                "y": -58.176971435546878
+            },
+            "b": {
+                "x": 129.15774536132813,
+                "y": -55.27137756347656
+            }
+        },
+        {
+            "name": "West 10",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 59.242252349853519,
+                "y": -58.133365631103519
+            },
+            "b": {
+                "x": 59.242252349853519,
+                "y": -61.03914260864258
+            }
+        },
+        {
+            "name": "East 10",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 129.15774536132813,
+                "y": -61.09590148925781
+            },
+            "b": {
+                "x": 129.15774536132813,
+                "y": -58.19136047363281
+            }
+        },
+        {
+            "name": "West 11",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 59.242252349853519,
+                "y": -61.03461456298828
+            },
+            "b": {
+                "x": 59.242252349853519,
+                "y": -63.938323974609378
+            }
+        },
+        {
+            "name": "East 11",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 129.15774536132813,
+                "y": -64.00106811523438
+            },
+            "b": {
+                "x": 129.15774536132813,
+                "y": -61.095272064208987
+            }
+        },
+        {
+            "name": "South 01",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 59.27811050415039,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 62.04899978637695,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 02",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 62.0828971862793,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 64.85181427001953,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 03",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 64.8718032836914,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 67.64519500732422,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 04",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 67.64335632324219,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 70.42654418945313,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 05",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 70.4061508178711,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 73.19803619384766,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 06",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 73.17182922363281,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 75.96662902832031,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 07",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 75.94634246826172,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 78.73932647705078,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 08",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 78.73123168945313,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 81.52114868164063,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 09",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 81.52171325683594,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 84.30882263183594,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 10",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 84.31629943847656,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 87.10145568847656,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 11",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 87.11357116699219,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 89.89765930175781,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 12",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 89.91173553466797,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 92.6950454711914,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 13",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 92.71086883544922,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 95.49381256103516,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 14",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 95.51030731201172,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 98.29300689697266,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 15",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 98.31094360351563,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 101.09391784667969,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 16",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 101.11402130126953,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 103.89827728271485,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 17",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 103.92109680175781,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 106.70799255371094,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 18",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 106.7367935180664,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 109.52802276611328,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 19",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 109.5582275390625,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 112.3525390625,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 20",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 112.380615234375,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 115.17520141601563,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 21",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 115.19950866699219,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 117.99237060546875,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 22",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 118.01153564453125,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 120.802490234375,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 23",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 120.81654357910156,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 123.60652160644531,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 24",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 123.61707305908203,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 126.40694427490235,
+                "y": -47.8177490234375
+            }
+        },
+        {
+            "name": "South 25",
+            "group": "Farm Reference Map/07 Sheep Pasture/Pasture Fence",
+            "style": 1,
+            "a": {
+                "x": 126.417236328125,
+                "y": -47.8177490234375
+            },
+            "b": {
+                "x": 129.2070770263672,
+                "y": -47.8177490234375
+            }
+        }
+    ],
+    "gates": [
+        {
+            "name": "Gate 1 - Barn to Field",
+            "parent": "Farm Reference Map/04 Fences and Gates",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "kind": 0,
+            "locked": false,
+            "style": 0,
+            "p": {
+                "x": 79.69761657714844,
+                "y": 9.442254066467286
+            },
+            "q": {
+                "x": 84.70249938964844,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Gate 2 - Field to Chicken Yard",
+            "parent": "Farm Reference Map/04 Fences and Gates",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "kind": 1,
+            "locked": false,
+            "style": 0,
+            "p": {
+                "x": 111.6974868774414,
+                "y": 9.442254066467286
+            },
+            "q": {
+                "x": 116.70232391357422,
+                "y": 9.442254066467286
+            }
+        },
+        {
+            "name": "Gate 3 - Barn to Chicken Yard",
+            "parent": "Farm Reference Map/04 Fences and Gates",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "kind": 1,
+            "locked": false,
+            "style": 0,
+            "p": {
+                "x": 99.19999694824219,
+                "y": 14.497307777404786
+            },
+            "q": {
+                "x": 99.19999694824219,
+                "y": 19.502552032470704
+            }
+        },
+        {
+            "name": "Gate - Farm to Outside (closed)",
+            "parent": "Farm Reference Map/08 West Road",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "kind": 2,
+            "locked": true,
+            "style": 1,
+            "p": {
+                "x": 59.19999694824219,
+                "y": 13.335963249206543
+            },
+            "q": {
+                "x": 59.19999694824219,
+                "y": 10.497369766235352
+            }
+        },
+        {
+            "name": "Gate - Crop Fields to Sheep Pasture",
+            "parent": "Farm Reference Map/07 Sheep Pasture",
+            "group": "Farm Reference Map/04 Fences and Gates",
+            "kind": 2,
+            "locked": false,
+            "style": 1,
+            "p": {
+                "x": 109.59740447998047,
+                "y": -20.357746124267579
+            },
+            "q": {
+                "x": 112.40260314941406,
+                "y": -20.357746124267579
+            }
+        }
+    ]
+}
