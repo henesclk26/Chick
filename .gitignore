@@ -83,3 +83,8 @@ InitTestScene*.unity*
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# FlipGameDev Terrain & Grass Pack: only the files the scene uses (water lilies, rock piles, billboard grass) and the
+# pack's scripts are in Git; the rest (4K terrain textures, demo scenes and terrain data, ~600 MB) stays local.
+# Files already in Git stay tracked. When using another asset of the pack, add it and its dependencies with git add -f.
+Assets/FlipGameDev/**

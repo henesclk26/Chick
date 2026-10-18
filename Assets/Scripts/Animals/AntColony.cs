@@ -1,12 +1,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Ants walking between two nests in small groups, each group on one of several winding routes. Every route runs
-// through a bush; inside it, out of the player's sight, a few ants of each group pick up a wheat grain and carry it
-// on their backs. The chick can peck ants like any other food (a carried grain counts as an eaten wheat seed too).
-// As soon as it starts pecking one, the ants around it scurry to the nearest nest, faster and less orderly.
-// Routes are planned once at start: candidate lines are scored against the colliders in the way (trees, coops,
-// fences) and the clearest ones are laid onto the terrain and the nest mounds with raycasts. Legs swing in an
+// Ants travelling between several nests in small groups. Each group leaves a random nest for another random nest on
+// one of a few winding routes between the two. The nests are whatever AntNest markers are in the scene (the nest models
+// carry one), so nests added, removed or moved - also during play - are picked up by themselves: routes are planned
+// for new pairs and dropped for gone ones, while ants already under way finish their trip. Where the bush is roughly on the way, one of a pair's routes runs
+// through it; inside it, out of the player's sight, a few ants of each group pick up a wheat grain and carry it on
+// their backs. Ants do not march in a ruler line: each weaves about its route on its own, walks at its own pace and
+// now and then stops for a moment. The chick can peck ants like any other food (a carried grain counts as an eaten
+// wheat seed too); as soon as it starts pecking one, the ants around it scurry to the nearest nest, faster and less
+// orderly. Routes are planned once at start: candidate lines are scored against the colliders in the way (trees,
+// coops, fences) and the clearest ones are laid onto the terrain and the nest mounds with raycasts. Legs swing in an
 // alternating tripod gait, the antennae twitch and the mandibles nibble.
 [DisallowMultipleComponent]
 public sealed class AntColony : MonoBehaviour
@@ -15,32 +19,46 @@ public sealed class AntColony : MonoBehaviour
     private GameObject antModel;
     [SerializeField, Tooltip("Food the ants pick up in the bush (Assets/Prefabs/Edibles/WheatGrain.prefab).")]
     private GameObject wheatPrefab;
-    [SerializeField, Tooltip("Nest the ants come out of. Its pivot is the centre of the entrance hole.")]
+    [SerializeField, Tooltip("Nests the ants travel between, if set by hand (pivot = centre of the entrance hole). Left " +
+                             "empty, every AntNest in the scene is used, as nests come and go.")]
+    private Transform[] nests = new Transform[0];
+    [SerializeField, Tooltip("First nest of the original two-nest colony (used when no other nests are found).")]
     private Transform fromNest;
-    [SerializeField, Tooltip("Nest the ants walk into.")]
+    [SerializeField, Tooltip("Second nest of the original two-nest colony (used when no other nests are found).")]
     private Transform toNest;
-    [SerializeField, Tooltip("Every route passes through this bush; the carried wheat appears inside it.")]
+    [SerializeField, Tooltip("Routes that pass close by run through this bush; the carried wheat appears inside it.")]
     private Transform bush;
 
     [Header("Routes")]
-    [SerializeField, Range(1, 6)] private int routeCount = 3;
-    [SerializeField, Tooltip("How far the routes bow out to the sides of the straight line, in metres.")]
+    [SerializeField, Range(1, 4), Tooltip("Different routes between each pair of nests.")]
+    private int routeCount = 2;
+    [SerializeField, Tooltip("How far the routes bow out to the sides of the straight line, in metres (less on short hops).")]
     private float routeSpread = 3.5f;
-    [SerializeField, Tooltip("Small sideways wiggle of each route, in metres.")]
+    [SerializeField, Tooltip("Typical sideways wiggle of a route, in metres (each route gets more or less of it).")]
     private float meander = 0.35f;
+    [SerializeField, Tooltip("A route goes through the bush when that makes it at most this much longer than going straight.")]
+    private float bushDetour = 1.45f;
     [SerializeField] private int seed = 11;
 
     [Header("Groups")]
     [SerializeField, Range(1, 10)] private int groupSize = 5;
-    [SerializeField, Tooltip("How many ants of a group carry wheat (random between x and y).")]
+    [SerializeField, Tooltip("How many ants of a group carry wheat (random between x and y), on routes through the bush.")]
     private Vector2Int wheatCarriers = new Vector2Int(2, 3);
-    [SerializeField, Tooltip("Seconds between groups leaving the nest (longer if Max Ants would run out).")]
+    [SerializeField, Tooltip("Seconds between groups leaving a nest (longer if Max Ants would run out).")]
     private float groupInterval = 14f;
     [SerializeField] private int maxAnts = 45;
     [SerializeField, Tooltip("Distance from one ant to the next in a group, in ant lengths.")]
     private float spacingInAntLengths = 1.35f;
     [SerializeField, Tooltip("Walking speed in metres per second.")]
     private float speed = 0.22f;
+
+    [Header("Wandering")]
+    [SerializeField, Tooltip("How far each ant weaves about its route, in ant lengths.")]
+    private float wander = 1.6f;
+    [SerializeField, Tooltip("How much an ant's own pace differs from its group's (0.15 = up to 15% either way).")]
+    private float paceSpread = 0.15f;
+    [SerializeField, Tooltip("Chance per second that an ant stops for a moment.")]
+    private float pausesPerSecond = 0.07f;
 
     [Header("Ants")]
     [SerializeField] private float antScale = 1f;
@@ -67,7 +85,17 @@ public sealed class AntColony : MonoBehaviour
     private static readonly RaycastHit[] Hits = new RaycastHit[16];
     private static readonly Collider[] Overlaps = new Collider[16];
 
+    private const float MoveTolerance = 0.3f;   // a nest moved further than this gets its routes planned again
+    private const float NestCheckSeconds = 1f;
+
+    private readonly List<Transform> nestList = new List<Transform>();
+    private readonly Dictionary<Transform, Vector3> plannedAt = new Dictionary<Transform, Vector3>();
     private readonly List<Route> routes = new List<Route>();
+    // Routes of each nest pair, keyed (and run) from the nest with the lower instance id to the other; ants going the
+    // other way walk them backwards. Routes of pairs that are gone stay in the list until no ant is on them.
+    private readonly Dictionary<(Transform, Transform), List<int>> pairRoutes = new Dictionary<(Transform, Transform), List<int>>();
+    private int nestVersion = -1;
+    private float nextNestCheck;
     private readonly List<Ant> pool = new List<Ant>();
     private readonly List<Ant> walking = new List<Ant>();
     private readonly Dictionary<EdibleObject, Ant> byEdible = new Dictionary<EdibleObject, Ant>();
@@ -87,30 +115,37 @@ public sealed class AntColony : MonoBehaviour
 
     private void Start()
     {
-        if (antModel == null || fromNest == null || toNest == null)
+        if (antModel == null)
         {
-            Debug.LogWarning("AntColony: ant model or nests missing; no ants spawned.", this);
+            Debug.LogWarning("AntColony: ant model missing; no ants spawned.", this);
             enabled = false;
             return;
         }
         random = new System.Random(seed);
-        BuildRoutes();
-        // Groups leave often enough to fill the trail, but never more often than the ant budget allows.
-        float shortest = float.MaxValue, total = 0f;
-        foreach (Route r in routes) { shortest = Mathf.Min(shortest, r.Length); total += r.Length; }
-        float trip = total / routes.Count / speed;
-        interval = Mathf.Max(groupInterval, trip / Mathf.Max(1f, (float)maxAnts / groupSize - 1f));
-        // Start as if the colony had been busy for a while, so the trail is already populated.
-        for (float d = shortest - 1f; d > 0f; d -= interval * speed) SpawnGroup(d);
+        SyncNests();
+        // Start as if the colony had been busy for a while, with groups already out on their way.
+        if (pairRoutes.Count > 0)
+        {
+            int prewarm = Mathf.Max(1, Mathf.FloorToInt(TripSeconds() / interval));
+            for (int g = 0; g < prewarm; g++) SpawnGroup((float)random.NextDouble());
+        }
         nextGroup = 0f;
+    }
+
+    // Average time to walk one of the current routes.
+    private float TripSeconds()
+    {
+        float total = 0f; int count = 0;
+        foreach (List<int> list in pairRoutes.Values) foreach (int r in list) { total += routes[r].Length; count++; }
+        return count > 0 ? total / count / speed : 0f;
     }
 
     private void Update()
     {
-        if (routes.Count == 0) return;
         float dt = Time.deltaTime;
         clock += dt;
-        if (clock >= nextGroup) { SpawnGroup(0f); nextGroup = clock + interval; }
+        if (nestVersion != AntNest.Version || clock >= nextNestCheck) SyncNests();
+        if (clock >= nextGroup && pairRoutes.Count > 0) { SpawnGroup(0f); nextGroup = clock + interval; }
         WatchEater();
 
         Camera cam = Camera.main;
@@ -123,6 +158,60 @@ public sealed class AntColony : MonoBehaviour
         }
     }
 
+    // Nests: the ones set by hand, else every AntNest in the scene, else the original pair.
+    private List<Transform> CurrentNests(bool editMode = false)
+    {
+        var found = new List<Transform>();
+        foreach (Transform n in nests) if (n != null && n.gameObject.activeInHierarchy && !found.Contains(n)) found.Add(n);
+        if (found.Count >= 2) return found;
+        found.Clear();
+        if (editMode) { foreach (AntNest n in FindObjectsByType<AntNest>(FindObjectsSortMode.None)) found.Add(n.transform); }
+        else foreach (AntNest n in AntNest.Active) found.Add(n.transform);
+        if (found.Count >= 2) return found;
+        found.Clear();
+        if (fromNest != null) found.Add(fromNest);
+        if (toNest != null && toNest != fromNest) found.Add(toNest);
+        return found;
+    }
+
+    // Brings the routes in line with the nests: plans every pair that is new (or whose nest moved), drops pairs whose
+    // nest is gone. Ants already walking keep their route to the end.
+    private void SyncNests()
+    {
+        nestVersion = AntNest.Version;
+        nextNestCheck = clock + NestCheckSeconds;
+        List<Transform> current = CurrentNests();
+        var moved = new HashSet<Transform>();
+        foreach (Transform n in current)
+            if (plannedAt.TryGetValue(n, out Vector3 at) && (n.position - at).sqrMagnitude > MoveTolerance * MoveTolerance) moved.Add(n);
+        bool same = moved.Count == 0 && current.Count == nestList.Count;
+        if (same) foreach (Transform n in current) if (!nestList.Contains(n)) { same = false; break; }
+        if (same) return;
+
+        nestList.Clear();
+        nestList.AddRange(current);
+        var keep = new HashSet<(Transform, Transform)>();
+        for (int i = 0; i < nestList.Count; i++)
+            for (int j = i + 1; j < nestList.Count; j++)
+            {
+                var key = PairKey(nestList[i], nestList[j]);
+                keep.Add(key);
+                if (pairRoutes.ContainsKey(key) && !moved.Contains(key.Item1) && !moved.Contains(key.Item2)) continue;
+                pairRoutes[key] = PlanPair(key.Item1, key.Item2);
+            }
+        foreach (var key in new List<(Transform, Transform)>(pairRoutes.Keys)) if (!keep.Contains(key)) pairRoutes.Remove(key);
+        plannedAt.Clear();
+        foreach (Transform n in nestList) plannedAt[n] = n.position;
+
+        // Groups leave often enough to keep the routes busy, but never more often than the ant budget allows.
+        float trip = TripSeconds();
+        interval = Mathf.Max(groupInterval / Mathf.Max(1, nestList.Count - 1), trip / Mathf.Max(1f, (float)maxAnts / groupSize - 1f));
+        if (interval <= 0f) interval = groupInterval;
+    }
+
+    private static (Transform, Transform) PairKey(Transform a, Transform b) =>
+        a.GetInstanceID() < b.GetInstanceID() ? (a, b) : (b, a);
+
     // ---------------------------------------------------------------- walking
 
     // Moves one ant; false once it has gone into a nest (or was eaten).
@@ -133,26 +222,31 @@ public sealed class AntColony : MonoBehaviour
 
         Route route = routes[ant.Route];
         bool panic = clock < ant.PanicUntil;
-        float v = speed * ant.Pace * (panic ? panicSpeed : 1f);
+        // Now and then an ant stops for a moment (never while scattering).
+        if (!panic && clock >= ant.PauseUntil && Random.value < pausesPerSecond * dt)
+            ant.PauseUntil = clock + Random.Range(0.3f, 1.0f);
+        bool paused = !panic && clock < ant.PauseUntil;
+        float v = paused ? 0f : speed * ant.Pace * (panic ? panicSpeed : 1f);
         ant.Distance += ant.Direction * v * dt;
         float d = ant.Distance;
         if ((ant.Direction > 0 && d >= route.Length) || (ant.Direction < 0 && d <= 0f)) return false;
 
-        bool visible = d > 0f;
+        bool visible = d > 0f && d < route.Length;
         if (ant.Root.gameObject.activeSelf != visible) ant.Root.gameObject.SetActive(visible);
         if (!visible) return true;
 
-        if (ant.CarriesWheat && !ant.WheatShown && ant.Direction > 0 && d >= route.BushDistance) ShowWheat(ant);
+        if (ant.CarriesWheat && !ant.WheatShown && PastBush(ant, route)) ShowWheat(ant);
         if (ant.WheatShown && ant.WheatGrow < 1f)
         {
             ant.WheatGrow = Mathf.Min(1f, ant.WheatGrow + dt * 4f);
             ant.Wheat.transform.localScale = Vector3.one * Mathf.SmoothStep(0f, 1f, ant.WheatGrow);
         }
 
-        // Weave about while scattering, settle back onto the line afterwards; never sideways inside the nests.
+        // Each ant weaves about its route on its own; wider and quicker while scattering; never sideways in the nests.
         float scale = antScale;
-        float target = panic ? panicWander * (Mathf.PerlinNoise(clock * 0.9f, ant.Seed) * 2f - 1f) : ant.Lateral * scale;
-        ant.Offset = Mathf.SmoothDamp(ant.Offset, target, ref ant.OffsetVelocity, panic ? 0.3f : 1.2f);
+        float weave = Mathf.PerlinNoise(clock * (panic ? 0.9f : 0.3f) + ant.Seed, ant.Seed * 0.37f) * 2f - 1f;
+        float target = panic ? panicWander * weave : wander * antLength * scale * weave + ant.Lateral * scale;
+        ant.Offset = Mathf.SmoothDamp(ant.Offset, target, ref ant.OffsetVelocity, panic ? 0.3f : 0.6f);
         float edge = Mathf.Min(d, route.Length - d);
         float sideways = Mathf.Clamp01(edge / 0.8f);
 
@@ -162,7 +256,9 @@ public sealed class AntColony : MonoBehaviour
         route.Sample(Mathf.Max(d - look, 0f), out Vector3 behind, out _);
         Vector3 tangent = (ahead - behind).normalized;
         Vector3 side = Vector3.Cross(up, tangent).normalized;
-        Vector3 heading = tangent * (ant.Direction * v) + side * (ant.OffsetVelocity * sideways);
+        // Face along the way it is going even while stopped, turned by its sideways drift.
+        float facing = Mathf.Max(v, speed * 0.4f);
+        Vector3 heading = tangent * (ant.Direction * facing) + side * (ant.OffsetVelocity * sideways);
         if (heading.sqrMagnitude < 1e-8f) heading = ant.Root.forward;
         ant.Root.SetPositionAndRotation(pos + side * (ant.Offset * sideways), Quaternion.LookRotation(heading, up));
         ant.Root.localScale = Vector3.one * (scale * Mathf.SmoothStep(0f, 1f, edge / (HideLength * scale)));
@@ -172,30 +268,42 @@ public sealed class AntColony : MonoBehaviour
         return true;
     }
 
-    private void SpawnGroup(float leadDistance)
+    private static bool PastBush(Ant ant, Route route) =>
+        route.BushDistance >= 0f && (ant.Direction > 0 ? ant.Distance >= route.BushDistance : ant.Distance <= route.BushDistance);
+
+    // Sends a group from a random nest to another random nest; lead is how far along (0..1) the first ant already is.
+    private void SpawnGroup(float lead)
     {
-        if (routes.Count == 0) return;
-        int route = random.Next(routes.Count);
-        float pace = 0.9f + (float)random.NextDouble() * 0.2f;   // whole groups differ, so ants never run into each other
-        int carriers = Mathf.Clamp(random.Next(wheatCarriers.x, wheatCarriers.y + 1), 0, groupSize);
+        if (nestList.Count < 2) return;
+        int from = random.Next(nestList.Count), to = random.Next(nestList.Count - 1);
+        if (to >= from) to++;
+        var key = PairKey(nestList[from], nestList[to]);
+        if (!pairRoutes.TryGetValue(key, out List<int> options)) return;
+        int route = options[random.Next(options.Count)];
+        int direction = key.Item1 == nestList[from] ? 1 : -1;  // routes run from the pair's first nest
+        Route r = routes[route];
+        float pace = 0.9f + (float)random.NextDouble() * 0.2f;
+        int carriers = r.BushDistance >= 0f ? Mathf.Clamp(random.Next(wheatCarriers.x, wheatCarriers.y + 1), 0, groupSize) : 0;
         var wheat = new List<int>();
         for (int i = 0; i < groupSize; i++) wheat.Add(i);
         for (int i = wheat.Count - 1; i > 0; i--) { int j = random.Next(i + 1); (wheat[i], wheat[j]) = (wheat[j], wheat[i]); }
         wheat.RemoveRange(carriers, wheat.Count - carriers);
 
+        float start = direction > 0 ? lead * r.Length : r.Length * (1f - lead);
         for (int i = 0; i < groupSize; i++)
         {
             Ant ant = Acquire();
             if (ant == null) return;
             ant.Route = route;
-            ant.Pace = pace;
-            ant.Direction = 1;
-            ant.Distance = leadDistance - i * spacingInAntLengths * antLength * antScale;
+            ant.Pace = pace * (1f + ((float)random.NextDouble() * 2f - 1f) * paceSpread);
+            ant.Direction = direction;
+            ant.Distance = start - direction * i * spacingInAntLengths * antLength * antScale;
             ant.CarriesWheat = wheat.Contains(i) && wheatPrefab != null;
             ant.PanicUntil = 0f;
+            ant.PauseUntil = 0f;
             ant.Offset = ant.Lateral * antScale;
             ant.OffsetVelocity = 0f;
-            if (ant.CarriesWheat && ant.Distance >= routes[route].BushDistance) ShowWheat(ant);
+            if (ant.CarriesWheat && PastBush(ant, r)) ShowWheat(ant);
             ant.Root.gameObject.SetActive(false);
             walking.Add(ant);
         }
@@ -286,42 +394,62 @@ public sealed class AntColony : MonoBehaviour
 
     // ---------------------------------------------------------------- routes
 
-    private void BuildRoutes()
+    // The routes of one pair of nests, run from first to second.
+    private List<int> PlanPair(Transform first, Transform second)
     {
-        routes.Clear();
-        Vector3 a = fromNest.position, b = toNest.position;
-        Vector3 m = bush != null ? bush.position : Vector3.Lerp(a, b, 0.5f);
+        Vector3 a = first.position, b = second.position;
+        float straight = Flat(b - a);
+        // The first route of a pair goes through the bush if that is not much of a detour.
+        bool bushOnTheWay = bush != null && Flat(bush.position - a) + Flat(b - bush.position) <= straight * bushDetour;
+        var list = new List<int>();
         for (int r = 0; r < routeCount; r++)
         {
             float lane = routeCount == 1 ? 0f : Mathf.Lerp(-1f, 1f, r / (routeCount - 1f));
-            Vector3 best = Vector3.zero;   // bow of each leg and wiggle phase of the clearest candidate
-            int bestBlocked = int.MaxValue;
-            for (int c = 0; c < Candidates; c++)
-            {
-                // Lanes fan out on the first leg and cross over on the second, so the routes look unrelated.
-                float bow1 = (lane + Jitter(0.45f)) * routeSpread;
-                float bow2 = (-lane + Jitter(0.45f)) * routeSpread;
-                float phase = (float)random.NextDouble() * 100f;
-                var plan = new List<Vector3>();
-                PlanLeg(a, m, bow1, phase, PlanStep, plan);
-                PlanLeg(m, b, bow2, phase + 37f, PlanStep, plan);
-                int blocked = CountBlocked(plan);
-                if (blocked < bestBlocked) { bestBlocked = blocked; best = new Vector3(bow1, bow2, phase); }
-                if (blocked == 0) break;
-            }
-            var points = new List<Vector3>();
-            PlanLeg(a, m, best.x, best.z, SampleStep, points);
-            int junction = points.Count - 1;
-            PlanLeg(m, b, best.y, best.z + 37f, SampleStep, points);
-            routes.Add(new Route(this, points, junction));
+            list.Add(routes.Count);
+            routes.Add(PlanRoute(a, b, r == 0 && bushOnTheWay ? bush.position : (Vector3?)null, lane, straight));
         }
+        return list;
+    }
+
+    private static float Flat(Vector3 v) { v.y = 0f; return v.magnitude; }
+
+    // The clearest of several candidate lines from a to b (through via, if given), laid onto the ground.
+    private Route PlanRoute(Vector3 a, Vector3 b, Vector3? via, float lane, float straight)
+    {
+        float spread = routeSpread * Mathf.Clamp01(straight / 15f);           // short hops bow less
+        float wiggle = meander * (0.7f + (float)random.NextDouble() * 1.1f);  // every route wiggles its own amount
+        Vector3 best = Vector3.zero;   // bow of each leg and wiggle phase of the clearest candidate
+        int bestBlocked = int.MaxValue;
+        for (int c = 0; c < Candidates; c++)
+        {
+            // Lanes fan out on the first leg and cross over on the second, so the routes look unrelated.
+            float bow1 = (lane + Jitter(0.45f)) * spread;
+            float bow2 = (-lane + Jitter(0.45f)) * spread;
+            float phase = (float)random.NextDouble() * 100f;
+            var plan = new List<Vector3>();
+            if (via.HasValue) { PlanLeg(a, via.Value, bow1, wiggle, phase, PlanStep, plan); PlanLeg(via.Value, b, bow2, wiggle, phase + 37f, PlanStep, plan); }
+            else PlanLeg(a, b, bow1, wiggle, phase, PlanStep, plan);
+            int blocked = CountBlocked(plan);
+            if (blocked < bestBlocked) { bestBlocked = blocked; best = new Vector3(bow1, bow2, phase); }
+            if (blocked == 0) break;
+        }
+        var points = new List<Vector3>();
+        int junction = -1;
+        if (via.HasValue)
+        {
+            PlanLeg(a, via.Value, best.x, wiggle, best.z, SampleStep, points);
+            junction = points.Count - 1;
+            PlanLeg(via.Value, b, best.y, wiggle, best.z + 37f, SampleStep, points);
+        }
+        else PlanLeg(a, b, best.x, wiggle, best.z, SampleStep, points);
+        return new Route(this, points, junction);
     }
 
     private float Jitter(float amount) => ((float)random.NextDouble() * 2f - 1f) * amount;
 
-    // One leg of a route: a bow away from the straight line plus a small wiggle, both zero at the ends so every
-    // route leaves the nest hole, meets in the bush and enters the other hole along the same line.
-    private void PlanLeg(Vector3 from, Vector3 to, float bow, float phase, float step, List<Vector3> into)
+    // One leg of a route: a bow away from the straight line plus a wiggle, both zero at the ends so every route leaves
+    // a nest hole (and meets the bush) along the same line.
+    private static void PlanLeg(Vector3 from, Vector3 to, float bow, float wiggle, float phase, float step, List<Vector3> into)
     {
         Vector3 flat = to - from; flat.y = 0f;
         float distance = flat.magnitude;
@@ -333,8 +461,9 @@ public sealed class AntColony : MonoBehaviour
             float u = i / (float)steps;
             // Sin(PI) comes out as a tiny negative float, and a negative base to a fractional power is NaN.
             float arc = Mathf.Max(0f, Mathf.Sin(u * Mathf.PI));
-            float wave = 0.65f * Mathf.Sin(u * distance * 1.3f + phase) + 0.35f * Mathf.Sin(u * distance * 0.47f + phase * 1.7f);
-            into.Add(Vector3.Lerp(from, to, u) + side * (bow * arc + meander * Mathf.Pow(arc, 0.8f) * wave));
+            float wave = 0.5f * Mathf.Sin(u * distance * 1.3f + phase) + 0.3f * Mathf.Sin(u * distance * 0.47f + phase * 1.7f)
+                       + 0.2f * Mathf.Sin(u * distance * 2.9f + phase * 0.6f);
+            into.Add(Vector3.Lerp(from, to, u) + side * (bow * arc + wiggle * Mathf.Pow(arc, 0.8f) * wave));
         }
     }
 
@@ -354,8 +483,12 @@ public sealed class AntColony : MonoBehaviour
     }
 
     // The trail lies on the terrain and over the nest mounds only, never on top of bushes, fences or props.
-    private bool IsWalkable(Collider c) =>
-        c is TerrainCollider || c.transform.IsChildOf(fromNest) || c.transform.IsChildOf(toNest);
+    private bool IsWalkable(Collider c)
+    {
+        if (c is TerrainCollider) return true;
+        foreach (Transform nest in nestList) if (c.transform.IsChildOf(nest)) return true;
+        return (fromNest != null && c.transform.IsChildOf(fromNest)) || (toNest != null && c.transform.IsChildOf(toNest));
+    }
 
     private bool TryGround(Vector3 point, out RaycastHit best)
     {
@@ -369,7 +502,6 @@ public sealed class AntColony : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        if (fromNest == null || toNest == null) return;
         Gizmos.color = new Color(0.85f, 0.35f, 0.15f);
         if (Application.isPlaying && routes.Count > 0)
         {
@@ -377,9 +509,9 @@ public sealed class AntColony : MonoBehaviour
                 for (int i = 1; i < r.Points.Count; i++) Gizmos.DrawLine(r.Points[i - 1], r.Points[i]);
             return;
         }
-        Vector3 m = bush != null ? bush.position : Vector3.Lerp(fromNest.position, toNest.position, 0.5f);
-        Gizmos.DrawLine(fromNest.position, m);
-        Gizmos.DrawLine(m, toNest.position);
+        List<Transform> found = CurrentNests(true);
+        for (int i = 0; i < found.Count; i++)
+            for (int j = i + 1; j < found.Count; j++) Gizmos.DrawLine(found[i].position, found[j].position);
     }
 
     private sealed class Route
@@ -388,7 +520,7 @@ public sealed class AntColony : MonoBehaviour
         private readonly List<Vector3> normals = new List<Vector3>();
         private readonly List<float> lengths = new List<float>();
         public readonly float Length;
-        public readonly float BushDistance;
+        public readonly float BushDistance = -1f;   // distance of the bush along the route; -1: not through it
 
         public Route(AntColony colony, List<Vector3> plan, int junction)
         {
@@ -439,7 +571,7 @@ public sealed class AntColony : MonoBehaviour
         public readonly float Length;   // nose to tail of the unscaled model
         public bool Busy, CarriesWheat, WheatShown;
         public int Route, Direction;
-        public float Distance, Pace, PanicUntil, Offset, OffsetVelocity, WheatGrow;
+        public float Distance, Pace, PanicUntil, PauseUntil, Offset, OffsetVelocity, WheatGrow;
         private readonly Limb[] legs;
         private readonly Limb[] antennae;
         private readonly Limb[] mandibles;

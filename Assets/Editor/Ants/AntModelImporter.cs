@@ -8,12 +8,13 @@ using UnityEngine;
 /// Ant_Antenna_* children it animates. The nest gets a mesh collider so the trail can climb over the mound and the
 /// player can walk onto it, the trail bush one so the player cannot walk into it; the ant itself has none. The
 /// hand-painted nest (AntNest_v2.fbx) collides on its mound only, so its crumbs, twigs and grass catch nothing.
+/// Both nest models carry an AntNest marker, so any nest placed in the scene is found by the ant colony by itself.
 /// </summary>
 public sealed class AntModelImporter : AssetPostprocessor
 {
     private const string Folder = "Assets/Art/Ants/";
 
-    public override uint GetVersion() => 3;
+    public override uint GetVersion() => 4;
 
     private bool IsAntModel =>
         assetPath.StartsWith(Folder, StringComparison.OrdinalIgnoreCase) &&
@@ -52,6 +53,7 @@ public sealed class AntModelImporter : AssetPostprocessor
         }
         foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
             renderer.sharedMaterial = material;
+        if ((IsNest || IsNestV2) && root.GetComponent<AntNest>() == null) root.AddComponent<AntNest>();
         if (IsNestV2)
             foreach (var filter in root.GetComponentsInChildren<MeshFilter>(true))
                 if (filter.name == NestV2Mound)
