@@ -53,6 +53,9 @@ public sealed class ChickEatingController : MonoBehaviour
     private readonly Collider[] denseNearby = new Collider[256];
     private static readonly int EatSpeed = Animator.StringToHash("EatPlaybackSpeed");
 
+    // The beak has hit (the ground or the food) at this point; presentation hooks in here (GroundEffects).
+    public event System.Action<Vector3> Pecked;
+
     public bool IsEating => phase == EatPhase.Eating;
     public bool IsBusy => phase != EatPhase.Ready;
     public bool EatPressedThisFrame => isActiveAndEnabled && eatAction.WasPressedThisFrame();
@@ -249,6 +252,7 @@ public sealed class ChickEatingController : MonoBehaviour
         // evaluated bone pose, so low frame rates cannot consume before visual contact.
         bool atContact = ApplyContactAssist(1f);
         impactHandled = true;
+        Pecked?.Invoke(PredictedContact);
         if (atContact && IsTargetValid(target)) LastImpactSucceeded = target.Consume();
         RestoreContactVisual();
         // A purchased double collection can take one additional reachable seed, never a
