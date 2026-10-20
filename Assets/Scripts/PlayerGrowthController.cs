@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -51,6 +52,15 @@ public sealed class PlayerGrowthController : MonoBehaviour
         orbit = Camera.main.GetComponent<FreeOrbitThirdPersonCamera>();
         gameTime = FindFirstObjectByType<GameTimeManager>();
         chickAnimator = player.ActiveAnimator;
+        // A chicken visual saved into the scene by mistake (it is made at run time) would otherwise be taken for part
+        // of the chick and shown again on every switch back to the chick: drop it before collecting the chick's parts.
+        foreach (Transform child in transform.Cast<Transform>().ToArray())
+            if (child.name == "ChickenForm")
+            {
+                child.gameObject.SetActive(false);
+                child.SetParent(null, false);
+                Destroy(child.gameObject);
+            }
         chickRenderers = GetComponentsInChildren<Renderer>(true);
         chickRendererEnabled = new bool[chickRenderers.Length];
         for (int i = 0; i < chickRenderers.Length; i++) chickRendererEnabled[i] = chickRenderers[i].enabled;

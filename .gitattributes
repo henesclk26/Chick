@@ -22,3 +22,6 @@
 # Large terrain and generated field meshes; other .asset files stay in Git.
 Assets/BOKI/LowPolyNature/Terrain/data/*.asset filter=lfs diff=lfs merge=lfs -text
 Assets/Art/FarmReference/Fields/WheatField_Chunk*.asset filter=lfs diff=lfs merge=lfs -text
+# The same large terrain data and field meshes after Tools/Chick/Project/Collect Unused Assets moved them.
+Assets/_Unused/**/BOKI/LowPolyNature/Terrain/data/*.asset filter=lfs diff=lfs merge=lfs -text
+Assets/_Unused/**/WheatField_Chunk*.asset filter=lfs diff=lfs merge=lfs -text

@@ -88,3 +88,7 @@ Desktop.ini
 # pack's scripts are in Git; the rest (4K terrain textures, demo scenes and terrain data, ~600 MB) stays local.
 # Files already in Git stay tracked. When using another asset of the pack, add it and its dependencies with git add -f.
 Assets/FlipGameDev/**
+
+# Assets/_Unused: assets the game does not use, gathered by Tools/Chick/Project/Collect Unused Assets. Only those that
+# were already in Git are tracked there (moved, so nobody loses them); the rest (never committed packs) stays local.
+Assets/_Unused/**

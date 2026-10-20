@@ -63,7 +63,7 @@ public static class ChickenYardPointGrass
         Undo.SetCurrentGroupName("Add point grass to chicken yard");
         int group = Undo.GetCurrentGroup();
 
-        Transform old = root.transform.Find(ObjectName);
+        Transform old = SceneLookup.FindAnywhere(root, ObjectName);
         if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
         var go = new GameObject(ObjectName);
         Undo.RegisterCreatedObjectUndo(go, "Add point grass to chicken yard");
@@ -137,7 +137,7 @@ public static class ChickenYardPointGrass
     private static void Remove()
     {
         var root = GameObject.Find("Farm Reference Map");
-        Transform grass = root != null ? root.transform.Find(ObjectName) : null;
+        Transform grass = root != null ? SceneLookup.FindAnywhere(root, ObjectName) : null;
         Undo.IncrementCurrentGroup();
         Undo.SetCurrentGroupName("Remove point grass from chicken yard");
         if (grass != null) Undo.DestroyObjectImmediate(grass.gameObject);

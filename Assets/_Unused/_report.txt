@@ -1,0 +1,13 @@
+Moved 4175 unused files (2353 MB) to Assets/_Unused, sorted by kind; 396 folders left empty were removed.
+
+Prefabs: 1238
+Models: 1153
+Textures: 595
+Other Assets: 562
+Materials: 345
+Other: 100
+Animations: 62
+Terrain: 52
+Scenes: 34
+Documents: 24
+Audio: 10
