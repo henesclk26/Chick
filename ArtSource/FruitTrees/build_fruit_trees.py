@@ -44,6 +44,9 @@ SPECS = [
          fruit="SM_Fruits_Orange_1", height=0.24, count=20, seed=23),
     dict(name="CherryTree", tree="S_Tree_C", leaf="T_Leaf_2", dark=(0.24, 0.46, 0.14), light=(0.58, 0.77, 0.30),
          fruit="SM_Fruits_Cherries_2", height=0.24, count=30, seed=37),
+    # Pear: modelled here (make_pear), on a tall, rounded tree with oval leaves in a cooler green.
+    dict(name="PearTree", tree="S_Tree_H", leaf="T_Leaf_4", dark=(0.15, 0.36, 0.15), light=(0.44, 0.65, 0.27),
+         fruit="Pear", height=0.20, count=22, seed=41),
 ]
 
 
@@ -220,7 +223,96 @@ def assign_tones(obj, trunk_index, seed):
             uv.data[li].uv = (col * 0.5 + 0.004 + u * 0.492, row * 0.5 + 0.004 + v * 0.492)
 
 
+PEAR_TEXTURE = "T_Pear.png"
+
+
+def pear_texture():
+    """Skin gradient for the pear (64 x 256): yellow-green belly, greener shoulders and neck, a soft blush on one side
+    of the belly (u near 0.25), brown stem at the very top (v above 0.94)."""
+    path = os.path.join(TEXTURES, PEAR_TEXTURE)
+    w, h = 64, 256
+    v = (np.arange(h, dtype=np.float32) + 0.5)[:, None] / h
+    u = (np.arange(w, dtype=np.float32) + 0.5)[None, :] / w
+    belly = np.array([0.80, 0.80, 0.28], np.float32)      # sRGB
+    neck = np.array([0.58, 0.68, 0.22], np.float32)
+    t = np.clip((v - 0.15) / 0.7, 0, 1)[..., None]
+    rgb = belly * (1 - t) + neck * t
+    blush = np.exp(-((u - 0.25) ** 2) / 0.02 - ((v - 0.35) ** 2) / 0.03)[..., None] * 0.35
+    rgb = rgb * (1 - blush) + np.array([0.82, 0.48, 0.20], np.float32) * blush
+    speck = (value_noise(256, 40, 5)[:h, :w] - 0.5) * 0.06
+    rgb = np.clip(rgb + speck[..., None], 0, 1)
+    rgb = np.where((v > 0.94)[..., None], np.array([0.36, 0.24, 0.12], np.float32), rgb)
+    out = np.dstack([np.broadcast_to(rgb, (h, w, 3)), np.ones((h, w), np.float32)]).astype(np.float32)
+    img = bpy.data.images.new("T_Pear", w, h, alpha=True)
+    img.pixels.foreach_set(out.ravel())
+    img.filepath_raw = path; img.file_format = "PNG"; img.save()
+    return path
+
+
+def make_pear():
+    """A low-poly pear in the Free Fruits style: a lathed body (wide belly, narrow neck, a slight lean) and a short
+    bent stem, UV-mapped onto the pear gradient (v = height). Origin at the top of the stem, like the other fruit."""
+    # A round belly (no flat bottom), a soft waist and a tapering neck.
+    profile = [(0.00, 0.00), (0.14, 0.012), (0.27, 0.045), (0.38, 0.10), (0.45, 0.17), (0.49, 0.26), (0.48, 0.35),
+               (0.43, 0.45), (0.35, 0.55), (0.29, 0.64), (0.25, 0.73), (0.21, 0.82), (0.15, 0.90), (0.07, 0.96), (0.00, 0.98)]
+    segments = 14
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new("UVMap")
+    rings = []
+    for r, z in profile:
+        lean = 0.05 * z * z                          # pears are seldom straight
+        if r == 0.0:
+            rings.append([bm.verts.new((lean, 0.0, z))])
+            continue
+        rings.append([bm.verts.new((math.cos(a) * r + lean, math.sin(a) * r, z))
+                      for a in (i * math.tau / segments for i in range(segments))])
+    def face(verts, uvs):
+        f = bm.faces.new(verts)
+        f.smooth = True
+        for loop, coord in zip(f.loops, uvs): loop[uv].uv = coord
+    for k in range(len(rings) - 1):
+        a, b = rings[k], rings[k + 1]
+        va, vb = profile[k][1] * 0.9, profile[k + 1][1] * 0.9
+        for i in range(segments):
+            j = (i + 1) % segments
+            ua, ub = i / segments, (i + 1) / segments
+            if len(a) == 1:
+                face([a[0], b[j], b[i]], [(ua + 0.5 / segments, va), (ub, vb), (ua, vb)])
+            elif len(b) == 1:
+                face([a[i], a[j], b[0]], [(ua, va), (ub, va), (ua + 0.5 / segments, vb)])
+            else:
+                face([a[i], a[j], b[j], b[i]], [(ua, va), (ub, va), (ub, vb), (ua, vb)])
+    # Stem: a thin, slightly bent six-sided twig out of the top.
+    stem_rings = []
+    for k, (h, bend) in enumerate(((0.95, 0.0), (1.05, 0.02), (1.15, 0.06))):
+        stem_rings.append([bm.verts.new((0.05 * 0.98 + bend + math.cos(a) * 0.025, math.sin(a) * 0.025, h))
+                           for a in (i * math.tau / 6 for i in range(6))])
+    for k in range(2):
+        for i in range(6):
+            j = (i + 1) % 6
+            face([stem_rings[k][i], stem_rings[k][j], stem_rings[k + 1][j], stem_rings[k + 1][i]],
+                 [(i / 6, 0.95), ((i + 1) / 6, 0.95), ((i + 1) / 6, 0.99), (i / 6, 0.99)])
+    cap = bm.faces.new(stem_rings[2][::-1])
+    for loop in cap.loops: loop[uv].uv = (0.5, 0.99)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    me = bpy.data.meshes.new("Pear")
+    bm.to_mesh(me); bm.free()
+    top = max(v.co.z for v in me.vertices)
+    me.transform(Matrix.Translation(Vector((-0.02, 0.0, -top))))
+    mat = bpy.data.materials.get("M_Pear") or bpy.data.materials.new("M_Pear")
+    if not mat.node_tree.nodes.get("PearTex"):
+        tex = mat.node_tree.nodes.new("ShaderNodeTexImage"); tex.name = "PearTex"
+        tex.image = bpy.data.images.load(pear_texture())
+        mat.node_tree.links.new(tex.outputs["Color"], mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"])
+        mat.node_tree.nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.5
+    me.materials.append(mat)
+    obj = bpy.data.objects.new("Pear", me)
+    return obj, top
+
+
 def import_fruit(name):
+    if name == "Pear":
+        return make_pear()
     before = set(bpy.data.objects)
     bpy.ops.import_scene.fbx(filepath=os.path.join(FRUITS, "Model", name + ".fbx"))
     new = [o for o in bpy.data.objects if o not in before]

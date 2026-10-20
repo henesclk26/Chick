@@ -10,12 +10,12 @@ public sealed class SettingsMenuController : MonoBehaviour
     private VisualElement root, page, displayConfirm;
     private Slider master, music, sfx, sensitivity;
     private Toggle fullscreen, vsync;
-    private DropdownField resolution, quality;
+    private DropdownField resolution, quality, fpsLimit;
     private readonly List<Vector2Int> sizes = new List<Vector2Int>();
     private Action back;
     private bool awaitingDisplay;
     private float deadline;
-    private int oldWidth, oldHeight, oldQuality, oldVsync;
+    private int oldWidth, oldHeight, oldQuality, oldVsync, oldFps;
     private FullScreenMode oldMode;
     private void OnEnable()
     {
@@ -24,6 +24,9 @@ public sealed class SettingsMenuController : MonoBehaviour
         master = root.Q<Slider>("master"); music = root.Q<Slider>("music"); sfx = root.Q<Slider>("sfx"); sensitivity = root.Q<Slider>("sensitivity");
         fullscreen = root.Q<Toggle>("fullscreen"); vsync = root.Q<Toggle>("vsync");
         resolution = root.Q<DropdownField>("resolution"); quality = root.Q<DropdownField>("quality");
+        fpsLimit = root.Q<DropdownField>("fps-limit");
+        fpsLimit.choices = MenuPreferences.FpsLimits.Select(f => f > 0 ? f + " FPS" : "Sınırsız").ToList();
+        vsync.RegisterValueChangedCallback(VsyncChanged);
         root.Q<Button>("settings-back").clicked += Back;
         root.Q<Button>("settings-apply").clicked += Apply;
         root.Q<Button>("display-keep").clicked += KeepDisplay;
@@ -37,6 +40,7 @@ public sealed class SettingsMenuController : MonoBehaviour
         root.Q<Button>("settings-back").clicked -= Back; root.Q<Button>("settings-apply").clicked -= Apply;
         root.Q<Button>("display-keep").clicked -= KeepDisplay; root.Q<Button>("display-revert").clicked -= RevertDisplay;
         foreach (var slider in new[] { master, music, sfx, sensitivity }) slider.UnregisterValueChangedCallback(SliderChanged);
+        vsync.UnregisterValueChangedCallback(VsyncChanged);
     }
     public void Show(Action onBack)
     {
@@ -54,9 +58,14 @@ public sealed class SettingsMenuController : MonoBehaviour
         if (sizes.Count == 1) foreach (var size in new[] { new Vector2Int(1280, 720), new Vector2Int(1920, 1080) }) if (!sizes.Contains(size)) sizes.Add(size);
         resolution.choices = sizes.Select(s => s.x + " × " + s.y).ToList(); resolution.index = sizes.IndexOf(current);
         quality.choices = QualitySettings.names.ToList(); quality.index = QualitySettings.GetQualityLevel();
+        fpsLimit.index = Mathf.Max(0, Array.IndexOf(MenuPreferences.FpsLimits, MenuPreferences.FpsLimit));
+        VsyncChanged(null);
         Values();
     }
     private void SliderChanged(ChangeEvent<float> evt) => Values();
+    // Vertical sync already holds the game to the monitor's refresh rate, so the limit only matters with it off.
+    private void VsyncChanged(ChangeEvent<bool> evt) => fpsLimit.SetEnabled(!vsync.value);
+    private int SelectedFps => MenuPreferences.FpsLimits[Mathf.Clamp(fpsLimit.index, 0, MenuPreferences.FpsLimits.Length - 1)];
     private void Values()
     {
         foreach (var slider in new[] { master, music, sfx }) root.Q<Label>(slider.name + "-value").text = Mathf.RoundToInt(slider.value) + "%";
@@ -66,10 +75,11 @@ public sealed class SettingsMenuController : MonoBehaviour
     {
         if (awaitingDisplay) return;
         oldWidth = Screen.width; oldHeight = Screen.height; oldMode = Screen.fullScreenMode;
-        oldQuality = QualitySettings.GetQualityLevel(); oldVsync = QualitySettings.vSyncCount;
+        oldQuality = QualitySettings.GetQualityLevel(); oldVsync = QualitySettings.vSyncCount; oldFps = Application.targetFrameRate;
         Vector2Int size = sizes[Mathf.Clamp(resolution.index, 0, sizes.Count - 1)];
         bool displayChanged = size.x != oldWidth || size.y != oldHeight || fullscreen.value != Screen.fullScreen;
         QualitySettings.SetQualityLevel(quality.index); QualitySettings.vSyncCount = vsync.value ? 1 : 0;
+        MenuPreferences.ApplyFpsLimit(SelectedFps);
         if (displayChanged && !Application.isEditor)
         {
             // Borderless FullScreenWindow always uses the desktop mode and internally rescales
@@ -102,7 +112,7 @@ public sealed class SettingsMenuController : MonoBehaviour
     {
         var size = sizes[Mathf.Clamp(resolution.index, 0, sizes.Count - 1)];
         MenuPreferences.Save(master.value / 100, music.value / 100, sfx.value / 100, sensitivity.value,
-            fullscreen.value, size.x, size.y, vsync.value, quality.index);
+            fullscreen.value, size.x, size.y, vsync.value, quality.index, SelectedFps);
         foreach (var camera in FindObjectsByType<FreeOrbitThirdPersonCamera>(FindObjectsSortMode.None))
             camera.SetLookSensitivity(MenuPreferences.Sensitivity);
         root.Q<Label>("settings-status").text = Application.isEditor ? "Kaydedildi. Çözünürlük ve tam ekran derlemede uygulanır." : "Ayarlar kaydedildi. İyi eğlenceler!";
@@ -117,7 +127,7 @@ public sealed class SettingsMenuController : MonoBehaviour
     private void RevertDisplay()
     {
         if (!awaitingDisplay) return; awaitingDisplay = false;
-        Screen.SetResolution(oldWidth, oldHeight, oldMode); QualitySettings.SetQualityLevel(oldQuality); QualitySettings.vSyncCount = oldVsync;
+        Screen.SetResolution(oldWidth, oldHeight, oldMode); QualitySettings.SetQualityLevel(oldQuality); QualitySettings.vSyncCount = oldVsync; Application.targetFrameRate = oldFps;
         displayConfirm.AddToClassList("hidden"); page.SetEnabled(true); Fill();
         root.Q<Label>("settings-status").text = "Önceki görüntü ayarlarına dönüldü.";
     }

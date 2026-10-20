@@ -62,6 +62,7 @@ public static class FoodStatisticIdentity
             case "pepper": return "Biber";
             case "grape": return "Üzüm";
             case "ant": return "Karınca";
+            case "caterpillar": return "Kurtçuk";
             case "other": return "Diğer";
             default: return Humanize(key);
         }
@@ -81,6 +82,7 @@ public static class FoodStatisticIdentity
             case "pepper": return "BB";
             case "grape": return "ÜZ";
             case "ant": return "KN";
+            case "caterpillar": return "KÇ";
             default: return "YE";
         }
     }
@@ -103,6 +105,7 @@ public static class FoodStatisticIdentity
             case "pepper": return new Color(0.36f, 0.62f, 0.17f);
             case "grape": return new Color(0.45f, 0.26f, 0.65f);
             case "ant": return new Color(0.62f, 0.27f, 0.15f);
+            case "caterpillar": return new Color(0.93f, 0.48f, 0.66f);
             default: return new Color(0.45f, 0.58f, 0.32f);
         }
     }

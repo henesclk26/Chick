@@ -32,6 +32,7 @@
                     <ui:Toggle name="fullscreen" label="Tam ekran" />
                     <ui:DropdownField name="resolution" label="Çözünürlük" />
                     <ui:Toggle name="vsync" label="Dikey senkronizasyon" />
+                    <ui:DropdownField name="fps-limit" label="FPS sınırı" />
                     <ui:DropdownField name="quality" label="Grafik kalitesi" />
                     <ui:Label text="KONTROLLER" class="section-title" />
                     <ui:VisualElement class="setting-row"><ui:Slider name="sensitivity" label="Fare hassasiyeti" low-value="0.5" high-value="2" /><ui:Label name="sensitivity-value" class="value" /></ui:VisualElement>

@@ -9,8 +9,13 @@ public static class MenuPreferences
     public static float Music => PlayerPrefs.GetFloat(Prefix + "Music", 1);
     public static float Sfx => PlayerPrefs.GetFloat(Prefix + "Sfx", 1);
     public static float Sensitivity => PlayerPrefs.GetFloat(Prefix + "Sensitivity", 1);
-    public static void Save(float master, float music, float sfx, float sensitivity, bool fullscreen, int width, int height, bool vsync, int quality)
+    // Frames per second the game is held to; 0 = no limit. Unity ignores it while vertical sync is on.
+    public static readonly int[] FpsLimits = { 0, 30, 60, 90, 120, 144, 165, 240 };
+    public static int FpsLimit => PlayerPrefs.GetInt(Prefix + "FpsLimit", 0);
+    public static void ApplyFpsLimit(int limit) => Application.targetFrameRate = limit > 0 ? limit : -1;
+    public static void Save(float master, float music, float sfx, float sensitivity, bool fullscreen, int width, int height, bool vsync, int quality, int fpsLimit)
     {
+        PlayerPrefs.SetInt(Prefix + "FpsLimit", fpsLimit); ApplyFpsLimit(fpsLimit);
         PlayerPrefs.SetFloat(Prefix + "Master", master); PlayerPrefs.SetFloat(Prefix + "Music", music);
         PlayerPrefs.SetFloat(Prefix + "Sfx", sfx); PlayerPrefs.SetFloat(Prefix + "Sensitivity", sensitivity);
         PlayerPrefs.SetInt(Prefix + "Fullscreen", fullscreen ? 1 : 0);
@@ -26,6 +31,7 @@ public static class MenuPreferences
         if (PlayerPrefs.HasKey(Prefix + "Quality"))
             QualitySettings.SetQualityLevel(Mathf.Clamp(PlayerPrefs.GetInt(Prefix + "Quality"), 0, QualitySettings.names.Length - 1));
         if (PlayerPrefs.HasKey(Prefix + "VSync")) QualitySettings.vSyncCount = PlayerPrefs.GetInt(Prefix + "VSync");
+        ApplyFpsLimit(FpsLimit);
         if (!Application.isEditor && PlayerPrefs.HasKey(Prefix + "Width"))
             Screen.SetResolution(PlayerPrefs.GetInt(Prefix + "Width"), PlayerPrefs.GetInt(Prefix + "Height"),
                 PlayerPrefs.GetInt(Prefix + "Fullscreen") == 1 ? FullScreenMode.ExclusiveFullScreen : FullScreenMode.Windowed);

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Rendering.Universal.ShaderGUI;
 using UnityEditor.SceneManagement;
@@ -19,7 +20,7 @@ public sealed class FruitTreeSamples : AssetPostprocessor
     private const string Folder = "Assets/Art/FruitTrees/";
     private const string TextureFolder = Folder + "Textures/";
     private const string PrefabFolder = Folder + "Prefabs/";
-    private static readonly string[] Trees = { "AppleTree", "OrangeTree", "CherryTree" };
+    private static readonly string[] Trees = { "AppleTree", "OrangeTree", "CherryTree", "PearTree" };
     // "Stylized Tree" by yonimantz (Sketchfab, CC-BY-4.0), made to match by ArtSource/FruitTrees/build_oak_tree.py.
     private const string Oak = "OakTree";
     private const string OakTrunkMaterialPath = Folder + "M_OakTree_Trunk.mat";
@@ -27,6 +28,9 @@ public sealed class FruitTreeSamples : AssetPostprocessor
     private const string TrunkMaterialPath = Folder + "M_FruitTree_Trunk.mat";
     private const string TrunkTexturePath = TextureFolder + "T_FruitTree_Trunk.png";
     private const string FruitMaterialPath = "Assets/PolyOne/Free Fruits/Materials/Free Fruits_M.mat";
+    // The pear is modelled by build_fruit_trees.py itself (Free Fruits has none), with its own skin texture.
+    private const string PearMaterialPath = Folder + "M_Pear.mat";
+    private const string PearTexturePath = TextureFolder + "T_Pear.png";
     private const string SamplesName = "Fruit Tree Samples";
     private const float Spacing = 10f;              // between the sample trees' trunks
     private const float ClearRadius = 2.5f;         // nothing else may stand this close to a trunk
@@ -36,7 +40,7 @@ public sealed class FruitTreeSamples : AssetPostprocessor
     private static string ModelPath(string tree) => Folder + tree + ".fbx";
     private static string PrefabPath(string tree) => PrefabFolder + tree + ".prefab";
 
-    public override uint GetVersion() => 5;
+    public override uint GetVersion() => 6;
 
     private string TreeName
     {
@@ -85,10 +89,11 @@ public sealed class FruitTreeSamples : AssetPostprocessor
         }
         context.DependsOnArtifact(TrunkMaterialPath);
         context.DependsOnArtifact(LeafMaterialPath(tree));
-        context.DependsOnArtifact(FruitMaterialPath);
+        string fruitPath = tree == "PearTree" ? PearMaterialPath : FruitMaterialPath;
+        context.DependsOnArtifact(fruitPath);
         var trunk = AssetDatabase.LoadAssetAtPath<Material>(TrunkMaterialPath);
         var leaves = AssetDatabase.LoadAssetAtPath<Material>(LeafMaterialPath(tree));
-        var fruit = AssetDatabase.LoadAssetAtPath<Material>(FruitMaterialPath);
+        var fruit = AssetDatabase.LoadAssetAtPath<Material>(fruitPath);
         if (trunk == null || leaves == null || fruit == null)
         {
             context.LogImportWarning("Fruit tree materials missing; run Tools/Chick/Trees/Place Fruit Tree Samples.");
@@ -96,10 +101,13 @@ public sealed class FruitTreeSamples : AssetPostprocessor
         }
         // Each fruit is its own child (Fruit_00, ...): FruitTree lets them ripen, fall and be eaten; apples left lying
         // get a caterpillar.
-        var fruitTree = root.GetComponent<FruitTree>() ?? root.AddComponent<FruitTree>();
+        var fruitTree = root.GetComponent<FruitTree>();
+        if (fruitTree == null) fruitTree = root.AddComponent<FruitTree>();
+        // A worm (caterpillar) comes out of apples, sour cherries and pears left lying too long; not oranges.
         if (tree == "AppleTree") fruitTree.Configure("apple", "Elma", true);
         else if (tree == "OrangeTree") fruitTree.Configure("orange", "Portakal", false);
-        else fruitTree.Configure("cherry", "Kiraz", false);
+        else if (tree == "PearTree") fruitTree.Configure("pear", "Armut", true);
+        else fruitTree.Configure("cherry", "Vişne", true);
         foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
         {
             if (renderer.name.EndsWith("_Fruits") || renderer.name.StartsWith("Fruit_")) { renderer.sharedMaterials = new[] { fruit }; continue; }
@@ -275,7 +283,7 @@ public sealed class FruitTreeSamples : AssetPostprocessor
         facing = facing.sqrMagnitude > 1e-4f ? facing.normalized : Vector3.forward;
         float[] distances = { 14f, 18f, 22f, 26f, 30f };
         float[] angles = { 0f, 30f, -30f, 60f, -60f, 90f, -90f, 120f, -120f, 150f, -150f, 180f };
-        spots = new Vector3[3];
+        spots = new Vector3[Trees.Length];
         foreach (float distance in distances)
             foreach (float angle in angles)
             {
@@ -284,7 +292,7 @@ public sealed class FruitTreeSamples : AssetPostprocessor
                 Vector3 centre = from + direction * distance;
                 bool ok = true;
                 float low = float.MaxValue, high = float.MinValue;
-                for (int i = 0; i < 3 && ok; i++)
+                for (int i = 0; i < Trees.Length && ok; i++)
                 {
                     spots[i] = OnGround(terrain, centre + across * (i - 1) * Spacing, out bool inside);
                     low = Mathf.Min(low, spots[i].y); high = Mathf.Max(high, spots[i].y);
@@ -293,7 +301,7 @@ public sealed class FruitTreeSamples : AssetPostprocessor
                 if (ok && high - low < 1.5f) return true;
             }
         Vector3 fallback = from + facing * 16f, side = Vector3.Cross(Vector3.up, facing);
-        for (int i = 0; i < 3; i++) spots[i] = OnGround(terrain, fallback + side * (i - 1) * Spacing, out _);
+        for (int i = 0; i < Trees.Length; i++) spots[i] = OnGround(terrain, fallback + side * (i - 1) * Spacing, out _);
         return false;
     }
 
@@ -328,13 +336,20 @@ public sealed class FruitTreeSamples : AssetPostprocessor
         trunk.SetFloat("_AlphaClip", 0f);
         trunk.SetFloat("_Cull", 2f);
         Finish(trunk);
+        var pear = LoadOrCreate(PearMaterialPath, lit);
+        pear.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(PearTexturePath));
+        pear.SetColor("_BaseColor", Color.white);
+        pear.SetFloat("_Smoothness", .35f);
+        pear.SetFloat("_AlphaClip", 0f);
+        pear.SetFloat("_Cull", 2f);
+        Finish(pear);
         var oakTrunk = LoadOrCreate(OakTrunkMaterialPath, lit);   // the oak's bark is a plain colour, as in the model
         oakTrunk.SetColor("_BaseColor", OakBark);
         oakTrunk.SetFloat("_Smoothness", 0.1f);
         oakTrunk.SetFloat("_AlphaClip", 0f);
         oakTrunk.SetFloat("_Cull", 2f);
         Finish(oakTrunk);
-        foreach (string tree in new[] { Trees[0], Trees[1], Trees[2], Oak })
+        foreach (string tree in Trees.Append(Oak))
         {
             var leaves = LoadOrCreate(LeafMaterialPath(tree), lit);
             leaves.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(LeafTexturePath(tree)));

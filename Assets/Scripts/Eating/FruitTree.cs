@@ -7,7 +7,8 @@ using UnityEngine;
 /// shape as BerryPlant's: a trigger on the Edible layer, a BitePoint and the moving visual). Fruit that is gone grows
 /// back on the tree after a while, so the tree never runs out.
 /// Apples left on the ground too long get a caterpillar: it crawls out of the apple and eats it (AppleCaterpillar);
-/// an apple finished by a caterpillar is gone without counting as eaten by the player.
+/// an apple finished by a caterpillar is gone without counting as eaten by the player. One caterpillar per fallen
+/// fruit: if the chick eats it, no other comes out of that fruit.
 /// Added to the fruit tree models on import (FruitTreeSamples), so every placed tree gets it.
 /// </summary>
 [DisallowMultipleComponent]
@@ -56,6 +57,7 @@ public sealed class FruitTree : MonoBehaviour
         public Quaternion rollFrom, rollTo;
         public bool solidPending;
         public AppleCaterpillar caterpillar;
+        public bool hadCaterpillar;
     }
 
     private readonly List<Fruit> fruits = new List<Fruit>();
@@ -163,8 +165,9 @@ public sealed class FruitTree : MonoBehaviour
                     fruit.solid.enabled = true;
                 }
                 fruit.timer += dt;
-                if (caterpillars && fruit.caterpillar == null && fruit.timer >= caterpillarAfter && caterpillarPrefab != null)
+                if (caterpillars && !fruit.hadCaterpillar && fruit.timer >= caterpillarAfter && caterpillarPrefab != null)
                 {
+                    fruit.hadCaterpillar = true;
                     var bug = Instantiate(caterpillarPrefab, fruit.pickup.position, Quaternion.identity, transform);
                     fruit.caterpillar = bug.GetComponent<AppleCaterpillar>();
                     if (fruit.caterpillar != null)
@@ -209,6 +212,7 @@ public sealed class FruitTree : MonoBehaviour
         fruit.timer = regrowSeconds * Random.Range(.8f, 1.2f);
         if (fruit.caterpillar != null) fruit.caterpillar.Leave();
         fruit.caterpillar = null;
+        fruit.hadCaterpillar = false;
     }
 
     // One ripe hanging fruit falls to the ground under the crown.

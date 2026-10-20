@@ -293,18 +293,31 @@ public sealed partial class GameplayJournalController : MonoBehaviour
         yield return new WaitForEndOfFrame();
         if (!isOpen) yield break;
         Texture2D capture = null;
-        RenderTexture small = null;
+        var steps = new List<RenderTexture>();
         RenderTexture previous = RenderTexture.active;
         try
         {
             capture = ScreenCapture.CaptureScreenshotAsTexture();
             if (capture != null)
             {
-                int width = Mathf.Clamp(capture.width / 5, 160, 480);
-                int height = Mathf.Max(90, Mathf.RoundToInt(width * (float)capture.height / capture.width));
-                small = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32);
-                Graphics.Blit(capture, small);
-                RenderTexture.active = small;
+                // Blur by halving the screen a few times (each bilinear halving averages 2x2 pixels) and doubling it
+                // back (bilinear doubling spreads each pixel smoothly). One big jump down and stretching that back
+                // up showed as coarse blocks on a full-screen build.
+                capture.filterMode = FilterMode.Bilinear;
+                Texture current = capture;
+                int width = capture.width, height = capture.height;
+                RenderTexture Step(int w, int h)
+                {
+                    var rt = RenderTexture.GetTemporary(Mathf.Max(1, w), Mathf.Max(1, h), 0, RenderTextureFormat.ARGB32);
+                    rt.filterMode = FilterMode.Bilinear;
+                    Graphics.Blit(current, rt);
+                    steps.Add(rt);
+                    current = rt;
+                    return rt;
+                }
+                for (int i = 0; i < 4 && width > 120; i++) { width /= 2; height /= 2; Step(width, height); }
+                for (int i = 0; i < 2; i++) { width *= 2; height *= 2; Step(width, height); }
+                RenderTexture.active = (RenderTexture)current;
                 backdropTexture = new Texture2D(width, height, TextureFormat.RGB24, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
                 backdropTexture.ReadPixels(new Rect(0,0,width,height),0,0);
                 backdropTexture.Apply(false, true);
@@ -314,7 +327,7 @@ public sealed partial class GameplayJournalController : MonoBehaviour
         finally
         {
             RenderTexture.active = previous;
-            if (small != null) RenderTexture.ReleaseTemporary(small);
+            foreach (var rt in steps) RenderTexture.ReleaseTemporary(rt);
             if (capture != null) Destroy(capture);
             if (isOpen) root.style.visibility = Visibility.Visible;
             backdropRoutine = null;

@@ -8,7 +8,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 /// <summary>
-/// An apple, a cherry and an orange tree round the farm pond, whose fruit falls and can be eaten (FruitTree); apples
+/// An apple, a sour cherry, an orange and a pear tree round the farm pond, whose fruit falls and can be eaten (FruitTree); apples
 /// left lying get a caterpillar ("10_PinkCaterpillar" from Low Poly Cartoon Bugs (Free Sample) by POLYGROVE Studio,
 /// CC BY 4.0; Assets/Art/Caterpillar, made by ArtSource/Caterpillar/build_caterpillar.py).
 /// - Import: the caterpillar gets M_Caterpillar (URP Lit with the bugs' palette).
@@ -26,7 +26,7 @@ public sealed class PondFruitTrees : AssetPostprocessor
     private const string PrefabFolder = "Assets/Resources/Bugs";
     private const string PrefabPath = PrefabFolder + "/AppleCaterpillar.prefab";
     private const string TreesName = "Pond Fruit Trees";
-    private static readonly string[] Trees = { "AppleTree", "CherryTree", "OrangeTree" };
+    private static readonly string[] Trees = { "AppleTree", "CherryTree", "OrangeTree", "PearTree" };
     private const float MinGap = 3f, MaxGap = 7f;      // from the water's edge to a trunk
     private const float ClearRadius = 1.4f;            // nothing else this close to a trunk
     private const float TreeSpacing = 9f;
