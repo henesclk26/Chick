@@ -230,6 +230,23 @@ public sealed class BerryPlant : MonoBehaviour
         return false;
     }
 
+    // How high the pickup must stand above the ground under it so that the piece, in its landing pose (meshTo,
+    // meshPosTo), just touches a ground rising at 'slope' back toward the plant (against 'toward'): from its vertices.
+    // 'fallback' when the mesh cannot be read.
+    private static float Clearance(Berry piece, Vector3 toward, float slope, float fallback)
+    {
+        var filter = piece.mesh.GetComponent<MeshFilter>();
+        if (filter == null || filter.sharedMesh == null || !filter.sharedMesh.isReadable) return fallback;
+        Vector3 scale = piece.mesh.localScale;
+        float lowest = float.MaxValue;
+        foreach (Vector3 v in filter.sharedMesh.vertices)
+        {
+            Vector3 offset = piece.pickup.TransformVector(piece.meshPosTo + piece.meshTo * Vector3.Scale(scale, v));
+            lowest = Mathf.Min(lowest, offset.y + slope * Vector3.Dot(Flat(offset), toward));
+        }
+        return -lowest - .003f;      // a hair into the ground, never a gap
+    }
+
     private static float RestHeight(Berry piece, Vector3 point) =>
         piece.restFar.y + piece.restSlope * Vector3.Dot(Flat(piece.restFar - point), piece.restToward);
 
@@ -373,8 +390,8 @@ public sealed class BerryPlant : MonoBehaviour
         else
         {
             landing = center + toward * (dropRadius + Random.Range(0f, .05f));
-            // A curled leaf's rim dips below its bounds' middle plane, so it rests a touch higher than a berry.
-            landing.y = GroundHeight(landing, false) + chosen.halfHeight * (layFlat ? 1.1f : .9f);
+            // On its lowest point, in the pose it lands in.
+            landing.y = GroundHeight(landing, false) + Clearance(chosen, toward, 0f, chosen.halfHeight * (layFlat ? 1.1f : .9f));
         }
 
         chosen.from = chosen.pickup.position;
@@ -408,7 +425,7 @@ public sealed class BerryPlant : MonoBehaviour
         piece.restFar = new Vector3(far.x, farY, far.z);
         piece.restToward = toward;
         piece.restSlope = slope;
-        float pickupY = farY + slope * back + piece.halfHeight * 1.1f;
+        float pickupY = farY + slope * back + Clearance(piece, toward, slope, piece.halfHeight * 1.1f);
         // Near its outer end, on the line it rests on: low enough for a beak at ground level.
         Vector3 bite = landing + toward * (back * .85f);
         bite.y = RestHeight(piece, bite);

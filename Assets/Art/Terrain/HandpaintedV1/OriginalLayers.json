@@ -1,0 +1,164 @@
+{
+    "entries": [
+        {
+            "layer": "OriginalMeadow",
+            "texture": "Assets/Art/Terrain/FreshMeadowV2/Grass.png",
+            "tile": {
+                "x": 4.300000190734863,
+                "y": 4.300000190734863
+            }
+        },
+        {
+            "layer": "RichGreen",
+            "texture": "Assets/Art/Terrain/MeadowVarietyV3/GrassRich.png",
+            "tile": {
+                "x": 5.199999809265137,
+                "y": 5.199999809265137
+            }
+        },
+        {
+            "layer": "FreshGreen",
+            "texture": "Assets/Art/Terrain/MeadowVarietyV3/GrassFresh.png",
+            "tile": {
+                "x": 5.699999809265137,
+                "y": 5.699999809265137
+            }
+        },
+        {
+            "layer": "SunlitGreen",
+            "texture": "Assets/Art/Terrain/MeadowVarietyV3/GrassSunlit.png",
+            "tile": {
+                "x": 5.099999904632568,
+                "y": 5.099999904632568
+            }
+        },
+        {
+            "layer": "TroddenEarth",
+            "texture": "Assets/Art/Terrain/MeadowVarietyV3/PathEarth.png",
+            "tile": {
+                "x": 3.4000000953674318,
+                "y": 3.4000000953674318
+            }
+        },
+        {
+            "layer": "OldEarthAccent",
+            "texture": "Assets/Art/Terrain/FreshMeadowV2/Soil.png",
+            "tile": {
+                "x": 3.299999952316284,
+                "y": 3.299999952316284
+            }
+        },
+        {
+            "layer": "Pebbles",
+            "texture": "Assets/Art/Terrain/FreshMeadowV2/Gravel.png",
+            "tile": {
+                "x": 3.0999999046325685,
+                "y": 3.0999999046325685
+            }
+        },
+        {
+            "layer": "WornMeadow",
+            "texture": "Assets/Art/Terrain/MeadowVarietyV3/GrassEarthBlend.png",
+            "tile": {
+                "x": 4.699999809265137,
+                "y": 4.699999809265137
+            }
+        },
+        {
+            "layer": "TilledSoil",
+            "texture": "Assets/Art/Terrain/CropFieldV1/TilledSoil.png",
+            "tile": {
+                "x": 3.200000047683716,
+                "y": 3.200000047683716
+            }
+        },
+        {
+            "layer": "RichGreen_Lush",
+            "texture": "Assets/Art/Terrain/RichVariantsV1/RichGreen_Lush.png",
+            "tile": {
+                "x": 5.0,
+                "y": 5.0
+            }
+        },
+        {
+            "layer": "RichGreen_Clover",
+            "texture": "Assets/Art/Terrain/RichVariantsV1/RichGreen_Clover.png",
+            "tile": {
+                "x": 5.5,
+                "y": 5.5
+            }
+        },
+        {
+            "layer": "RichGreen_Dry",
+            "texture": "Assets/Art/Terrain/RichVariantsV1/RichGreen_Dry.png",
+            "tile": {
+                "x": 5.300000190734863,
+                "y": 5.300000190734863
+            }
+        },
+        {
+            "layer": "RichGreen_Shade",
+            "texture": "Assets/Art/Terrain/RichVariantsV1/RichGreen_Shade.png",
+            "tile": {
+                "x": 4.900000095367432,
+                "y": 4.900000095367432
+            }
+        },
+        {
+            "layer": "RichGreen_Earth",
+            "texture": "Assets/Art/Terrain/RichVariantsV1/RichGreen_Earth.png",
+            "tile": {
+                "x": 4.199999809265137,
+                "y": 4.199999809265137
+            }
+        },
+        {
+            "layer": "RichGreen_Sand",
+            "texture": "Assets/Art/Terrain/RichVariantsV1/RichGreen_Sand.png",
+            "tile": {
+                "x": 4.400000095367432,
+                "y": 4.400000095367432
+            }
+        },
+        {
+            "layer": "RichGreen_DampEarth",
+            "texture": "Assets/Art/Terrain/RichVariantsV1/RichGreen_DampEarth.png",
+            "tile": {
+                "x": 4.0,
+                "y": 4.0
+            }
+        },
+        {
+            "layer": "RichGreen_Cool",
+            "texture": "Assets/Art/Terrain/RichVariantsV2/RichGreen_Cool.png",
+            "tile": {
+                "x": 5.400000095367432,
+                "y": 5.400000095367432
+            }
+        },
+        {
+            "layer": "RichGreen_Golden",
+            "texture": "Assets/Art/Terrain/RichVariantsV2/RichGreen_Golden.png",
+            "tile": {
+                "x": 5.0,
+                "y": 5.0
+            }
+        },
+        {
+            "layer": "RichGreen_Olive",
+            "texture": "Assets/Art/Terrain/RichVariantsV2/RichGreen_Olive.png",
+            "tile": {
+                "x": 5.599999904632568,
+                "y": 5.599999904632568
+            }
+        },
+        {
+            "layer": "StonyPath",
+            "texture": "Assets/Art/Terrain/RichVariantsV2/StonyPath.png",
+            "tile": {
+                "x": 3.5999999046325685,
+                "y": 3.5999999046325685
+            }
+        }
+    ]
+}

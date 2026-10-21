@@ -223,19 +223,19 @@ public sealed class FruitTree : MonoBehaviour
         Fruit fruit = hanging[Random.Range(0, hanging.Count)];
         Vector3 start = fruit.pickup.position;
         Vector3 trunk = transform.position;
-        Vector3 landing = LandingSpot(fruit, start, trunk);
+        fruit.rollFrom = fruit.mesh.rotation;
+        fruit.rollTo = Quaternion.Euler(Random.Range(-40f, 40f), Random.Range(0f, 360f), Random.Range(-40f, 40f)) * fruit.mesh.rotation;
+        Vector3 landing = LandingSpot(fruit, start, trunk, RestHeight(fruit, fruit.rollTo));
         fruit.from = start;
         fruit.to = landing;
         fruit.duration = Mathf.Clamp(Mathf.Sqrt(2f * Mathf.Max(.1f, start.y - landing.y) / 9.81f) / .8f, .45f, 1.6f);
         fruit.t = 0f;
-        fruit.rollFrom = fruit.mesh.rotation;
-        fruit.rollTo = Quaternion.Euler(Random.Range(-40f, 40f), Random.Range(0f, 360f), Random.Range(-40f, 40f)) * fruit.mesh.rotation;
         fruit.state = State.Falling;
     }
 
     // Under the fruit, scattered a little; never into the pond or another low hollow (more than a step below the
     // tree's foot): then nearer the trunk instead.
-    private Vector3 LandingSpot(Fruit fruit, Vector3 start, Vector3 trunk)
+    private Vector3 LandingSpot(Fruit fruit, Vector3 start, Vector3 trunk, float rest)
     {
         for (int attempt = 0; attempt < 6; attempt++)
         {
@@ -243,10 +243,35 @@ public sealed class FruitTree : MonoBehaviour
                 ? start + Quaternion.Euler(0f, Random.Range(0f, 360f), 0f) * Vector3.forward * Random.Range(.1f, .6f)
                 : trunk + Flat(start - trunk).normalized * Mathf.Lerp(.7f, 1.2f, attempt - 4);
             if (Ground(new Vector3(spot.x, start.y + .3f, spot.z), out float y) && y > trunk.y - .3f)
-                return new Vector3(spot.x, y + fruit.radius * .9f, spot.z);
+                return new Vector3(spot.x, y + rest, spot.z);
         }
         Vector3 fallback = trunk + Flat(start - trunk).normalized * .8f;
-        return new Vector3(fallback.x, trunk.y + fruit.radius * .9f, fallback.z);
+        return new Vector3(fallback.x, trunk.y + rest, fallback.z);
+    }
+
+    // How high the pickup stands above the ground when the fruit lies turned to 'rotation': down to the fruit's lowest
+    // point, so it touches the ground (the old radius, its largest half-size, left most fruit floating a few cm up).
+    private static float RestHeight(Fruit fruit, Quaternion rotation)
+    {
+        var filter = fruit.mesh.GetComponent<MeshFilter>();
+        Vector3 offset = fruit.mesh.position - fruit.pickup.position;     // the mesh keeps its place in the pickup
+        Vector3 scale = fruit.mesh.lossyScale;
+        float lowest;
+        if (filter != null && filter.sharedMesh != null && filter.sharedMesh.isReadable)
+        {
+            lowest = float.MaxValue;
+            foreach (Vector3 v in filter.sharedMesh.vertices) lowest = Mathf.Min(lowest, (rotation * Vector3.Scale(scale, v)).y);
+        }
+        else
+        {
+            // not readable: the fruit taken as an ellipsoid in its bounds (exact for round fruit)
+            Bounds local = filter != null && filter.sharedMesh != null ? filter.sharedMesh.bounds : new Bounds(Vector3.zero, Vector3.one * fruit.radius * 2f);
+            Vector3 e = Vector3.Scale(local.extents, scale);
+            Vector3 x = rotation * Vector3.right, y = rotation * Vector3.up, z = rotation * Vector3.forward;
+            float support = Mathf.Sqrt(x.y * x.y * e.x * e.x + y.y * y.y * e.y * e.y + z.y * z.y * e.z * e.z);
+            lowest = (rotation * Vector3.Scale(scale, local.center)).y - support;
+        }
+        return -(offset.y + lowest) - .003f;      // a hair into the ground, never a gap
     }
 
     // The highest surface under a point that is not this tree, a character or food.

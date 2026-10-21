@@ -7,10 +7,10 @@ TerrainLayer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: RichGreen_Earth
-  m_DiffuseTexture: {fileID: 2800000, guid: 53de4bc0c45be1046814b062f23609ab, type: 3}
+  m_DiffuseTexture: {fileID: 2800000, guid: 6c00b99ca10a3734b9735492eafa3077, type: 3}
   m_NormalMapTexture: {fileID: 0}
   m_MaskMapTexture: {fileID: 0}
-  m_TileSize: {x: 4.2, y: 4.2}
+  m_TileSize: {x: 4.5, y: 4.5}
   m_TileOffset: {x: 5.88, y: 4.34}
   m_Specular: {r: 0, g: 0, b: 0, a: 0}
   m_Metallic: 0

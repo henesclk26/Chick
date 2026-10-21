@@ -3,7 +3,8 @@
 //                         are time-spaced samples of the path walked, newest first. Consecutive slots form segments.
 // _FoliageBendParams    = x max tilt (radians), y vertical range, z cull radius around slot 0, w enabled (0/1).
 // _FoliageBendMotion    = xy last walking direction (XZ), z plant reach in object units, w player contact radius.
-// The whole plant leans as one piece (direction and amount are per object), so blades never tear apart.
+// The whole plant leans as one piece (direction and amount are per object), so blades never tear apart; with
+// _FOLIAGE_BEND_LOCAL (wide grass clumps) each vertex is measured at its own spot instead.
 // Contact is measured against path segments and faded by age, so plants ease back up instead of snapping.
 // Needs a real object matrix: bending renderers must not be static batched.
 #ifndef CHICK_FOLIAGE_BEND_INCLUDED
@@ -21,18 +22,29 @@ float3 FoliageBendOS(float3 positionOS)
         return positionOS;
 
     float3 pivotWS = TransformObjectToWorld(float3(0.0, 0.0, 0.0));
-    float2 toPlayer = pivotWS.xz - _FoliageBendTrail[0].xz;
+    float3 positionWS = TransformObjectToWorld(positionOS);
+#if defined(_FOLIAGE_BEND_LOCAL)
+    // Wide clumps (_FOLIAGE_BEND_LOCAL): each blade answers for itself, measured at its own spot on the ground, so
+    // only the part of the clump the bird actually walks through leans; the rest stands.
+    float3 contactWS = float3(positionWS.x, pivotWS.y, positionWS.z);
+#else
+    float3 contactWS = pivotWS;
+#endif
+    float2 toPlayer = contactWS.xz - _FoliageBendTrail[0].xz;
     if (dot(toPlayer, toPlayer) > _FoliageBendParams.z * _FoliageBendParams.z)
         return positionOS;   // far plants skip the loop entirely
 
-    float3 positionWS = TransformObjectToWorld(positionOS);
     float height = positionWS.y - pivotWS.y;
     if (height <= 1e-4)
         return positionOS;   // roots stay planted
 
+#if defined(_FOLIAGE_BEND_LOCAL)
+    float touchRange = max(_FoliageBendMotion.w, 1e-4);   // the bird's own contact radius, no plant reach
+#else
     float4x4 objectToWorld = GetObjectToWorldMatrix();
     float scaleXZ = length(float3(objectToWorld[0].x, objectToWorld[1].x, objectToWorld[2].x));
     float touchRange = max(_FoliageBendMotion.w + _FoliageBendMotion.z * scaleXZ, 1e-4);
+#endif
 
     // Blend lean directions by strength; the strongest contact sets the amount.
     float2 lean = 0.0;
@@ -47,15 +59,15 @@ float3 FoliageBendOS(float3 positionOS)
 
         float2 segment = newer.xz - older.xz;
         float segmentSq = dot(segment, segment);
-        float t = segmentSq > 1e-8 ? saturate(dot(pivotWS.xz - older.xz, segment) / segmentSq) : 1.0;
+        float t = segmentSq > 1e-8 ? saturate(dot(contactWS.xz - older.xz, segment) / segmentSq) : 1.0;
         float3 closest = lerp(older.xyz, newer.xyz, t);
         float life = lerp(older.w, newer.w, t);
 
-        float2 away = pivotWS.xz - closest.xz;
+        float2 away = contactWS.xz - closest.xz;
         float contact = saturate(1.0 - length(away) / touchRange);
         contact = contact * contact * contact * (contact * (contact * 6.0 - 15.0) + 10.0);   // soft lean-in at the edge
         contact *= life * life * (3.0 - 2.0 * life);   // ease back up as this part of the path ages
-        contact *= saturate(1.0 - abs(pivotWS.y - closest.y) / _FoliageBendParams.y);
+        contact *= saturate(1.0 - abs(contactWS.y - closest.y) / _FoliageBendParams.y);
         if (contact <= 0.0)
             continue;
 

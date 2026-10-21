@@ -20,7 +20,9 @@ public sealed class GroundEffects : MonoBehaviour
     [SerializeField, Min(.03f), Tooltip("Metres walked between footfalls at chick size (scaled with the body).")]
     private float stepDistance = .13f;
     [SerializeField, Range(0f, 30f), Tooltip("Pollen and seed fluff born per second round the bird.")]
-    private float pollenRate = 7f;
+    private float pollenRate = 3f;
+    [SerializeField, Range(0f, 1f), Tooltip("How much of everything: how often bits are thrown, how many and how visible. 1 = the old, busy look.")]
+    private float intensity = .4f;
 
     private enum Surface { Grass, Earth, Sand, Mud }
 
@@ -28,6 +30,8 @@ public sealed class GroundEffects : MonoBehaviour
     private static readonly Color EarthDust = new Color(.70f, .56f, .40f, .5f);
     private static readonly Color SandDust = new Color(.87f, .79f, .63f, .45f);
     private static readonly Color GrassDust = new Color(.75f, .74f, .55f, .18f);
+    private const float DustAlpha = .45f;            // dust puffs at this share of their colour's opacity
+    private const float ChipAlpha = .75f;
     private static readonly Color[] Stones = { new Color(.58f, .47f, .35f), new Color(.5f, .48f, .45f), new Color(.66f, .58f, .46f) };
     private static readonly Color[] Leaves = { new Color(.42f, .66f, .24f), new Color(.58f, .78f, .32f), new Color(.66f, .72f, .36f) };
     private static readonly Color[] Muds = { new Color(.25f, .18f, .12f), new Color(.33f, .24f, .16f) };
@@ -42,7 +46,16 @@ public sealed class GroundEffects : MonoBehaviour
     private bool wasGrounded = true;
     private float airTime;
 
-    private float Scale => body.height / ChickHeight;
+    // grows with the bird, but gently: a grown chicken's dust is a little bigger than a chick's, not three times
+    private float Scale => Mathf.Sqrt(body.height / ChickHeight);
+
+    // keeps n bits on average at full intensity, fewer below it (never a fixed zero, so some always show)
+    private int Count(int n)
+    {
+        float f = n * intensity;
+        int whole = Mathf.FloorToInt(f);
+        return whole + (Random.value < f - whole ? 1 : 0);
+    }
 
     private void Awake()
     {
@@ -51,7 +64,7 @@ public sealed class GroundEffects : MonoBehaviour
         eater = GetComponent<ChickEatingController>();
         wading = GetComponent<ChickWaterWading>();
         dust = Build("Ground Dust", puffMaterial, 160, 0f, true);
-        chips = Build("Ground Chips", chipMaterial, 160, 1.4f, false);
+        chips = Build("Ground Chips", chipMaterial, 160, 1.6f, false);
         pollen = BuildPollen();
         lastStep = transform.position;
     }
@@ -104,22 +117,22 @@ public sealed class GroundEffects : MonoBehaviour
         if (InWater) return;
         var surface = SurfaceAt(at);
         int boost = running ? 2 : 1;
+        // only some steps throw anything at all; walking on grass hardly ever
         switch (surface)
         {
             case Surface.Earth:
-                Puffs(at, scale, EarthDust, boost, .35f);
-                if (Random.value < (running ? .8f : .4f)) Chips(at, scale, Stones, boost, .45f);
+                if (Random.value < (running ? .7f : .45f)) Puffs(at, scale, EarthDust, Count(boost), .25f);
+                if (Random.value < (running ? .5f : .2f) * intensity * 2f) Chips(at, scale, Stones, 1, .35f);
                 break;
             case Surface.Sand:
-                Puffs(at, scale, SandDust, boost + 1, .3f);
-                if (Random.value < .35f) Chips(at, scale, SandGrains, 1, .35f);
+                if (Random.value < (running ? .7f : .45f)) Puffs(at, scale, SandDust, Count(boost + 1), .22f);
+                if (Random.value < .15f) Chips(at, scale, SandGrains, 1, .3f);
                 break;
             case Surface.Mud:
-                Chips(at, scale, Muds, boost + 1, .5f, .8f);
+                if (Random.value < (running ? .6f : .35f)) Chips(at, scale, Muds, Count(boost + 1), .4f, .8f);
                 break;
             default:
-                if (Random.value < (running ? .9f : .5f)) Chips(at, scale, Leaves, boost, .4f, 1.25f);
-                if (running && Random.value < .3f) Puffs(at, scale, GrassDust, 1, .25f);
+                if (Random.value < (running ? .35f : .12f)) Chips(at, scale, Leaves, 1, .3f, 1.1f);
                 break;
         }
     }
@@ -128,13 +141,13 @@ public sealed class GroundEffects : MonoBehaviour
     {
         if (InWater) return;
         var surface = SurfaceAt(at);
-        int ring = Mathf.RoundToInt(Mathf.Lerp(5, 11, strength));
+        int ring = Mathf.Max(3, Count(Mathf.RoundToInt(Mathf.Lerp(5, 11, strength))));
         switch (surface)
         {
-            case Surface.Earth: Ring(at, scale, EarthDust, ring); Chips(at, scale, Stones, ring / 2 + 1, .6f); break;
-            case Surface.Sand: Ring(at, scale, SandDust, ring + 2); Chips(at, scale, SandGrains, ring / 3 + 1, .5f); break;
-            case Surface.Mud: Chips(at, scale, Muds, ring, .7f, .9f); break;
-            default: Chips(at, scale, Leaves, ring / 2 + 2, .55f, 1.25f); Ring(at, scale, GrassDust, ring / 2); break;
+            case Surface.Earth: Ring(at, scale, EarthDust, ring); Chips(at, scale, Stones, Count(3), .5f); break;
+            case Surface.Sand: Ring(at, scale, SandDust, ring + 1); Chips(at, scale, SandGrains, Count(2), .4f); break;
+            case Surface.Mud: Chips(at, scale, Muds, Count(ring), .55f, .9f); break;
+            default: Chips(at, scale, Leaves, Count(3), .45f, 1.1f); break;
         }
     }
 
@@ -143,12 +156,14 @@ public sealed class GroundEffects : MonoBehaviour
         if (InWater) return;
         float scale = Scale;
         var surface = SurfaceAt(point);
+        // a peck only now and then raises anything, and then just a pinch
+        if (Random.value > .35f + .4f * intensity) return;
         switch (surface)
         {
-            case Surface.Earth: Puffs(point, scale * .8f, EarthDust, 2, .25f); Chips(point, scale, Stones, 3, .5f); break;
-            case Surface.Sand: Puffs(point, scale * .8f, SandDust, 3, .25f); Chips(point, scale, SandGrains, 2, .4f); break;
-            case Surface.Mud: Chips(point, scale, Muds, 4, .45f, .8f); break;
-            default: Chips(point, scale, Leaves, 3, .4f, 1.25f); break;
+            case Surface.Earth: Puffs(point, scale * .7f, EarthDust, 1, .15f); Chips(point, scale, Stones, Count(2), .35f); break;
+            case Surface.Sand: Puffs(point, scale * .7f, SandDust, 1, .15f); Chips(point, scale, SandGrains, Count(2), .3f); break;
+            case Surface.Mud: Chips(point, scale, Muds, Count(3), .35f, .8f); break;
+            default: Chips(point, scale, Leaves, Count(2), .3f, 1.1f); break;
         }
     }
 
@@ -163,10 +178,10 @@ public sealed class GroundEffects : MonoBehaviour
         {
             Vector2 d = Random.insideUnitCircle;
             p.position = at + new Vector3(d.x, .1f, d.y) * .05f * scale;
-            p.velocity = new Vector3(d.x * speed, Random.Range(.05f, .25f), d.y * speed) * scale;
-            p.startSize = Random.Range(.06f, .12f) * scale;
-            p.startLifetime = Random.Range(.55f, .9f);
-            p.startColor = color;
+            p.velocity = new Vector3(d.x * speed, Random.Range(.03f, .15f), d.y * speed) * scale;
+            p.startSize = Random.Range(.04f, .08f) * scale;
+            p.startLifetime = Random.Range(.45f, .7f);
+            p.startColor = new Color(color.r, color.g, color.b, color.a * DustAlpha);
             p.rotation = Random.Range(0f, 360f);
             dust.Emit(p, 1);
         }
@@ -180,10 +195,10 @@ public sealed class GroundEffects : MonoBehaviour
             float a = (i + Random.value * .5f) / count * Mathf.PI * 2f;
             var d = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a));
             p.position = at + d * .04f * scale + Vector3.up * .02f * scale;
-            p.velocity = (d * Random.Range(.45f, .75f) + Vector3.up * Random.Range(.05f, .15f)) * scale;
-            p.startSize = Random.Range(.07f, .13f) * scale;
-            p.startLifetime = Random.Range(.6f, .95f);
-            p.startColor = color;
+            p.velocity = (d * Random.Range(.3f, .5f) + Vector3.up * Random.Range(.03f, .1f)) * scale;
+            p.startSize = Random.Range(.05f, .09f) * scale;
+            p.startLifetime = Random.Range(.5f, .75f);
+            p.startColor = new Color(color.r, color.g, color.b, color.a * DustAlpha);
             p.rotation = Random.Range(0f, 360f);
             dust.Emit(p, 1);
         }
@@ -196,10 +211,12 @@ public sealed class GroundEffects : MonoBehaviour
         {
             Vector2 d = Random.insideUnitCircle.normalized * Random.Range(.4f, 1f);
             p.position = at + new Vector3(d.x, .4f, d.y) * .03f * scale;
-            p.velocity = new Vector3(d.x * speed, Random.Range(.6f, 1.1f) * speed * 2.2f, d.y * speed) * scale;
-            p.startSize = Random.Range(.012f, .024f) * scale * sizeScale;
-            p.startLifetime = Random.Range(.5f, .8f);
-            p.startColor = palette[Random.Range(0, palette.Length)];
+            // a low hop: a few centimetres up at most, then they drop back into the ground
+            p.velocity = new Vector3(d.x * speed * .8f, Random.Range(.45f, .8f), d.y * speed * .8f) * scale;
+            p.startSize = Random.Range(.009f, .017f) * scale * sizeScale;
+            p.startLifetime = Random.Range(.4f, .65f);
+            var c = palette[Random.Range(0, palette.Length)];
+            p.startColor = new Color(c.r, c.g, c.b, ChipAlpha);
             p.rotation = Random.Range(0f, 360f);
             p.angularVelocity = Random.Range(-540f, 540f);
             chips.Emit(p, 1);
@@ -259,18 +276,10 @@ public sealed class GroundEffects : MonoBehaviour
         size.size = soft ? new ParticleSystem.MinMaxCurve(1f, AnimationCurve.EaseInOut(0f, .55f, 1f, 1.6f))
                          : new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, .7f));
         var limit = ps.limitVelocityOverLifetime; limit.enabled = true;
-        limit.limit = soft ? .05f : 4f; limit.dampen = soft ? .25f : .02f;
-        if (!soft)
-        {
-            var collision = ps.collision;
-            collision.enabled = true;
-            collision.type = ParticleSystemCollisionType.World;
-            collision.mode = ParticleSystemCollisionMode.Collision3D;
-            collision.quality = ParticleSystemCollisionQuality.Low;
-            collision.bounce = .25f; collision.dampen = .55f; collision.lifetimeLoss = .15f;
-            collision.radiusScale = .5f;
-            collision.collidesWith = ~LayerMask.GetMask("CameraBlocker", "Edible");
-        }
+        limit.limit = soft ? .05f : 1.5f; limit.dampen = soft ? .25f : .05f;
+        // No particle collision: the bits are born at the feet, inside the bird's own CharacterController, and world
+        // collision threw them high out of it. They hop a little and drop back into the ground, where they vanish.
+        var collision = ps.collision; collision.enabled = false;
         var renderer = ps.GetComponent<ParticleSystemRenderer>();
         renderer.sharedMaterial = material;
         renderer.renderMode = ParticleSystemRenderMode.Billboard;
@@ -293,10 +302,10 @@ public sealed class GroundEffects : MonoBehaviour
         main.maxParticles = 90;
         main.startLifetime = new ParticleSystem.MinMaxCurve(6f, 10f);
         main.startSpeed = new ParticleSystem.MinMaxCurve(0f, .06f);
-        main.startSize = new ParticleSystem.MinMaxCurve(.012f, .032f);
+        main.startSize = new ParticleSystem.MinMaxCurve(.01f, .024f);
         var startColor = new Gradient();
         startColor.SetKeys(new[] { new GradientColorKey(new Color(1f, .95f, .72f), 0f), new GradientColorKey(new Color(1f, 1f, .97f), 1f) },
-                           new[] { new GradientAlphaKey(.85f, 0f), new GradientAlphaKey(.85f, 1f) });
+                           new[] { new GradientAlphaKey(.5f, 0f), new GradientAlphaKey(.5f, 1f) });
         main.startColor = new ParticleSystem.MinMaxGradient(startColor) { mode = ParticleSystemGradientMode.RandomColor };
         main.gravityModifier = -.004f;
         var emission = ps.emission; emission.rateOverTime = pollenRate;

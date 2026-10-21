@@ -102,8 +102,10 @@ Shader "Chick/InteractiveFoliage"
             HLSLPROGRAM
             #pragma target 2.0
             #pragma vertex FoliageLitVertex
-            #pragma fragment LitPassFragment
+            #pragma shader_feature_local_vertex _FOLIAGE_BEND_LOCAL
+            #pragma fragment FoliageLitFragment
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _GROUND_TINT
             #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _EMISSION
@@ -147,6 +149,71 @@ Shader "Chick/InteractiveFoliage"
                 input.positionOS.xyz = FoliageBendOS(input.positionOS.xyz);
                 return LitPassVertex(input);
             }
+
+            // Optional ground tint (_GROUND_TINT): the plant takes the colour of the ground under it, read from a
+            // top-down ground colour map. The map and its settings are global (GroundTintGlobals), so materials
+            // without the keyword and the SRP batcher are unaffected.
+            #if defined(_GROUND_TINT)
+            TEXTURE2D(_ChickGroundTintMap); SAMPLER(sampler_ChickGroundTintMap);
+            float4 _ChickGroundTintRect;    // xy: world min (x, z), zw: 1 / world size
+            float4 _ChickGroundTintParams;  // x: strength, y: brightness, z: saturation
+            float4 _ChickGroundTintDry;     // rgb: the golden grass colour over earth; a: the earth share where a blade is half golden
+            #endif
+
+            // URP's LitPassFragment with the ground tint applied to the albedo
+            void FoliageLitFragment(
+                Varyings input
+                , out half4 outColor : SV_Target0
+            #ifdef _WRITE_RENDERING_LAYERS
+                , out uint outRenderingLayers : SV_Target1
+            #endif
+            )
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+                SurfaceData surfaceData;
+                InitializeStandardLitSurfaceData(input.uv, surfaceData);
+
+            #if defined(_GROUND_TINT)
+                // the map: rgb = the grass colour of the ground here, a = how much of the ground here is earth
+                float2 guv = (input.positionWS.xz - _ChickGroundTintRect.xy)*_ChickGroundTintRect.zw;
+                half4 groundMap = SAMPLE_TEXTURE2D(_ChickGroundTintMap, sampler_ChickGroundTintMap, guv);
+                half3 green = groundMap.rgb;
+                half lum = dot(green, half3(0.3, 0.59, 0.11));
+                green = max(lerp(lum.xxx, green, _ChickGroundTintParams.z), 0)*_ChickGroundTintParams.y;
+                // every blade is green over grass and golden over earth, so a clump on the edge turns from one to the other
+                half earth = smoothstep(_ChickGroundTintDry.a - 0.17, _ChickGroundTintDry.a + 0.17, groundMap.a);
+                half3 target = lerp(green, _ChickGroundTintDry.rgb, earth);
+                half3 shade = surfaceData.albedo/max(_BaseColor.rgb, half3(1e-3, 1e-3, 1e-3));
+                // per material amount: _DetailAlbedoMapScale (unused here, no detail maps; it lives in the material
+                // constant buffer, so the SRP batcher still works): 1 = the global strength
+                surfaceData.albedo = lerp(surfaceData.albedo, shade*target, saturate(_ChickGroundTintParams.x*_DetailAlbedoMapScale));
+            #endif
+
+            #ifdef LOD_FADE_CROSSFADE
+                LODFadeCrossFade(input.positionCS);
+            #endif
+
+                InputData inputData;
+                InitializeInputData(input, surfaceData.normalTS, inputData);
+                SETUP_DEBUG_TEXTURE_DATA(inputData, UNDO_TRANSFORM_TEX(input.uv, _BaseMap));
+
+            #if defined(_DBUFFER)
+                ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
+            #endif
+
+                InitializeBakedGIData(input, inputData);
+
+                half4 color = UniversalFragmentPBR(inputData, surfaceData);
+                color.rgb = MixFog(color.rgb, inputData.fogCoord);
+                color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent(_Surface));
+                outColor = color;
+
+            #ifdef _WRITE_RENDERING_LAYERS
+                outRenderingLayers = EncodeMeshRenderingLayer();
+            #endif
+            }
             ENDHLSL
         }
 
@@ -162,6 +229,7 @@ Shader "Chick/InteractiveFoliage"
             HLSLPROGRAM
             #pragma target 2.0
             #pragma vertex FoliageShadowVertex
+            #pragma shader_feature_local_vertex _FOLIAGE_BEND_LOCAL
             #pragma fragment ShadowPassFragment
             #pragma shader_feature_local _ALPHATEST_ON
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
@@ -192,6 +260,7 @@ Shader "Chick/InteractiveFoliage"
             HLSLPROGRAM
             #pragma target 2.0
             #pragma vertex FoliageDepthVertex
+            #pragma shader_feature_local_vertex _FOLIAGE_BEND_LOCAL
             #pragma fragment DepthOnlyFragment
             #pragma shader_feature_local _ALPHATEST_ON
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
@@ -220,6 +289,7 @@ Shader "Chick/InteractiveFoliage"
             HLSLPROGRAM
             #pragma target 2.0
             #pragma vertex FoliageDepthNormalsVertex
+            #pragma shader_feature_local_vertex _FOLIAGE_BEND_LOCAL
             #pragma fragment DepthNormalsFragment
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local _ALPHATEST_ON

@@ -7,10 +7,10 @@ TerrainLayer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: RichGreen_DampEarth
-  m_DiffuseTexture: {fileID: 2800000, guid: dc1c3655c1efebb46a822c0f22f055c8, type: 3}
+  m_DiffuseTexture: {fileID: 2800000, guid: 92f5623252a1dc546bf1288d29d37d7c, type: 3}
   m_NormalMapTexture: {fileID: 0}
   m_MaskMapTexture: {fileID: 0}
-  m_TileSize: {x: 4, y: 4}
+  m_TileSize: {x: 4.5, y: 4.5}
   m_TileOffset: {x: 8.62, y: 6.1600003}
   m_Specular: {r: 0, g: 0, b: 0, a: 0}
   m_Metallic: 0

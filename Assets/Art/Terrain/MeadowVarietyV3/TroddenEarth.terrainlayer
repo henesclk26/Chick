@@ -7,10 +7,10 @@ TerrainLayer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: TroddenEarth
-  m_DiffuseTexture: {fileID: 2800000, guid: 7824ce6f40a0c52429b01cfd0dc384ad, type: 3}
+  m_DiffuseTexture: {fileID: 2800000, guid: 10346ea35ad3aef48b261fcf81c0623f, type: 3}
   m_NormalMapTexture: {fileID: 0}
   m_MaskMapTexture: {fileID: 0}
-  m_TileSize: {x: 3.4, y: 3.4}
+  m_TileSize: {x: 4.5, y: 4.5}
   m_TileOffset: {x: 6.92, y: 3.32}
   m_Specular: {r: 0, g: 0, b: 0, a: 0}
   m_Metallic: 0
