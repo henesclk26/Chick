@@ -22,15 +22,22 @@ Material:
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs: []
+    m_TexEnvs:
+    - _NoiseTex:
+        m_Texture: {fileID: 11700000, guid: afa49a9fd0d7083429f7e7c6c5ab6b1b, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _CirrusAmount: 0.35
-    - _CloudCoverage: 0.45
+    - _CloudCoverage: 0.75
+    - _CloudDetail: 0.55
+    - _CloudScale: 1.8
     - _CloudSpeed: 0.012
     - _HorizonBlendHeight: 0.65
     - _MoonIntensity: 0
     - _StarIntensity: 0
+    - _SunBloom: 0.25
     - _SunHaloIntensity: 0.7
     - _SunHaloWidth: 0.028
     - _SunIntensity: 20

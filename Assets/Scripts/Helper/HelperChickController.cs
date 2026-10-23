@@ -77,6 +77,7 @@ public sealed class HelperChickController : MonoBehaviour
     private ChickPlayerController player;
     private CharacterController playerBody;
     private ChickEatingController playerEater;
+    private GrowthProgressController growth;
     private IReadOnlyList<HelperChickController> companions;
 
     private readonly RaycastHit[] castHits = new RaycastHit[8];
@@ -170,6 +171,7 @@ public sealed class HelperChickController : MonoBehaviour
         player = owner;
         playerBody = owner.GetComponent<CharacterController>();
         playerEater = owner.GetComponent<ChickEatingController>();
+        growth = FindFirstObjectByType<GrowthProgressController>(FindObjectsInactive.Include);
         Physics.IgnoreCollision(body, playerBody);
         if (companions != null)
             foreach (HelperChickController other in companions)
@@ -265,11 +267,12 @@ public sealed class HelperChickController : MonoBehaviour
         // Without food, use the much tighter companion-follow distances as before.
         bool ownerLeaving = !foraging && playerSpeed > .15f && playerDistance > personalFollowDistance;
         // A sitting owner means rest: finish the current seed, but start no new food trips.
-        bool canForage = !following && !player.IsSitting && playerDistance <= leash &&
+        bool eggReady = growth != null && growth.EggReady;   // a full egg bar pauses helper eating until the egg is laid
+        bool canForage = !following && !eggReady && !player.IsSitting && playerDistance <= leash &&
                          (foraging || (!ownerAbove && !ownerLeaving));
         UpdateFood(playerPosition, leash, playerDistance, canForage, dt);
         UpdateNavigation(playerPosition, playerDistance, leash, dt);
-        if (following && (foodTarget != null || eatPhase != EatPhase.None)) CancelFood();
+        if ((following || eggReady) && (foodTarget != null || eatPhase != EatPhase.None)) CancelFood();
         if (playerDistance > Mathf.Max(8f, leash * 5f)) { SnapToSlot(); return; }
 
         bool playerJumping = player.IsJumping;

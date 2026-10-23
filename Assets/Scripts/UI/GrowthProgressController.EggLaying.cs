@@ -13,6 +13,8 @@ public sealed partial class GrowthProgressController
     public int EggSeedCount { get; private set; }
     public float EggProgress => EggSeedCount / (float)EggSeedGoal;
     public bool NextEggIsGolden { get; private set; }
+    // A full egg bar pauses all eating (player and helper chicks) until the egg is laid.
+    public bool EggReady => !IsChickForm && EggSeedCount >= EggSeedGoal;
     public event Action<bool> OnEggLaid;
 
     private bool eggCycleSelected, lastEggWasGolden, lastEggToBasket;

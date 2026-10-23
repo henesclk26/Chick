@@ -19,11 +19,15 @@ Shader "Farm/Stylized Sky"
         _SunHaloWidth ("Sun Halo Width (radians)", Float) = 0.035
         _CloudLitColor ("Cloud Lit", Color) = (1,1,1,1)
         _CloudShadowColor ("Cloud Shadow", Color) = (0.7,0.78,0.9,1)
+        _SunBloom ("Sun Wide Glow", Range(0,1)) = 0.25
         _CloudCoverage ("Cloud Coverage", Range(0,1)) = 0.45
+        _CloudDetail ("Cloud Edge Erosion", Range(0,0.9)) = 0.5
+        _CloudScale ("Cloud Scale", Range(0.5,4)) = 1.6
         _CloudSpeed ("Cloud Drift Speed", Float) = 0.012
         _StarIntensity ("Stars", Range(0,1)) = 0
         _MoonDirection ("Moon Direction", Vector) = (0.4,0.35,0.8,0)
         _MoonIntensity ("Moon", Range(0,1)) = 0
+        [NoScaleOffset] _NoiseTex ("Noise Lattice (64^3, bilinear, repeat)", 3D) = "gray" {}
     }
     SubShader
     {
@@ -39,19 +43,20 @@ Shader "Farm/Stylized Sky"
             float4 _SkyColor, _HorizonColor, _SunColor, _SunGlowColor, _AntiSunColor, _CloudLitColor, _CloudShadowColor;
             float4 _SunDirection, _MoonDirection;
             float _HorizonBlendHeight, _Twilight, _SunSize, _SunIntensity, _SunHaloIntensity, _SunHaloWidth;
-            float _CloudCoverage, _CloudSpeed, _StarIntensity, _MoonIntensity;
+            sampler3D _NoiseTex;
+            float _CloudCoverage, _CloudDetail, _CloudScale, _CloudSpeed, _StarIntensity, _MoonIntensity, _SunBloom;
             struct v2f { float4 pos : SV_POSITION; float3 direction : TEXCOORD0; float4 screen : TEXCOORD1; };
             v2f vert(float4 vertex : POSITION)
             {
                 v2f o; o.pos = UnityObjectToClipPos(vertex); o.direction = vertex.xyz; o.screen = ComputeScreenPos(o.pos); return o;
             }
             float hash(float3 p) { p = frac(p * .1031); p += dot(p, p.yzx + 33.33); return frac((p.x + p.y) * p.z); }
+            // Value noise from a 64^3 random lattice: one trilinear fetch at the smoothstepped
+            // offset equals the 8-corner smooth interpolation, at a fraction of the ALU cost.
             float noise(float3 p)
             {
                 float3 c = floor(p), f = frac(p); f = f * f * (3.0 - 2.0 * f);
-                float a = lerp(lerp(hash(c), hash(c + float3(1,0,0)), f.x), lerp(hash(c + float3(0,1,0)), hash(c + float3(1,1,0)), f.x), f.y);
-                float b = lerp(lerp(hash(c + float3(0,0,1)), hash(c + float3(1,0,1)), f.x), lerp(hash(c + float3(0,1,1)), hash(c + float3(1,1,1)), f.x), f.y);
-                return lerp(a, b, f.z);
+                return tex3Dlod(_NoiseTex, float4((c + f + .5) / 64.0, 0)).r;
             }
             float fbm(float3 p, int octaves)
             {
@@ -59,14 +64,19 @@ Shader "Farm/Stylized Sky"
                 [loop] for (int i = 0; i < octaves; i++) { sum += noise(p) * w; p = p * 2.03 + float3(17.1, 31.7, 47.3); w *= .5; }
                 return sum / (1 - pow(.5, octaves));
             }
-            // Puffy cloud density on the sky shell, 0..1.
+            // Cloud density on the sky shell, 0..1: a warped low-frequency body whose thin
+            // edges are eaten by high-frequency detail, giving soft cores and feathery, broken rims.
             float cumulus(float3 p)
             {
-                float3 warp = float3(noise(p * .7 + 11.3), noise(p * .7 + 29.1), noise(p * .7 + 53.7)) - .5;
-                float3 q = p + warp * .35;
-                float shape = fbm(q * 1.1, 5);
-                float cover = lerp(.72, .42, _CloudCoverage);
-                return saturate((shape - cover) / (1.0 - cover) * 1.8);
+                float3 warp = float3(noise(p * .5 + 11.3), noise(p * .5 + 29.1), noise(p * .5 + 53.7)) - .5;
+                float3 q = p + warp * .7;
+                float cover = lerp(.66, .36, _CloudCoverage);
+                float body = saturate((fbm(q * .9, 4) - cover) / (1.0 - cover));
+                if (body <= 0) return 0;
+                float3 wisp = float3(noise(q * 3.1 + 71.9), noise(q * 3.1 + 13.7), 0) - .5;
+                float detail = fbm(q * 4.2 + float3(wisp.x, 0, wisp.y) * 1.2, 4);
+                float erosion = detail * _CloudDetail;
+                return saturate((body - erosion) / (1.0 - erosion) * 1.7);
             }
             half4 frag(v2f i) : SV_Target
             {
@@ -99,27 +109,27 @@ Shader "Farm/Stylized Sky"
                 float rim = exp(-pow((sunAngle - _SunSize) / rimWidth, 2.0));
                 float3 sunTint = lerp(float3(1, 1, 1), _SunColor.rgb, saturate(sunLow * .85));
                 color += _SunColor.rgb * (halo * _SunHaloIntensity);
+                color = lerp(color, _SunColor.rgb, pow(saturate(sd), 12) * _SunBloom);     // wide milky glow
                 color += sunTint * (rim * 0.35);
                 color += sunTint * (disk * _SunIntensity);
 
                 // Clouds on a curved shell (continuous at the horizon), drifting with the wind.
                 float h = up;
                 float shell = 25.0 / (sqrt(144.0 * h * h + 25.0) + 12.0 * h);
-                float3 p = d * shell * 2.2;
+                float3 p = d * shell * _CloudScale;
                 p.xz += _Time.y * _CloudSpeed * float2(1, .35);
                 float dens = cumulus(p);
-                // Light the banks: denser towards the sun means self-shadowed.
-                float3 toSun = float3(sh.x, 0, sh.z) * .13;
-                float densSun = cumulus(p + toSun);
-                float lit = saturate(1 - (densSun - dens) * 3.0);
-                lit = lerp(lit, 1, .12);
-                float silver = pow(saturate(sd), 10) * (1 - dens) * 1.4;      // bright rims near the sun
+                // Two short marches towards the sun: material in front of a point shadows it.
+                float3 toSun = float3(sh.x, 0, sh.z);
+                float occl = dens > 0 ? cumulus(p + toSun * .05) + cumulus(p + toSun * .14) * .7 : 0;
+                float lit = exp(-occl * 2.4);
+                lit = lerp(lit, 1, .12) * lerp(.8, 1, 1 - exp(-dens * 5));    // powder: wispy rims slightly darker
+                float silver = pow(saturate(sd), 8) * (1 - dens) * 1.2;       // bright rims near the sun
                 float3 cloudColor = lerp(_CloudShadowColor.rgb, _CloudLitColor.rgb, lit) + _SunColor.rgb * silver;
-                cloudColor *= lerp(1, .86, smoothstep(.55, 1, dens));        // thick cores read darker
                 // Undersides pick up the horizon glow at sunrise/sunset.
                 cloudColor = lerp(cloudColor, cloudColor * _SunGlowColor.rgb * 1.15, (1 - lit) * sunLow * .6);
                 float horizonFade = smoothstep(.02, .2, h);
-                float cloudAlpha = smoothstep(0, .35, dens) * horizonFade;
+                float cloudAlpha = smoothstep(0, .6, dens) * horizonFade * .97;  // thin edges stay translucent
 
                 // Thin, high cirrus streaks.
                 float3 c = d * shell * 1.4; c.xz += _Time.y * _CloudSpeed * 1.6 * float2(1, .2);

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 public sealed class TimeOfDayVisualController : MonoBehaviour
 {
@@ -15,6 +16,7 @@ public sealed class TimeOfDayVisualController : MonoBehaviour
     // Keys: 07:00, 09:30, 12:00, 16:00, 18:00, 19:00.
     [Header("Stylized Sky")]
     [SerializeField] private bool useStylizedSky = true;
+    [SerializeField, Range(0, 1)] private float dayHaze = .3f;
     [SerializeField] private Material stylizedSkyTemplate;
     [SerializeField] private Gradient sunGlowColor = MakeGradient(DayKeys, new Color(1,.62f,.40f), new Color(1,.85f,.68f), new Color(1,.95f,.88f), new Color(1,.82f,.58f), new Color(1,.5f,.26f), new Color(.92f,.42f,.36f));
     [SerializeField] private Gradient antiSunColor = MakeGradient(DayKeys, new Color(.82f,.66f,.78f), new Color(.8f,.85f,.95f), new Color(.8f,.88f,.98f), new Color(.85f,.8f,.85f), new Color(.84f,.56f,.7f), new Color(.6f,.46f,.66f));
@@ -23,7 +25,22 @@ public sealed class TimeOfDayVisualController : MonoBehaviour
     [SerializeField] private Gradient cloudShadowColor = MakeGradient(DayKeys, new Color(.62f,.6f,.72f), new Color(.68f,.74f,.86f), new Color(.7f,.78f,.9f), new Color(.68f,.7f,.82f), new Color(.62f,.5f,.62f), new Color(.5f,.42f,.56f));
     [SerializeField] private AnimationCurve starIntensity = new AnimationCurve(new Keyframe(0,0),new Keyframe(.9f,0),new Keyframe(1,.55f));
     [SerializeField] private AnimationCurve moonIntensity = new AnimationCurve(new Keyframe(0,0),new Keyframe(.85f,0),new Keyframe(.92f,.25f),new Keyframe(1,.7f));
+    // Distance fog tinted with the sky's horizon, and a sky-only reflection probe so shiny
+    // surfaces reflect this sky instead of Unity's default one.
+    [Header("Atmosphere")]
+    [SerializeField] private bool useFog = true;
+    [SerializeField] private float fogStart = 60, fogEnd = 1000;
+    [SerializeField, Range(1, 60)] private float reflectionRefreshGameMinutes = 10;
+    // Drifts the sun's cloud-shadow cookie; direction follows the sky clouds' drift.
+    [SerializeField] private Vector2 cloudShadowWind = new Vector2(1.5f, .5f);
+    private UniversalAdditionalLightData sunData;
     private static readonly float[] DayKeys = { 0, .21f, .42f, .75f, .92f, 1 };
+    private ReflectionProbe skyProbe;
+    private float lastProbeTime = -1;
+    private bool originalFog;
+    private FogMode originalFogMode;
+    private Color originalFogColor;
+    private float originalFogStart, originalFogEnd;
     private Material runtimeSky, originalSky;
     private bool stylized;
     private AmbientMode originalAmbientMode;
@@ -42,7 +59,32 @@ public sealed class TimeOfDayVisualController : MonoBehaviour
         runtimeSky = new Material(stylized ? stylizedSkyTemplate : skyTemplate);
         RenderSettings.skybox = runtimeSky;
         RenderSettings.ambientMode = AmbientMode.Trilight;
+        originalFog = RenderSettings.fog; originalFogMode = RenderSettings.fogMode; originalFogColor = RenderSettings.fogColor;
+        originalFogStart = RenderSettings.fogStartDistance; originalFogEnd = RenderSettings.fogEndDistance;
+        if (useFog)
+        {
+            RenderSettings.fog = true;
+            RenderSettings.fogMode = FogMode.Linear;
+            RenderSettings.fogStartDistance = fogStart;
+            RenderSettings.fogEndDistance = fogEnd;
+        }
+        skyProbe = new GameObject("Sky Reflection Probe").AddComponent<ReflectionProbe>();
+        skyProbe.transform.SetParent(transform, false);
+        skyProbe.mode = ReflectionProbeMode.Realtime;
+        skyProbe.refreshMode = ReflectionProbeRefreshMode.ViaScripting;
+        skyProbe.timeSlicingMode = ReflectionProbeTimeSlicingMode.AllFacesAtOnce;
+        skyProbe.size = Vector3.one * 5000;   // covers the whole map
+        skyProbe.cullingMask = 0;            // sky only: cheap, and all the reflection needs
+        skyProbe.resolution = 128;
+        skyProbe.hdr = true;
+        sunData = sun.GetComponent<UniversalAdditionalLightData>();
         Evaluate(0);
+    }
+    private void Update()
+    {
+        if (sun.cookie == null || sunData == null) return;
+        Vector2 size = sunData.lightCookieSize, offset = sunData.lightCookieOffset + cloudShadowWind * Time.deltaTime;
+        sunData.lightCookieOffset = new Vector2(Mathf.Repeat(offset.x, size.x), Mathf.Repeat(offset.y, size.y));
     }
     public void Evaluate(float time)
     {
@@ -56,9 +98,12 @@ public sealed class TimeOfDayVisualController : MonoBehaviour
         // keep a blue horizon until 15:00, then rejoin the original sunset by 16:00.
         float clearDay = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(2f / 12f, 3f / 12f, time)) *
             (1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(8f / 12f, 9f / 12f, time)));
+        upperSky = Color.Lerp(upperSky, new Color(.85f, .9f, 1f), dayHaze * clearDay);   // paler, hazier midday blue
         Color blueHorizon = Color.Lerp(upperSky, Color.white, .30f);
+        Color skyHorizon = Color.Lerp(horizonColor.Evaluate(time), blueHorizon, clearDay);
         runtimeSky.SetColor("_SkyColor", upperSky);
-        runtimeSky.SetColor("_HorizonColor", Color.Lerp(horizonColor.Evaluate(time), blueHorizon, clearDay));
+        runtimeSky.SetColor("_HorizonColor", skyHorizon);
+        if (useFog) RenderSettings.fogColor = skyHorizon;   // distant hills fade into the horizon
         runtimeSky.SetFloat("_HorizonBlendHeight", Mathf.Lerp(.65f, .42f, clearDay));
         runtimeSky.SetColor("_CloudColor",Color.Lerp(Color.white,horizonColor.Evaluate(time),.22f));
         if (stylized)
@@ -79,6 +124,12 @@ public sealed class TimeOfDayVisualController : MonoBehaviour
         RenderSettings.ambientSkyColor = skyColor.Evaluate(time) * .8f;
         RenderSettings.ambientEquatorColor = Color.Lerp(horizonColor.Evaluate(time),Color.white,.35f) * .55f;
         RenderSettings.ambientGroundColor = new Color(.24f,.23f,.26f);
+        // The 07:00-19:00 day is 720 game minutes.
+        if (lastProbeTime < 0 || Mathf.Abs(time - lastProbeTime) * 720 >= reflectionRefreshGameMinutes)
+        {
+            lastProbeTime = time;
+            skyProbe.RenderProbe();
+        }
     }
     private void OnDestroy()
     {
@@ -88,6 +139,8 @@ public sealed class TimeOfDayVisualController : MonoBehaviour
         RenderSettings.ambientSkyColor = originalSkyAmbient;
         RenderSettings.ambientEquatorColor = originalEquator;
         RenderSettings.ambientGroundColor = originalGround;
+        RenderSettings.fog = originalFog; RenderSettings.fogMode = originalFogMode; RenderSettings.fogColor = originalFogColor;
+        RenderSettings.fogStartDistance = originalFogStart; RenderSettings.fogEndDistance = originalFogEnd;
         if (sun != null) { sun.color=originalSunColor; sun.intensity=originalIntensity; sun.transform.rotation=originalSunRotation; }
         Destroy(runtimeSky);
     }

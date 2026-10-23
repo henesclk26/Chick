@@ -43,6 +43,7 @@ public sealed class ChickEatingController : MonoBehaviour
     private float impactNormalizedTime = 21f / 80f;
     private float recoveryNormalizedTime = 30f / 80f;
     private float bufferedEatUntil = float.NegativeInfinity;
+    private GrowthProgressController growth;
     private float formReachScale = 1f;
     // "Toplama Menzili" level; widens horizontal reach only, never the vertical contact limit.
     private float upgradeReachScale = 1f;
@@ -71,6 +72,7 @@ public sealed class ChickEatingController : MonoBehaviour
     {
         if (!isActiveAndEnabled || !player.isActiveAndEnabled) return false;
         bool pressed = EatPressedThisFrame;
+        if (growth != null && growth.EggReady) { bufferedEatUntil = float.NegativeInfinity; return false; }
         if (IsBusy)
         {
             if (pressed && phase == EatPhase.Recovering && animator.IsInTransition(0))
@@ -104,6 +106,7 @@ public sealed class ChickEatingController : MonoBehaviour
         baseForwardOffset = eatForwardOffset;
         baseAssistDistance = maxContactAssistDistance;
         if (upgrades == null) upgrades = FindFirstObjectByType<PlayerUpgrades>(FindObjectsInactive.Include);
+        growth = FindFirstObjectByType<GrowthProgressController>(FindObjectsInactive.Include);
         ReadAnimationTiming();
     }
 
