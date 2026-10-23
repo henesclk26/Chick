@@ -27,6 +27,14 @@ Material:
         m_Texture: {fileID: 18700000, guid: 48a8a419a4440ce42aa0a03b4c8a451e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _CloseDetail:
+        m_Texture: {fileID: 2800000, guid: a4b92075e058ac1428870590a9f2f2c7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CloseDetailNormal:
+        m_Texture: {fileID: 2800000, guid: d25fae6094d7b1d41990631151fcd3bb, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _Control:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -81,6 +89,12 @@ Material:
     - _BlendSoften: 0
     - _CavityStrength: 0.7
     - _CtrlRes: 1024
+    - _DetailDistance: 5
+    - _DetailEarth: 0.45
+    - _DetailGrass: 0.2
+    - _DetailNormal: 0.45
+    - _DetailSize: 0.6
+    - _GrassSaturation: 0.92
     - _HeightTransition: 0.16
     - _LayerCount: 20
     - _MacroBrightness: 0.07
@@ -95,6 +109,7 @@ Material:
     - _RichHeightTransition: 0.9
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _GrassTint: {r: 0.95, g: 0.99, b: 1.02, a: 1}
     - _MacroLushColor: {r: 0.78, g: 0.9, b: 0.78, a: 1}
     - _MacroWarmColor: {r: 1.14, g: 1.07, b: 0.74, a: 1}
   m_BuildTextureStacks: []

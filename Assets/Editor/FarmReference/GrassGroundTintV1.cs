@@ -10,7 +10,8 @@ namespace FarmReferenceTools
     // Editor-only, explicit application. Lets the grass (Chick_Grass_Green, Chick_Grass_Dry) take the colour of the ground
     // under it, blade by blade: green over grass, golden over earth, so a clump on the edge of a path turns from one to the other.
     //  - bakes a top-down map of the farm terrain (Assets/Art/Grass/GroundTint.png): rgb = the grass colour of the ground
-    //    (the grass layers' mean colours by weight, with the terrain shader's macro variation), a = its earth share;
+    //    (the grass layers' mean colours by weight, with the terrain shader's macro variation and grass grade), a = its
+    //    earth share;
     //  - puts GroundTintGlobals on the terrain, which hands the map and the golden colour to the shader;
     //  - turns on _GROUND_TINT on both grass materials.
     // Re-run after repainting the ground. "Remove Grass Ground Tint" turns it off again.
@@ -61,6 +62,9 @@ namespace FarmReferenceTools
             bool macroOn = tmat != null && tmat.HasProperty("_MacroTex") && tmat.GetTexture("_MacroTex") != null;
             Color[] macro = null; int mw = 0, mh = 0;
             if (macroOn) { var mt = tmat.GetTexture("_MacroTex"); macro = ReadLinear(mt, mt.width, mt.height); mw = mt.width; mh = mt.height; }
+            bool gradeOn = tmat != null && tmat.HasProperty("_GrassSaturation") && tmat.HasProperty("_GrassTint");
+            float grassSaturation = gradeOn ? tmat.GetFloat("_GrassSaturation") : 1f;
+            Color grassTint = gradeOn ? tmat.GetColor("_GrassTint").linear : Color.white;
 
             Vector3 tp = terrain.transform.position, size = data.size;
             // rgb: the grass colour of the ground (grass layers only; over bare earth the green of the grass around it,
@@ -100,6 +104,14 @@ namespace FarmReferenceTools
                         var warm = tmat.GetColor("_MacroWarmColor").linear; var lush = tmat.GetColor("_MacroLushColor").linear;
                         c = Color.Lerp(c, c*warm, SmoothStep(.54f, .70f, patch)*tmat.GetFloat("_MacroWarm"));
                         c = Color.Lerp(c, c*lush, SmoothStep(.46f, .30f, patch)*tmat.GetFloat("_MacroLush"));
+                    }
+                    if (gradeOn)
+                    {
+                        // the terrain shader's grass grade (saturation and tint of the green layers), so the blades
+                        // keep the colour of the meadow they stand in
+                        float lum = c.r*.3f + c.g*.59f + c.b*.11f;
+                        c = Color.Lerp(new Color(lum, lum, lum), c, grassSaturation);
+                        c = new Color(Mathf.Max(c.r, 0)*grassTint.r, Mathf.Max(c.g, 0)*grassTint.g, Mathf.Max(c.b, 0)*grassTint.b);
                     }
                     var gc = c.gamma;                   // rgb stored as sRGB, read back as linear by the shader
                     px[i] = new Color(gc.r, gc.g, gc.b, Mathf.Clamp01(earthShare[i]));

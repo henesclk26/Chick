@@ -16,6 +16,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: b83da108c23247e40b268ea664dfb247, type: 2}
+    - target: {fileID: 2182787996605776203, guid: 9a32147e38101fd48876749fd208348d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3610065709873551529, guid: 9a32147e38101fd48876749fd208348d, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -59,6 +63,38 @@ PrefabInstance:
     - target: {fileID: 6404268809379339476, guid: 9a32147e38101fd48876749fd208348d, type: 3}
       propertyPath: m_Name
       value: Chick_Grass_Green
+      objectReference: {fileID: 0}
+    - target: {fileID: 7133162433717654182, guid: 9a32147e38101fd48876749fd208348d, type: 3}
+      propertyPath: m_Size
+      value: 1.9038646
+      objectReference: {fileID: 0}
+    - target: {fileID: 7133162433717654182, guid: 9a32147e38101fd48876749fd208348d, type: 3}
+      propertyPath: m_LODs.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7133162433717654182, guid: 9a32147e38101fd48876749fd208348d, type: 3}
+      propertyPath: m_LocalReferencePoint.x
+      value: 0.040095627
+      objectReference: {fileID: 0}
+    - target: {fileID: 7133162433717654182, guid: 9a32147e38101fd48876749fd208348d, type: 3}
+      propertyPath: m_LocalReferencePoint.y
+      value: 0.34658533
+      objectReference: {fileID: 0}
+    - target: {fileID: 7133162433717654182, guid: 9a32147e38101fd48876749fd208348d, type: 3}
+      propertyPath: m_LocalReferencePoint.z
+      value: 0.03161609
+      objectReference: {fileID: 0}
+    - target: {fileID: 7133162433717654182, guid: 9a32147e38101fd48876749fd208348d, type: 3}
+      propertyPath: m_LODs.Array.data[0].screenRelativeHeight
+      value: 0.137
+      objectReference: {fileID: 0}
+    - target: {fileID: 7133162433717654182, guid: 9a32147e38101fd48876749fd208348d, type: 3}
+      propertyPath: m_LODs.Array.data[1].screenRelativeHeight
+      value: 0.069
+      objectReference: {fileID: 0}
+    - target: {fileID: 8590474362531187949, guid: 9a32147e38101fd48876749fd208348d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8590474362533384751, guid: 9a32147e38101fd48876749fd208348d, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'

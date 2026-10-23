@@ -34,6 +34,15 @@ float4 _MacroWarmColor;
 float _BlendSoften;
 float _BlendDarken;
 float4 _MacroLushColor;
+float _GrassSaturation;
+float4 _GrassTint;
+TEXTURE2D(_CloseDetail); SAMPLER(sampler_CloseDetail);
+TEXTURE2D(_CloseDetailNormal);
+float _DetailSize;
+float _DetailEarth;
+float _DetailGrass;
+float _DetailNormal;
+float _DetailDistance;
 
 struct RichSurface
 {
@@ -43,7 +52,8 @@ struct RichSurface
     half smoothness;
 };
 
-RichSurface ComputeRichSurface(float2 uv, float3 positionWS)
+// detailFade: 1 right in front of the camera, 0 from _DetailDistance on (and in passes that have no camera distance)
+RichSurface ComputeRichSurface(float2 uv, float3 positionWS, float detailFade)
 {
     // all twenty weights
     float2 ctrlUV = (uv*(_CtrlRes - 1.0) + 0.5)/_CtrlRes;
@@ -111,6 +121,20 @@ RichSurface ComputeRichSurface(float2 uv, float3 positionWS)
         albedoMix += albedo[k3]*f; n += nrm[k3]*f; m += mask[k3]*f; earthShare += isEarth[k3]*f;
     }
 
+    // the painted layers are smooth, and right in front of the camera they are magnified into a smear: a small
+    // world-space close-up detail (GroundCloseDetailV1: crumbs on earth, brush strokes on grass) is laid over the
+    // first metres only, by the earth share, around 0.5 so the ground keeps its colour
+    [branch] if (detailFade > 0.001)
+    {
+        float2 duv = positionWS.xz/max(_DetailSize, 0.01);
+        half4 dc = SAMPLE_TEXTURE2D(_CloseDetail, sampler_CloseDetail, duv);
+        half4 dnm = SAMPLE_TEXTURE2D(_CloseDetailNormal, sampler_CloseDetail, duv)*2.0 - 1.0;
+        half amount = lerp(_DetailGrass, _DetailEarth, earthShare)*detailFade;
+        half tone = lerp(dc.g, dc.r, earthShare)*2.0;
+        albedoMix *= lerp(1.0, tone, amount);
+        n.xy += lerp(dnm.ba, dnm.rg, earthShare)*_DetailNormal*amount;
+    }
+
     // where grass and earth mix, a calmer, darker olive instead of the bright yellow a plain mix of green and orange gives
     float between = saturate(4.0*earthShare*(1.0 - earthShare));
     half grey = dot(albedoMix, half3(0.3, 0.59, 0.11));
@@ -133,6 +157,12 @@ RichSurface ComputeRichSurface(float2 uv, float3 positionWS)
     o.albedo *= 1.0 + (m1 - 0.5)*2.0*_MacroBrightness + (m3 - 0.5)*2.0*_MacroFine;
     o.albedo = lerp(o.albedo, o.albedo*_MacroWarmColor.rgb, smoothstep(0.54, 0.70, patch)*_MacroWarm);
     o.albedo = lerp(o.albedo, o.albedo*_MacroLushColor.rgb, smoothstep(0.46, 0.30, patch)*_MacroLush);
+
+    // the grass grade: the green layers (not the earth) can be calmed and turned, so a strong midday sun does not
+    // push the meadow to lime
+    half lum = dot(o.albedo, half3(0.3, 0.59, 0.11));
+    half3 graded = max(lerp(lum.xxx, o.albedo, _GrassSaturation), 0)*_GrassTint.rgb;
+    o.albedo = lerp(o.albedo, graded, 1.0 - earthShare);
     return o;
 }
 
@@ -149,7 +179,9 @@ void RichFragment(
 #ifdef _ALPHATEST_ON
     ClipHoles(IN.uvMainAndLM.xy);
 #endif
-    RichSurface s = ComputeRichSurface(IN.uvMainAndLM.xy, IN.positionWS);
+    float detailFade = saturate(1.0 - distance(IN.positionWS, GetCameraPositionWS())/max(_DetailDistance, 0.01));
+    detailFade *= detailFade;
+    RichSurface s = ComputeRichSurface(IN.uvMainAndLM.xy, IN.positionWS, detailFade);
 
     InputData inputData;
     InitializeInputData(IN, s.normalTS, inputData);
@@ -186,7 +218,7 @@ void RichDepthNormalsFragment(
 #ifdef _ALPHATEST_ON
     ClipHoles(IN.uvMainAndLM.xy);
 #endif
-    RichSurface s = ComputeRichSurface(IN.uvMainAndLM.xy, float3(0, 0, 0));
+    RichSurface s = ComputeRichSurface(IN.uvMainAndLM.xy, float3(0, 0, 0), 0.0);
     half3 normalWS = TransformTangentToWorld(s.normalTS, half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
     outNormalWS = half4(NormalizeNormalPerPixel(normalWS), 0.0);
 #ifdef _WRITE_RENDERING_LAYERS

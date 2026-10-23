@@ -32,6 +32,7 @@ public sealed class ChickDrinkingController : MonoBehaviour
     private bool enteredEat;
     private FarmWaterBody pond;
     private Vector3 sipPoint;
+    private bool dipSplash;   // the beak has just touched the water: ring and splash at it after this frame's lean
     private Animator boundAnimator;
     private Transform chest, neck, head;
     private float tilt;
@@ -89,6 +90,7 @@ public sealed class ChickDrinkingController : MonoBehaviour
     public void Cancel()
     {
         phase = Phase.Ready;
+        dipSplash = false;
         tilt = 0f;
         reach = 0f;
     }
@@ -128,11 +130,9 @@ public sealed class ChickDrinkingController : MonoBehaviour
                 {
                     // Beak touches the water: hold the pose while it scoops.
                     animator.SetFloat(EatSpeed, .04f);
-                    if (pond != null)
-                    {
-                        pond.Ripple(sipPoint, 1f);
-                        pond.Splash(sipPoint, 3, .35f, scale);
-                    }
+                    // The ring and splash go where the beak breaks the surface, once this frame's lean has put it
+                    // there (LateUpdate), not at the spot probed before the dip, which can lie ahead of the head.
+                    dipSplash = pond != null;
                     phase = Phase.Scoop;
                     phaseTime = 0f;
                 }
@@ -142,7 +142,7 @@ public sealed class ChickDrinkingController : MonoBehaviour
                 if (phaseTime >= scoopSeconds)
                 {
                     animator.SetFloat(EatSpeed, dipSpeed);
-                    if (pond != null) pond.Ripple(sipPoint, .45f);
+                    if (pond != null) pond.Ripple(BeakOnSurface(), .45f);   // the beak is still where the scoop held it
                     phase = Phase.Rise;
                     phaseTime = 0f;
                     riseTime = 0f;
@@ -182,9 +182,9 @@ public sealed class ChickDrinkingController : MonoBehaviour
     private void LateUpdate()
     {
         tilt = phase == Phase.Swallow ? SwallowCurve(phaseTime / swallowSeconds) : 0f;
-        if (tilt <= .0001f && reach <= .0001f) return;
+        if (tilt <= .0001f && reach <= .0001f) { SplashAtBeak(); return; }
         BindRig();
-        if (neck == null || head == null) return;
+        if (neck == null || head == null) { SplashAtBeak(); return; }
         Vector3 axis = transform.right;
         var beak = eater.BeakEatPoint;
         if (reach > .0001f && chest != null && beak != null && pond != null)
@@ -201,12 +201,24 @@ public sealed class ChickDrinkingController : MonoBehaviour
                 chest.rotation = Quaternion.AngleAxis(lean, axis) * chest.rotation;
             }
         }
+        SplashAtBeak();
         if (tilt <= .0001f) return;
         // Mostly the neck lifts; a large share on the head alone bent it back like a broken neck.
         float angle = swallowTilt * tilt;
         if (chest != null) chest.rotation = Quaternion.AngleAxis(-angle * .15f, axis) * chest.rotation;
         neck.rotation = Quaternion.AngleAxis(-angle * .4f, axis) * neck.rotation;
         head.rotation = Quaternion.AngleAxis(-angle * .1f, axis) * head.rotation;
+    }
+
+    // The ring and splash of a beak touching the water, at the beak as posed this frame.
+    private void SplashAtBeak()
+    {
+        if (!dipSplash) return;
+        dipSplash = false;
+        if (pond == null) return;
+        sipPoint = BeakOnSurface();
+        pond.Ripple(sipPoint, 1f);
+        pond.Splash(sipPoint, 3, .35f, BodyScale);
     }
 
     private float RiseReach() => 1f - Mathf.SmoothStep(0f, 1f, riseTime / RiseFadeSeconds);
@@ -220,6 +232,14 @@ public sealed class ChickDrinkingController : MonoBehaviour
         float gulp = Mathf.InverseLerp(.28f, .68f, t);
         float bob = gulp > 0f && gulp < 1f ? .12f * Mathf.Sin(gulp * Mathf.PI * 4f) : 0f;
         return Mathf.Clamp01(up * down - bob * up * down);
+    }
+
+    // The beak tip straight down (or up) on the water surface.
+    private Vector3 BeakOnSurface()
+    {
+        if (head == null && eater.BeakEatPoint == null) return sipPoint;
+        Vector3 tip = BeakTip();
+        return new Vector3(tip.x, pond.SurfaceHeight + .002f, tip.z);
     }
 
     private Vector3 BeakTip()

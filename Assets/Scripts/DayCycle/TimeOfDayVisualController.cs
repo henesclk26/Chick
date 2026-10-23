@@ -9,7 +9,7 @@ public sealed class TimeOfDayVisualController : MonoBehaviour
     [SerializeField] private Gradient sunColor = MakeGradient(new Color(1,.79f,.55f), new Color(1,.98f,.9f), new Color(1,.88f,.68f), new Color(1,.62f,.36f), new Color(.8f,.72f,.78f));
     [SerializeField] private Gradient skyColor = MakeGradient(new Color(.24f,.51f,.78f), new Color(.16f,.48f,.83f), new Color(.24f,.5f,.78f), new Color(.34f,.43f,.65f), new Color(.21f,.28f,.45f));
     [SerializeField] private Gradient horizonColor = MakeGradient(new Color(1,.78f,.57f), new Color(.72f,.87f,.98f), new Color(.9f,.85f,.71f), new Color(1,.59f,.37f), new Color(.64f,.48f,.56f));
-    [SerializeField] private AnimationCurve sunIntensity = new AnimationCurve(new Keyframe(0,1.05f), new Keyframe(.42f,1.8f),new Keyframe(.75f,1.35f),new Keyframe(.92f,.8f),new Keyframe(1,.45f));
+    [SerializeField] private AnimationCurve sunIntensity = new AnimationCurve(new Keyframe(0,1.25f), new Keyframe(.42f,1.6f),new Keyframe(.75f,1.45f),new Keyframe(.92f,1.1f),new Keyframe(1,.8f));
     [SerializeField] private AnimationCurve sunElevation = new AnimationCurve(new Keyframe(0,18),new Keyframe(.42f,65),new Keyframe(.75f,34),new Keyframe(1,7));
 
     // Stylized sky (Farm/Stylized Sky): sun disk, sun-aware glow and lit cumulus. Untick to use skyTemplate again.
@@ -33,6 +33,11 @@ public sealed class TimeOfDayVisualController : MonoBehaviour
     [SerializeField, Range(1, 60)] private float reflectionRefreshGameMinutes = 10;
     // Drifts the sun's cloud-shadow cookie; direction follows the sky clouds' drift.
     [SerializeField] private Vector2 cloudShadowWind = new Vector2(1.5f, .5f);
+    // Shadowed sides take the sky from above and the grass and earth bounce from below; the bounce is warm green-brown
+    // so shade stays part of the meadow instead of turning grey. The boost lifts all of it as the sun drops.
+    [Header("Ambient")]
+    [SerializeField] private Color groundBounce = new Color(.36f, .35f, .22f);
+    [SerializeField] private AnimationCurve ambientBoost = new AnimationCurve(new Keyframe(0, 1.15f), new Keyframe(.42f, 1f), new Keyframe(.75f, 1.05f), new Keyframe(.92f, 1.3f), new Keyframe(1, 1.4f));
     private UniversalAdditionalLightData sunData;
     private static readonly float[] DayKeys = { 0, .21f, .42f, .75f, .92f, 1 };
     private ReflectionProbe skyProbe;
@@ -121,9 +126,10 @@ public sealed class TimeOfDayVisualController : MonoBehaviour
             runtimeSky.SetFloat("_MoonIntensity", moonIntensity.Evaluate(time));
             runtimeSky.SetVector("_MoonDirection", opposite + Vector3.up * .35f);   // rises opposite the setting sun
         }
-        RenderSettings.ambientSkyColor = skyColor.Evaluate(time) * .8f;
-        RenderSettings.ambientEquatorColor = Color.Lerp(horizonColor.Evaluate(time),Color.white,.35f) * .55f;
-        RenderSettings.ambientGroundColor = new Color(.24f,.23f,.26f);
+        float boost = ambientBoost.Evaluate(time);
+        RenderSettings.ambientSkyColor = skyColor.Evaluate(time) * .8f * boost;
+        RenderSettings.ambientEquatorColor = Color.Lerp(horizonColor.Evaluate(time),Color.white,.35f) * .55f * boost;
+        RenderSettings.ambientGroundColor = groundBounce * boost;
         // The 07:00-19:00 day is 720 game minutes.
         if (lastProbeTime < 0 || Mathf.Abs(time - lastProbeTime) * 720 >= reflectionRefreshGameMinutes)
         {

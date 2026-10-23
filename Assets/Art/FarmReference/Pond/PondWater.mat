@@ -27,19 +27,22 @@ Material:
     m_Floats:
     - _Absorption: 0.3
     - _Clarity: 0.7
-    - _ColorDepth: 0.065
-    - _EdgeFade: 0.004
-    - _FoamWidth: 0.006
+    - _ColorDepth: 0.12
+    - _EdgeFade: 0.025
+    - _FoamAmount: 0.7
+    - _FoamReach: 0.035
+    - _FoamScale: 13
+    - _FoamWidth: 0.02
     - _Glint: 1.6
-    - _Opacity: 0.72
-    - _Reflection: 0.55
+    - _Opacity: 0.65
+    - _Reflection: 0.3
     - _Refraction: 0.02
     - _RippleStrength: 1
     - _WaveScale: 2.6
     - _WaveSpeed: 0.22
     - _WaveStrength: 0.4
     m_Colors:
-    - _DeepColor: {r: 0.11, g: 0.33, b: 0.34, a: 1}
+    - _DeepColor: {r: 0.16, g: 0.42, b: 0.4, a: 1}
     - _FoamColor: {r: 0.94, g: 0.98, b: 0.96, a: 1}
     - _ShallowColor: {r: 0.78, g: 0.93, b: 0.86, a: 1}
   m_BuildTextureStacks: []

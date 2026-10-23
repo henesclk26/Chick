@@ -35,6 +35,17 @@ Shader "Chick/Terrain Rich"
         _MacroWarmColor("Sunny Tint", Color) = (1.14, 1.07, 0.74, 1)
         _MacroLushColor("Lush Tint", Color) = (0.78, 0.9, 0.78, 1)
 
+        _GrassSaturation("Grass Saturation", Range(0, 1.5)) = 1
+        _GrassTint("Grass Tint", Color) = (1, 1, 1, 1)
+
+        [NoScaleOffset] _CloseDetail("Close-up Detail (R earth, G grass; 0.5 = none)", 2D) = "grey" {}
+        [NoScaleOffset] _CloseDetailNormal("Close-up Detail Relief (RG earth, BA grass)", 2D) = "grey" {}
+        _DetailSize("Close-up Detail Tile (m)", Float) = 0.6
+        _DetailEarth("Close-up Detail on Earth", Range(0, 1.5)) = 1
+        _DetailGrass("Close-up Detail on Grass", Range(0, 1.5)) = 0.6
+        _DetailNormal("Close-up Detail Relief", Range(0, 2)) = 1
+        _DetailDistance("Close-up Detail Distance (m)", Float) = 8
+
         // set by the terrain engine
         [HideInInspector] _Control("Control (RGBA)", 2D) = "red" {}
         [HideInInspector] _MainTex("BaseMap (RGB)", 2D) = "grey" {}
