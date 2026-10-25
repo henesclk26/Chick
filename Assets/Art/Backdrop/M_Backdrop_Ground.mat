@@ -1,0 +1,96 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: M_Backdrop_Ground
+  m_Shader: {fileID: 4800000, guid: 58cc4c392930a1847a20392e65cbc8f0, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - _USETEXTURE_ON
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _AlbedoArray:
+        m_Texture: {fileID: 18700000, guid: 48a8a419a4440ce42aa0a03b4c8a451e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CloseDetail:
+        m_Texture: {fileID: 2800000, guid: a4b92075e058ac1428870590a9f2f2c7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CloseDetailNormal:
+        m_Texture: {fileID: 2800000, guid: d25fae6094d7b1d41990631151fcd3bb, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _LayerData:
+        m_Texture: {fileID: 2800000, guid: cdaa8f51e3657df408570915fc15a44f, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MacroTex:
+        m_Texture: {fileID: 2800000, guid: 1ffa725842a872c499eb38d351bc36f5, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: dab39f7473dbdd144a740ac92ae01734, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskArray:
+        m_Texture: {fileID: 18700000, guid: 38011327e3a189649b1d122d24985b5b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalArray:
+        m_Texture: {fileID: 18700000, guid: 00319a29997db6e4e89d6aa51c76e4ff, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _BlendDarken: 0
+    - _BlendSoften: 0
+    - _CavityStrength: 0.7
+    - _Debug: 0
+    - _DetailDistance: 5
+    - _DetailEarth: 0.45
+    - _DetailGrass: 0.2
+    - _DetailNormal: 0.45
+    - _DetailSize: 0.6
+    - _GrassSaturation: 0.92
+    - _HazeEnd: 1
+    - _HazeMax: 0.55
+    - _HazeStart: 0.35
+    - _MacroBrightness: 0.07
+    - _MacroFine: 0.05
+    - _MacroLush: 0.15
+    - _MacroScaleFine: 5
+    - _MacroScaleLarge: 70
+    - _MacroScaleMedium: 22
+    - _MacroWarm: 0.18
+    - _NormalStrength: 1.3
+    - _OcclusionStrength: 0.8
+    - _RichHeightTransition: 0.9
+    - _TileSize: 5
+    - _UseTexture: 1
+    - _Wrap: 0.35
+    m_Colors:
+    - _GrassTint: {r: 0.95, g: 0.98999995, b: 1.02, a: 1}
+    - _LayerIds: {r: 0, g: 1, b: 2, a: 3}
+    - _LayerIds2: {r: 4, g: 5, b: 6, a: 7}
+    - _MacroLushColor: {r: 0.78, g: 0.9, b: 0.78, a: 1}
+    - _MacroWarmColor: {r: 1.14, g: 1.07, b: 0.74, a: 1}
+    - _MapRect: {r: 0, g: 0, b: 1, a: 1}
+    - _Reach: {r: 35, g: 90, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

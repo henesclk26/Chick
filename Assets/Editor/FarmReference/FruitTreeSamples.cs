@@ -21,6 +21,13 @@ public sealed class FruitTreeSamples : AssetPostprocessor
     private const string TextureFolder = Folder + "Textures/";
     private const string PrefabFolder = Folder + "Prefabs/";
     private static readonly string[] Trees = { "AppleTree", "OrangeTree", "CherryTree", "PearTree" };
+    // Trees without fruit from build_fruit_trees.py (the first designs and the newer designs): sample trees only, no FruitTree.
+    internal static readonly string[] PlainTrees =
+    {
+        "OldAppleTree", "OldCherryTree", "OldPearTree",                                    // --old-fruitless
+        "BlossomTree", "AutumnTree", "OliveTree", "GoldenTree", "LushTree", "CrimsonTree",  // --new-designs
+        "PineTree", "TallPineTree", "BushyPineTree",                                       // --new-designs (pines)
+    };
     // "Stylized Tree" by yonimantz (Sketchfab, CC-BY-4.0), made to match by ArtSource/FruitTrees/build_oak_tree.py.
     private const string Oak = "OakTree";
     private const string OakTrunkMaterialPath = Folder + "M_OakTree_Trunk.mat";
@@ -49,7 +56,7 @@ public sealed class FruitTreeSamples : AssetPostprocessor
             if (!assetPath.StartsWith(Folder, StringComparison.OrdinalIgnoreCase) ||
                 !assetPath.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase)) return null;
             string name = Path.GetFileNameWithoutExtension(assetPath);
-            return Array.IndexOf(Trees, name) >= 0 || name == Oak ? name : null;
+            return Array.IndexOf(Trees, name) >= 0 || Array.IndexOf(PlainTrees, name) >= 0 || name == Oak ? name : null;
         }
     }
 
@@ -89,6 +96,26 @@ public sealed class FruitTreeSamples : AssetPostprocessor
         }
         context.DependsOnArtifact(TrunkMaterialPath);
         context.DependsOnArtifact(LeafMaterialPath(tree));
+        if (Array.IndexOf(PlainTrees, tree) >= 0)
+        {
+            // Bark and leaves only: no fruit, nothing to ripen or fall.
+            var oldTrunk = AssetDatabase.LoadAssetAtPath<Material>(TrunkMaterialPath);
+            var oldLeaves = AssetDatabase.LoadAssetAtPath<Material>(LeafMaterialPath(tree));
+            if (oldTrunk == null || oldLeaves == null)
+            {
+                context.LogImportWarning("Tree materials missing; run Tools/Chick/Trees/Place Extra Sample Trees On Plane.");
+                return;
+            }
+            foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
+            {
+                Mesh oldMesh = renderer.GetComponent<MeshFilter>() is MeshFilter f ? f.sharedMesh : null;
+                if (oldMesh == null) continue;
+                var oldMaterials = new Material[oldMesh.subMeshCount];
+                for (int s = 0; s < oldMesh.subMeshCount; s++) oldMaterials[s] = IsBark(oldMesh, s) ? oldTrunk : oldLeaves;
+                renderer.sharedMaterials = oldMaterials;
+            }
+            return;
+        }
         string fruitPath = tree == "PearTree" ? PearMaterialPath : FruitMaterialPath;
         context.DependsOnArtifact(fruitPath);
         var trunk = AssetDatabase.LoadAssetAtPath<Material>(TrunkMaterialPath);
@@ -349,8 +376,9 @@ public sealed class FruitTreeSamples : AssetPostprocessor
         oakTrunk.SetFloat("_AlphaClip", 0f);
         oakTrunk.SetFloat("_Cull", 2f);
         Finish(oakTrunk);
-        foreach (string tree in Trees.Append(Oak))
+        foreach (string tree in Trees.Concat(PlainTrees).Append(Oak))
         {
+            if (AssetDatabase.LoadAssetAtPath<Texture2D>(LeafTexturePath(tree)) == null) continue;
             var leaves = LoadOrCreate(LeafMaterialPath(tree), lit);
             leaves.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(LeafTexturePath(tree)));
             leaves.SetColor("_BaseColor", Color.white);

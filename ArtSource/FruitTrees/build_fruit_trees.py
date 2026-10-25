@@ -1,8 +1,10 @@
-"""Builds the apple, orange and cherry trees: Lux Art Studios stylised trees (Assets/Tree Assets/Trees.blend) with the
-PolyOne Free Fruits hanging in their crowns.
+"""Builds the apple, orange, sour cherry and pear trees: all the same Lux Art Studios stylised tree (the orange tree,
+S_Tree_D from Assets/Tree Assets/Trees.blend) with PolyOne Free Fruits (or the pear made here) hanging in its crown.
 
 Run (Blender 5.x, background):
-    blender -b --factory-startup --python ArtSource/FruitTrees/build_fruit_trees.py -- <project root> <lux textures dir> [--export]
+    blender -b --factory-startup --python ArtSource/FruitTrees/build_fruit_trees.py -- <project root> <lux textures dir> [--export] [--old-fruitless]
+(--old-fruitless builds OLD_FRUITLESS instead: the first designs without fruit, as Old*Tree, into FruitTreesOldFruitless.blend;
+ --new-designs builds NEW_DESIGNS: more trees in the same style and new colours, into NewTreeDesigns.blend.)
 
 <lux textures dir> holds the source PNGs pulled out of the Unreal kit (T_Trunk_D.png, T_Leaf_*.png).
 
@@ -36,18 +38,58 @@ FRUIT_MAX_TRIANGLES = 260
 FRUITS = os.path.join(PROJECT, "Assets", "PolyOne", "Free Fruits")
 os.makedirs(TEXTURES, exist_ok=True)
 
+# Every fruit tree is the same tree: the orange tree's crown (S_Tree_D) with its oval leaves in its deep green; only the
+# fruit differs.
+SAME_TREE = dict(tree="S_Tree_D", leaf="T_Leaf_4", dark=(0.09, 0.28, 0.11), light=(0.27, 0.50, 0.19))
 SPECS = [
-    # name, source tree, leaf mask, leaf dark, leaf light (sRGB), fruit model, fruit height (m), count, seed
-    dict(name="AppleTree", tree="S_Tree_G", leaf="T_Leaf_4", dark=(0.20, 0.42, 0.13), light=(0.50, 0.72, 0.25),
-         fruit="SM_Fruits_Apple_R1", height=0.22, count=24, seed=11),
-    dict(name="OrangeTree", tree="S_Tree_D", leaf="T_Leaf_4", dark=(0.09, 0.28, 0.11), light=(0.27, 0.50, 0.19),
-         fruit="SM_Fruits_Orange_1", height=0.24, count=20, seed=23),
-    dict(name="CherryTree", tree="S_Tree_C", leaf="T_Leaf_2", dark=(0.24, 0.46, 0.14), light=(0.58, 0.77, 0.30),
-         fruit="SM_Fruits_Cherries_2", height=0.24, count=30, seed=37),
-    # Pear: modelled here (make_pear), on a tall, rounded tree with oval leaves in a cooler green.
-    dict(name="PearTree", tree="S_Tree_H", leaf="T_Leaf_4", dark=(0.15, 0.36, 0.15), light=(0.44, 0.65, 0.27),
-         fruit="Pear", height=0.20, count=22, seed=41),
+    # name, fruit model, fruit height (m), count, seed (+ the shared tree: source tree, leaf mask, leaf dark/light sRGB)
+    dict(name="AppleTree", fruit="SM_Fruits_Apple_R1", height=0.22, count=24, seed=11, **SAME_TREE),
+    dict(name="OrangeTree", fruit="SM_Fruits_Orange_1", height=0.24, count=20, seed=23, **SAME_TREE),
+    dict(name="CherryTree", fruit="SM_Fruits_Cherries_2", height=0.24, count=30, seed=37, **SAME_TREE),
+    # Pear: modelled here (make_pear).
+    dict(name="PearTree", fruit="Pear", height=0.20, count=22, seed=41, **SAME_TREE),
 ]
+# With --old-fruitless: the trees as they first were, each its own Lux tree in its own greens, without fruit (sample
+# trees on the test plane; the game's fruit trees above stay as they are).
+OLD_FRUITLESS = [
+    dict(name="OldAppleTree", tree="S_Tree_G", leaf="T_Leaf_4", dark=(0.20, 0.42, 0.13), light=(0.50, 0.72, 0.25),
+         fruit=None, height=0.22, count=0, seed=11),
+    dict(name="OldCherryTree", tree="S_Tree_C", leaf="T_Leaf_2", dark=(0.24, 0.46, 0.14), light=(0.58, 0.77, 0.30),
+         fruit=None, height=0.24, count=0, seed=37),
+    dict(name="OldPearTree", tree="S_Tree_H", leaf="T_Leaf_4", dark=(0.15, 0.36, 0.15), light=(0.44, 0.65, 0.27),
+         fruit=None, height=0.20, count=0, seed=41),
+]
+# With --new-designs: more trees in the same style, from the kit's other trees and leaf shapes, in new colours, without
+# fruit (height_m scales the kit's tree to that height).
+NEW_DESIGNS = [
+    dict(name="BlossomTree", tree="S_Tree_F", leaf="T_Leaf_1", dark=(0.72, 0.38, 0.52), light=(0.99, 0.84, 0.90),
+         fruit=None, height=0.2, count=0, seed=51, height_m=5.8),
+    dict(name="AutumnTree", tree="S_Tree_A", leaf="T_Leaf_3", dark=(0.55, 0.16, 0.06), light=(0.98, 0.62, 0.16),
+         fruit=None, height=0.2, count=0, seed=61, height_m=8.0),
+    dict(name="OliveTree", tree="S_Tree_B", leaf="T_Leaf_5", dark=(0.24, 0.32, 0.22), light=(0.62, 0.70, 0.52),
+         fruit=None, height=0.2, count=0, seed=71, height_m=6.5),
+    dict(name="GoldenTree", tree="S_Tree_E", leaf="T_Leaf_6", dark=(0.36, 0.46, 0.08), light=(0.92, 0.88, 0.30),
+         fruit=None, height=0.2, count=0, seed=81, height_m=7.2),
+    # Fuller crowns (dense: extra layers of leaf cards, see densify).
+    dict(name="LushTree", tree="S_Tree_J", leaf="T_Leaf_5", dark=(0.10, 0.30, 0.08), light=(0.42, 0.66, 0.20),
+         fruit=None, height=0.2, count=0, seed=91, height_m=6.8, dense=[(37, 0.86), (-23, 0.72)]),
+    dict(name="CrimsonTree", tree="S_Tree_I", leaf="T_Leaf_3", dark=(0.40, 0.06, 0.06), light=(0.88, 0.26, 0.16),
+         fruit=None, height=0.2, count=0, seed=101, height_m=7.0, dense=[(41, 0.86), (-19, 0.74)]),
+    # A pine: the kit has none, so it is built here (make_pine) and dressed like the others (spiky leaf mask as
+    # needles, deep pine greens, the same bark and tones).
+    # Pines stand on a bare trunk (clear_m) so their lowest branches stay off the ground; reach = crown width.
+    dict(name="PineTree", tree="PINE", leaf="T_Leaf_3", dark=(0.04, 0.17, 0.09), light=(0.20, 0.40, 0.16),
+         fruit=None, height=0.2, count=0, seed=111, height_m=12.5, clear_m=4.6, reach=0.30, whorls=15, dense=[(30, 0.9)]),
+    dict(name="TallPineTree", tree="PINE", leaf="T_Leaf_3", dark=(0.04, 0.16, 0.13), light=(0.17, 0.37, 0.30),
+         fruit=None, height=0.2, count=0, seed=121, height_m=14.0, clear_m=5.4, reach=0.24, whorls=16, dense=[(28, 0.9)]),
+    dict(name="BushyPineTree", tree="PINE", leaf="T_Leaf_3", dark=(0.06, 0.21, 0.08), light=(0.29, 0.50, 0.19),
+         fruit=None, height=0.2, count=0, seed=131, height_m=12.0, clear_m=4.2, reach=0.34, whorls=15, dense=[(33, 0.9), (-18, 0.78)]),
+]
+BLEND_NAME = "FruitTrees.blend"
+if "--old-fruitless" in ARGS:
+    SPECS, BLEND_NAME = OLD_FRUITLESS, "FruitTreesOldFruitless.blend"
+if "--new-designs" in ARGS:
+    SPECS, BLEND_NAME = NEW_DESIGNS, "NewTreeDesigns.blend"
 
 
 def srgb_to_linear(c):
@@ -196,6 +238,107 @@ def crown_centre(obj, trunk_index):
     me = obj.data
     pts = [me.vertices[v].co for p in me.polygons if p.material_index != trunk_index for v in p.vertices]
     return sum(pts, Vector()) / len(pts)
+
+
+def make_pine(spec, trunk_material_name="MI_Trunk"):
+    """A conical pine: a tapering trunk, whorls of slightly drooping branches that shorten towards the top, and on
+    each branch clusters of needle cards (two crossed quads), plus a tuft at the tip. Material 0 is the bark (UVs tile
+    well outside 0-1, as the Unity importer tells bark by), material 1 the needles (each card shows the whole leaf
+    mask, toned afterwards like the kit's trees). Origin at the foot of the trunk."""
+    rng = random.Random(spec["seed"])
+    H = spec["height_m"]
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new("UVMap")
+
+    def tube(a, b, r0, r1, sides, mat):
+        axis = (b - a).normalized()
+        ref = Vector((0, 0, 1)) if abs(axis.z) < 0.95 else Vector((1, 0, 0))
+        u = axis.cross(ref).normalized(); v = axis.cross(u)
+        length = (b - a).length
+        ring = lambda c, r: [bm.verts.new(c + (u * math.cos(2 * math.pi * i / sides) + v * math.sin(2 * math.pi * i / sides)) * r) for i in range(sides)]
+        ra, rb = ring(a, r0), ring(b, r1)
+        for i in range(sides):
+            f = bm.faces.new([ra[i], ra[(i + 1) % sides], rb[(i + 1) % sides], rb[i]])
+            f.material_index = mat
+            for loop, (s, t) in zip(f.loops, ((i, 0), (i + 1, 0), (i + 1, 1), (i, 1))):
+                loop[uv].uv = (1.5 + 2.0 * s / sides, 1.2 + length * t / 0.8)   # bark tiles, all outside 0-1
+        return axis
+
+    def card(centre, along, up, size):
+        """A needle card: the mask's foot at the branch, growing out along `along`, facing `up`."""
+        side = along.cross(up).normalized()
+        corners = [centre - side * size * 0.5, centre + side * size * 0.5,
+                   centre + side * size * 0.5 + along * size, centre - side * size * 0.5 + along * size]
+        f = bm.faces.new([bm.verts.new(c) for c in corners])
+        f.material_index = 1
+        for loop, st in zip(f.loops, ((0, 0), (1, 0), (1, 1), (0, 1))):
+            loop[uv].uv = st
+
+    # Trunk, leaning a touch.
+    lean = Vector((rng.uniform(-0.15, 0.15), rng.uniform(-0.15, 0.15), 0))
+    top = Vector((0, 0, H)) + lean
+    tube(Vector((0, 0, -0.1)), top, 0.026 * H + 0.02, 0.03, 10, 0)
+    trunk_at = lambda z: lean * (z / H) + Vector((0, 0, z))
+
+    first, last = spec.get("clear_m", 1.5), H - 0.55          # clear_m: bare trunk below the lowest branches
+    whorls = spec.get("whorls", 14)
+    max_reach = H * spec.get("reach", 0.33)
+    for w in range(whorls):
+        t = w / (whorls - 1)
+        z = first + (last - first) * t + rng.uniform(-0.12, 0.12)
+        reach = max_reach * (1 - t) ** 0.85 + 0.35
+        count = rng.randint(5, 7)
+        spin = rng.uniform(0, 2 * math.pi)
+        for k in range(count):
+            a = spin + 2 * math.pi * k / count + rng.uniform(-0.25, 0.25)
+            out = Vector((math.cos(a), math.sin(a), 0))
+            droop = -0.1 - (0.25 if spec.get("clear_m", 1.5) < 2 else 0.1) * (1 - t) + rng.uniform(-0.05, 0.05)
+            base = trunk_at(z)
+            tip = base + (out + Vector((0, 0, droop))).normalized() * reach
+            axis = tube(base, tip, 0.03 * (1 - t) + 0.012, 0.006, 4, 0)
+            # Needle clusters along the branch: two crossed cards each, bigger nearer the trunk.
+            n = 4 + int(reach > 1.2) + int(reach > 2.2)
+            for c in range(n):
+                f = (c + 0.6) / (n + 0.2)
+                p = base + (tip - base) * f
+                size = reach * (0.75 - 0.35 * f) + 0.25
+                card(p - axis * size * 0.35, axis, Vector((0, 0, 1)), size)
+                roll = Matrix.Rotation(rng.uniform(0.9, 1.3), 3, axis)
+                card(p - axis * size * 0.35, axis, roll @ Vector((0, 0, 1)), size * 0.9)
+                card(p - axis * size * 0.35, axis, roll.transposed() @ Vector((0, 0, 1)), size * 0.85)
+    # The tip: a tuft of upright cards.
+    for k in range(5):
+        a = 2 * math.pi * k / 5
+        up = Vector((math.cos(a), math.sin(a), 0))
+        card(trunk_at(last - 0.35), Vector((0.3 * math.cos(a + 1.5), 0.3 * math.sin(a + 1.5), 1)).normalized(), up, 1.3)
+
+    me = bpy.data.meshes.new(spec["name"])
+    bm.to_mesh(me); bm.free()
+    me.materials.append(bpy.data.materials.new(trunk_material_name))
+    me.materials.append(bpy.data.materials.new("MI_Leaf"))
+    obj = bpy.data.objects.new(spec["name"], me)
+    bpy.context.scene.collection.objects.link(obj)
+    return obj, 0
+
+
+def densify(obj, trunk_index, layers):
+    """A fuller crown: the leaf cards again, turned about the trunk and drawn in towards the crown's middle, once per
+    layer (degrees, scale), filling the gaps between the clusters. The copies keep their UVs, so they are toned like
+    the rest afterwards."""
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    leaf = [f for f in bm.faces if f.material_index != trunk_index]
+    pts = [v.co.copy() for f in leaf for v in f.verts]
+    centre = sum(pts, Vector()) / len(pts)
+    for angle, scale in layers:
+        ret = bmesh.ops.duplicate(bm, geom=leaf)
+        turn = Matrix.Rotation(math.radians(angle), 3, 'Z')
+        for v in (g for g in ret["geom"] if isinstance(g, bmesh.types.BMVert)):
+            d = turn @ (v.co - centre)
+            v.co = centre + Vector((d.x * scale, d.y * scale, d.z * (0.5 + 0.5 * scale)))
+    bm.to_mesh(obj.data)
+    bm.free()
+    obj.data.update()
 
 
 def assign_tones(obj, trunk_index, seed):
@@ -406,7 +549,7 @@ def place_fruits(obj, trunk_index, spec, centre):
 def main():
     for o in list(bpy.data.objects): bpy.data.objects.remove(o)
     with bpy.data.libraries.load(TREES_BLEND) as (src, dst):
-        dst.objects = [s["tree"] for s in SPECS]
+        dst.objects = list(dict.fromkeys(s["tree"] for s in SPECS if s["tree"] != "PINE"))
     source = type("Src", (), {"objects": {o.name: o for o in dst.objects}})
     save_trunk_texture()
     trunk = trunk_material()
@@ -414,12 +557,19 @@ def main():
     report = []
     built = []
     for spec in SPECS:
-        obj, trunk_index = copy_tree(source, spec)
+        obj, trunk_index = make_pine(spec) if spec["tree"] == "PINE" else copy_tree(source, spec)
+        if spec.get("height_m") and spec["tree"] != "PINE":
+            # The kit's trees come in very different sizes: bring this one to the wanted height (from its foot).
+            zs = [v.co.z for v in obj.data.vertices]
+            obj.data.transform(Matrix.Scale(spec["height_m"] / (max(zs) - min(zs)), 4))
+            obj.data.update()
+        if spec.get("dense"):
+            densify(obj, trunk_index, spec["dense"])
         leaves = leaf_material(spec, paint_leaf_texture(spec))
         obj.data.materials[0] = trunk
         obj.data.materials[1] = leaves
         # Fruits first: they look the leaves up in the cards' original UVs, which assign_tones then moves.
-        fobj, count = place_fruits(obj, trunk_index, spec, crown_centre(obj, trunk_index))
+        fobj, count = place_fruits(obj, trunk_index, spec, crown_centre(obj, trunk_index)) if spec["count"] > 0 else ([], 0)
         assign_tones(obj, trunk_index, spec["seed"])
         built.append((obj, fobj))
         dims = obj.dimensions
@@ -433,7 +583,7 @@ def main():
         obj.location.x = x + obj.dimensions.x / 2
         x += obj.dimensions.x + 1.5
     print("\n".join(report))
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(HERE, "FruitTrees.blend"))
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(HERE, BLEND_NAME))
 
 
 def export(built):

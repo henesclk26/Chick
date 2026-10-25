@@ -14,7 +14,9 @@ using UnityEngine;
 /// barrels and a water tub, a wall lantern, a sack stack and a wheelbarrow in the corners by the open doors, and in
 /// the side room a feeding trough, round bales, crates of produce, a pumpkin, grain bags and a barrel. Over the open
 /// front doors a hayloft (plank floor, joists, girder on two posts with knee braces, railing) with a ladder up to it
-/// and hay bales on it. The two wall torches burn: flame and ember particles and a flickering light (TorchFlame).
+/// and hay bales on it. The whole inside (hall and side room) gets a solid board floor painted like the inside walls
+/// (T_BarnFloor), the grass and pebbles
+/// that stood there are cleared, and every prop stands on the boards. The two wall torches burn: flame and ember particles and a flickering light (TorchFlame).
 /// The middle of the hall (the way in from the open doors) and the middle of the side room stay free for the chick.
 /// Positions are in the barn's own space (x: back doors -5.5 .. open front doors +5.5; z: long wall -3.15 .. side
 /// room's outer wall +6.3). Each prop is fitted by its actual mesh bounds: stood on the floor (the ground under it),
@@ -170,6 +172,9 @@ public static class BarnInteriorProps
         Physics.SyncTransforms();
 
         var barnColliders = barn.GetComponentsInChildren<Collider>(true).Where(c => !c.isTrigger && !c.transform.IsChildOf(group)).ToArray();
+        floorTop = float.NaN;
+        ClearInside(barn, report);
+        floorTop = LayFloor(barn, group, report);
         if (LoftParts.All(prefabs.ContainsKey)) BuildLoft(barn, group, prefabs, report);
         else report.Add("no loft: missing " + string.Join(", ", LoftParts.Where(p => !prefabs.ContainsKey(p))));
         Physics.SyncTransforms();
@@ -221,6 +226,191 @@ public static class BarnInteriorProps
         report.Insert(0, $"placed {placed.Count} of {Layout.Length} props in {barn.name} at {barn.position}");
         Survey(barn, report);
         Debug.Log("Barn interior: " + string.Join("; ", report) + ". Pictures in " + Path.GetFullPath(Out) + ". Save the scene to keep it.");
+    }
+
+    // The board floor: the hall (out to the open doorway) and the side room, barn space (x, z).
+    private static readonly Rect[] FloorAreas =
+    {
+        Rect.MinMaxRect(BackWallX - .02f, LongWallZ - .07f, FrontWallX + .12f, SideRoomZ),
+        Rect.MinMaxRect(BackWallX - .02f, SideRoomZ, FrontWallX + .02f, 6.42f),
+    };
+    private const string FloorMeshPath = FlameFolder + "/SM_BarnFloor.asset";
+    private const string FloorTexturePath = FlameFolder + "/T_BarnFloor.png";
+    private const string FloorMaterialPath = FlameFolder + "/M_BarnFloor.mat";
+    private const float FloorTile = 2.72f;   // metres per texture tile (8 boards of 0.34 m)
+    private static float floorTop = float.NaN;
+
+    // Ground cover standing inside the barn (grass tufts, pebbles, flowers) would poke through the boards: the loose
+    // ones go, ones inside a prefab are switched off; the terrain's own detail grass is cleared there too.
+    private static void ClearInside(Transform barn, List<string> report)
+    {
+        var gone = new HashSet<GameObject>();
+        foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+        {
+            if (r.transform.IsChildOf(barn) || r is ParticleSystemRenderer) continue;
+            string n = r.name.ToLowerInvariant();
+            if (n.Contains("rocking")) continue;
+            if (!(n.Contains("grass") || n.Contains("rock") || n.Contains("pebble") || n.Contains("flower") || n.Contains("weed") || n.Contains("mushroom"))) continue;
+            Bounds b = r.bounds;
+            Vector3 c = barn.InverseTransformPoint(b.center);
+            if (b.size.y > 1.5f || !FloorAreas.Any(a => a.Contains(new Vector2(c.x, c.z)))) continue;
+            LODGroup lod = r.GetComponentInParent<LODGroup>();
+            gone.Add(lod != null && !lod.transform.IsChildOf(barn) ? lod.gameObject : r.gameObject);
+        }
+        int removed = 0, hidden = 0;
+        foreach (GameObject go in gone)
+        {
+            if (go == null) continue;
+            if (PrefabUtility.IsPartOfPrefabInstance(go) && PrefabUtility.GetOutermostPrefabInstanceRoot(go) != go)
+            {
+                Undo.RecordObject(go, "Furnish barn interior");
+                go.SetActive(false);
+                hidden++;
+            }
+            else { Undo.DestroyObjectImmediate(go); removed++; }
+        }
+
+        int cells = 0;
+        foreach (Terrain terrain in Terrain.activeTerrains)
+        {
+            TerrainData data = terrain.terrainData;
+            if (data == null || data.detailPrototypes.Length == 0) continue;
+            Vector3 origin = terrain.transform.position, size = data.size;
+            foreach (Rect area in FloorAreas)
+            {
+                Vector3 a = barn.TransformPoint(new Vector3(area.xMin, 0f, area.yMin)), b = barn.TransformPoint(new Vector3(area.xMax, 0f, area.yMax));
+                int x0 = Mathf.FloorToInt((Mathf.Min(a.x, b.x) - origin.x) / size.x * data.detailWidth);
+                int x1 = Mathf.CeilToInt((Mathf.Max(a.x, b.x) - origin.x) / size.x * data.detailWidth);
+                int y0 = Mathf.FloorToInt((Mathf.Min(a.z, b.z) - origin.z) / size.z * data.detailHeight);
+                int y1 = Mathf.CeilToInt((Mathf.Max(a.z, b.z) - origin.z) / size.z * data.detailHeight);
+                x0 = Mathf.Clamp(x0, 0, data.detailWidth); x1 = Mathf.Clamp(x1, 0, data.detailWidth);
+                y0 = Mathf.Clamp(y0, 0, data.detailHeight); y1 = Mathf.Clamp(y1, 0, data.detailHeight);
+                if (x1 <= x0 || y1 <= y0) continue;
+                for (int layer = 0; layer < data.detailPrototypes.Length; layer++)
+                {
+                    int[,] map = data.GetDetailLayer(x0, y0, x1 - x0, y1 - y0, layer);
+                    int found = 0;
+                    foreach (int v in map) if (v > 0) found++;
+                    if (found == 0) continue;
+                    Undo.RegisterCompleteObjectUndo(data, "Furnish barn interior");
+                    data.SetDetailLayer(x0, y0, layer, new int[y1 - y0, x1 - x0]);
+                    cells += found;
+                }
+            }
+        }
+        Physics.SyncTransforms();
+        report.Add($"cleared inside: {removed} removed, {hidden} switched off, {cells} terrain grass cells");
+    }
+
+    // A solid board floor painted like the inside walls (T_BarnFloor, ArtSource/BarnFloor/make_floor_texture.py) over
+    // the whole inside, boards running along the barn, a touch above the highest ground under it so no grass shows:
+    // one flat mesh (an asset) with an edge down to the ground at the open doorway, and a box collider per area.
+    private static float LayFloor(Transform barn, Transform group, List<string> report)
+    {
+        Material material = FloorMaterial();
+        if (material == null) { report.Add("no floor: missing " + FloorTexturePath); return float.NaN; }
+
+        // Ground under the floor (terrain and anything else not part of the barn).
+        float high = float.NegativeInfinity, low = float.PositiveInfinity;
+        foreach (Rect area in FloorAreas)
+            for (float x = area.xMin + .1f; x < area.xMax; x += .5f)
+            for (float z = area.yMin + .1f; z < area.yMax; z += .5f)
+            {
+                Vector3 from = barn.TransformPoint(new Vector3(x, 2f, z));
+                foreach (RaycastHit hit in Physics.RaycastAll(from, -barn.up, 6f, ~0, QueryTriggerInteraction.Ignore))
+                {
+                    if (hit.collider.transform.IsChildOf(barn) || hit.collider is CharacterController || hit.collider.attachedRigidbody != null) continue;
+                    float y = barn.InverseTransformPoint(hit.point).y;
+                    high = Mathf.Max(high, y);
+                    low = Mathf.Min(low, y);
+                }
+            }
+        if (float.IsNegativeInfinity(high)) { high = 0f; low = 0f; }
+        float top = Mathf.Max(.06f, high + .025f);
+
+        // Top faces (UV in floor tiles: boards along x) and the edge at the open doorway, facing out.
+        var vertices = new List<Vector3>();
+        var normals = new List<Vector3>();
+        var uvs = new List<Vector2>();
+        var triangles = new List<int>();
+        void Quad(Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector3 normal, Vector2 ua, Vector2 ub, Vector2 uc, Vector2 ud)
+        {
+            int i = vertices.Count;
+            vertices.AddRange(new[] { a, b, c, d });
+            normals.AddRange(new[] { normal, normal, normal, normal });
+            uvs.AddRange(new[] { ua, ub, uc, ud });
+            triangles.AddRange(new[] { i, i + 1, i + 2, i, i + 2, i + 3 });
+        }
+        Vector2 Uv(float x, float z) => new Vector2(x / FloorTile, z / FloorTile);
+        foreach (Rect area in FloorAreas)
+            Quad(new Vector3(area.xMin, top, area.yMin), new Vector3(area.xMin, top, area.yMax), new Vector3(area.xMax, top, area.yMax),
+                new Vector3(area.xMax, top, area.yMin), Vector3.up,
+                Uv(area.xMin, area.yMin), Uv(area.xMin, area.yMax), Uv(area.xMax, area.yMax), Uv(area.xMax, area.yMin));
+        Rect hall = FloorAreas[0];
+        float bottom = Mathf.Min(low, 0f) - .05f;
+        Quad(new Vector3(hall.xMax, bottom, hall.yMin), new Vector3(hall.xMax, top, hall.yMin), new Vector3(hall.xMax, top, hall.yMax),
+            new Vector3(hall.xMax, bottom, hall.yMax), Vector3.right,
+            new Vector2(0f, hall.yMin / FloorTile), new Vector2((top - bottom) / FloorTile, hall.yMin / FloorTile),
+            new Vector2((top - bottom) / FloorTile, hall.yMax / FloorTile), new Vector2(0f, hall.yMax / FloorTile));
+
+        var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(FloorMeshPath);
+        bool created = mesh == null;
+        if (created) mesh = new Mesh { name = "SM_BarnFloor" };
+        mesh.Clear();
+        mesh.SetVertices(vertices);
+        mesh.SetNormals(normals);
+        mesh.SetUVs(0, uvs);
+        mesh.SetTriangles(triangles, 0);
+        mesh.RecalculateTangents();
+        mesh.RecalculateBounds();
+        EnsureFolder(FlameFolder);
+        if (created) AssetDatabase.CreateAsset(mesh, FloorMeshPath);
+        else EditorUtility.SetDirty(mesh);
+        AssetDatabase.SaveAssets();
+
+        var floor = new GameObject("Barn Floor");
+        floor.transform.SetParent(group, false);
+        floor.AddComponent<MeshFilter>().sharedMesh = mesh;
+        var floorRenderer = floor.AddComponent<MeshRenderer>();
+        floorRenderer.sharedMaterial = material;
+        GameObjectUtility.SetStaticEditorFlags(floor, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccluderStatic | StaticEditorFlags.OccludeeStatic);
+        foreach (Rect area in FloorAreas)
+        {
+            var box = floor.AddComponent<BoxCollider>();
+            box.center = new Vector3(area.center.x, top - .1f, area.center.y);
+            box.size = new Vector3(area.width, .2f, area.height);
+        }
+        Physics.SyncTransforms();
+        report.Add($"floor: top {top:0.000} (ground under it {low:0.000} .. {high:0.000})");
+        return top;
+    }
+
+    private static Material FloorMaterial()
+    {
+        if (File.Exists(FloorTexturePath) && AssetDatabase.LoadAssetAtPath<Texture2D>(FloorTexturePath) == null) AssetDatabase.ImportAsset(FloorTexturePath);
+        var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(FloorTexturePath);
+        if (texture == null) return null;
+        var importer = (TextureImporter)AssetImporter.GetAtPath(FloorTexturePath);
+        if (importer.wrapMode != TextureWrapMode.Repeat || importer.anisoLevel < 4)
+        {
+            importer.wrapMode = TextureWrapMode.Repeat;
+            importer.anisoLevel = 4;
+            importer.SaveAndReimport();
+        }
+        var material = AssetDatabase.LoadAssetAtPath<Material>(FloorMaterialPath);
+        if (material == null)
+        {
+            material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            AssetDatabase.CreateAsset(material, FloorMaterialPath);
+        }
+        material.SetTexture("_BaseMap", texture);
+        material.SetColor("_BaseColor", Color.white);
+        material.SetFloat("_Smoothness", .12f);
+        material.SetFloat("_Metallic", 0f);
+        BaseShaderGUI.SetMaterialKeywords(material, LitGUI.SetMaterialKeywords);
+        EditorUtility.SetDirty(material);
+        AssetDatabase.SaveAssets();
+        return material;
     }
 
     private static void BuildLoft(Transform barn, Transform group, Dictionary<string, GameObject> prefabs, List<string> report)
@@ -481,6 +671,7 @@ public static class BarnInteriorProps
     // own); the barn and its props do not count.
     private static float FloorHeight(Transform barn, float x, float z)
     {
+        if (!float.IsNaN(floorTop) && FloorAreas.Any(r => r.Contains(new Vector2(x, z)))) return floorTop;
         const float hallFloor = .015f;
         bool inHall = z < SideRoomZ;
         Vector3 from = barn.TransformPoint(new Vector3(x, 2.5f, z));
