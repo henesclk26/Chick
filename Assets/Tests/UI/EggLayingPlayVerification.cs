@@ -50,7 +50,7 @@ public sealed class EggLayingPlayVerification : MonoBehaviour
     private void Restore(FarmSaveData data) => Call(growth, "Restore", data);
     private FarmSaveData Cycle(int count, bool golden) => new FarmSaveData
     {
-        eatenSeedCount = 50, eggLayingVersion = 1, eggCycleSelected = true,
+        eatenSeedCount = GrowthProgressController.SeedGoal, eggLayingVersion = 1, eggCycleSelected = true,
         eggCycleSeedCount = count, nextEggGolden = golden
     };
     // Z lifts the nearby egg onto the back; Z again by the barn's basket drops it in for gold.
@@ -138,7 +138,7 @@ public sealed class EggLayingPlayVerification : MonoBehaviour
             "Chick seeds still fill only the original growth bar");
         Check(statistics.TotalPoints == foodBefore + 1 && wallet.AvailableEggs == 0,
             "Food statistics increase without creating any spendable eggs");
-        Restore(new FarmSaveData { eatenSeedCount = 50 });
+        Restore(new FarmSaveData { eatenSeedCount = GrowthProgressController.SeedGoal });
         Tick(.01f);
         Check(root.Q<Label>("UpgradeText").text == "GELİŞTİR", "Chick retains Z GELİŞTİR");
         Tick(1f, true, true);
@@ -147,7 +147,7 @@ public sealed class EggLayingPlayVerification : MonoBehaviour
         Tick(.01f);
         yield return new WaitForSecondsRealtime(.5f);
         Check(player.CanChangeForm, "Chicken is grounded and ready to sit");
-        Check(Visible() && growth.EggProgress == 0f && growth.EatenSeedCount == 50,
+        Check(Visible() && growth.EggProgress == 0f && growth.EatenSeedCount == GrowthProgressController.SeedGoal,
             "Chicken starts its own empty bar, preserving chick progress");
 
         Restore(Cycle(0, false));

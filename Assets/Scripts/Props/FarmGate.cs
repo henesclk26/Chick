@@ -21,6 +21,8 @@ public sealed class FarmGate : MonoBehaviour
     [SerializeField] private Leaf[] leaves = Array.Empty<Leaf>();
     [SerializeField, Tooltip("Keeps the gate shut.")]
     private bool locked;
+    [SerializeField, Tooltip("Stays shut while the player is a chick and opens once it has grown into a chicken.")]
+    private bool chickenOnly;
     [SerializeField, Range(20f, 120f), Tooltip("How far the leaves open, in degrees.")]
     private float openAngle = 100f;
     [SerializeField, Min(.5f), Tooltip("A walker this close to the gate's centre (m, along the ground) opens it. Larger than " +
@@ -41,6 +43,8 @@ public sealed class FarmGate : MonoBehaviour
     private float scanTimer;
     private float emptyTimer;
     private bool someoneNear;
+    private bool shut;
+    private static PlayerGrowthController playerGrowth;
 
     public bool Locked
     {
@@ -66,7 +70,7 @@ public sealed class FarmGate : MonoBehaviour
             Scan();
         }
         emptyTimer = someoneNear ? 0f : emptyTimer + Time.deltaTime;
-        bool open = !locked && (someoneNear || emptyTimer < closeDelay) && side != 0f;
+        bool open = !shut && (someoneNear || emptyTimer < closeDelay) && side != 0f;
         float target = open ? openAngle : 0f;
         if (Mathf.Approximately(angle, target)) return;
         angle = Mathf.MoveTowards(angle, target, swingSpeed * Time.deltaTime);
@@ -77,7 +81,9 @@ public sealed class FarmGate : MonoBehaviour
     private void Scan()
     {
         someoneNear = false;
-        if (locked) return;
+        if (chickenOnly && playerGrowth == null) playerGrowth = FindFirstObjectByType<PlayerGrowthController>();
+        shut = locked || (chickenOnly && playerGrowth != null && playerGrowth.CurrentForm == PlayerGrowthController.Form.Chick);
+        if (shut) return;
         if (Time.unscaledTime - walkersFoundAt > WalkerRefreshInterval)
         {
             walkers = FindObjectsByType<CharacterController>(FindObjectsSortMode.None);
@@ -116,7 +122,7 @@ public sealed class FarmGate : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = locked ? Color.red : Color.green;
+        Gizmos.color = locked ? Color.red : chickenOnly ? Color.yellow : Color.green;
         Gizmos.DrawWireSphere(transform.position + Vector3.up * .5f, reach);
     }
 }

@@ -65,6 +65,10 @@ namespace FarmReferenceTools
   static void BuildMenu(){Debug.Log(Build());}
   [MenuItem(Menu+"Remove Sheep Pasture")]
   static void RemoveMenu(){Debug.Log(Remove());}
+  [MenuItem(Menu+"Rebuild Cows")]
+  static void CowsMenu(){Debug.Log(RebuildHerd());}
+  [MenuItem(Menu+"Sync Pen To Scene")]
+  static void SyncMenu(){Debug.Log(SyncPen());}
 
   internal static float S(float a,float b,float v){return Mathf.SmoothStep(0,1,Mathf.InverseLerp(a,b,v));}
   static Vector2 Center=>new Vector2((XMin+XMax)/2,(ZMin+ZMax)/2);
@@ -180,6 +184,7 @@ namespace FarmReferenceTools
    pen.ConfigurePlaces(RestSpots.Select(r=>ground(ShelterPos+r)).ToArray(),ground(ShelterPos+new Vector2(-.75f,2.4f)),ground(ShadeSpot),2.6f,
     ground(TroughPos+new Vector2(.1f,-.95f)),ground(TroughPos),ground(RackPos+new Vector2(0,1.15f)),ground(RackPos));
    BuildFlock(root.transform,pen,report);
+   BuildHerd(root.transform,pen,report);
    var spawn=SpawnPoint(farm.transform,terrain);
    Undo.CollapseUndoOperations(undoGroup);
    AssetDatabase.SaveAssets();EditorSceneManager.MarkSceneDirty(farm.scene);
@@ -514,33 +519,44 @@ namespace FarmReferenceTools
 
    var shelter=Place("FoldShelter",fold,at(ShelterPos),0,"Shelter");
    ShelterColliders(shelter);
-   ShelterObstacles(obstacles);
 
    var trough=Place("FoldWaterTrough",fold,at(TroughPos),0,"Water Trough");
    TroughSetup(trough);
-   foreach(float x in new[]{-.6f,0f,.6f})obstacles.Add(new Vector3(TroughPos.x+x,TroughPos.y,.3f));
-   obstacles.Add(new Vector3(TroughPos.x-1.15f,TroughPos.y,.3f));
 
    var rack=Place("FoldHayRack",fold,at(RackPos),0,"Hay Rack");
    foreach(float x in new[]{-.5f,.5f})AddBox(rack,new Vector3(x*1.7f,.75f,0),new Vector3(.9f,1.5f,1f),false);
    AddCameraBlocker(rack,new Vector3(0,1.8f,0),new Vector3(2.2f,.35f,1.5f),Vector3.zero);
-   obstacles.Add(new Vector3(RackPos.x-.5f,RackPos.y,.55f));
-   obstacles.Add(new Vector3(RackPos.x+.5f,RackPos.y,.55f));
 
    var stack=Place("HayBaleStack",fold,at(StackPos),-12,"Hay Bale Stack");
    var sb=LocalBounds(stack);AddBox(stack,sb.center,sb.size,false);
-   obstacles.Add(new Vector3(StackPos.x,StackPos.y,1f));
    var bale=Place("HayBale",fold,at(BalePos),24,"Hay Bale");
    var bb=LocalBounds(bale);AddBox(bale,bb.center,bb.size,false);
-   obstacles.Add(new Vector3(BalePos.x,BalePos.y,.55f));
-   BuildYard(fold,terrain,obstacles);
+   BuildYard(fold,terrain);
+   FoldObstacles(fold,obstacles);
    report.AppendLine("Fold: timber shelter, trough with hand pump and live water, covered hay rack, bales, wheelbarrow, rake, bucket and straw (with colliders).");
   }
 
   // Shelter walls as a ring of small circles so sheep can walk in through the open front and sleep inside.
-  static void ShelterObstacles(List<Vector3> obstacles)
+  // Obstacle circles for the fold props, read from where they stand now (they may have been moved by hand).
+  static void FoldObstacles(Transform fold,List<Vector3> obstacles)
   {
-   Action<float,float,float> add=(x,z,r)=>obstacles.Add(new Vector3(ShelterPos.x+x,ShelterPos.y+z,r));
+   Func<string,Vector2?> at=n=>{var t=fold.Find(n);return t!=null?new Vector2(t.position.x,t.position.z):(Vector2?)null;};
+   if(at("Shelter") is Vector2 shelter)ShelterObstacles(obstacles,shelter);
+   if(at("Water Trough") is Vector2 trough)
+   {
+    foreach(float x in new[]{-.6f,0f,.6f})obstacles.Add(new Vector3(trough.x+x,trough.y,.3f));
+    obstacles.Add(new Vector3(trough.x-1.15f,trough.y,.3f));
+   }
+   if(at("Hay Rack") is Vector2 rack){obstacles.Add(new Vector3(rack.x-.5f,rack.y,.55f));obstacles.Add(new Vector3(rack.x+.5f,rack.y,.55f));}
+   if(at("Hay Bale Stack") is Vector2 stack)obstacles.Add(new Vector3(stack.x,stack.y,1f));
+   if(at("Hay Bale") is Vector2 bale)obstacles.Add(new Vector3(bale.x,bale.y,.55f));
+   if(at("Wheelbarrow") is Vector2 barrow)obstacles.Add(new Vector3(barrow.x,barrow.y,.65f));
+   if(at("Bucket") is Vector2 bucket)obstacles.Add(new Vector3(bucket.x,bucket.y,.25f));
+  }
+
+  static void ShelterObstacles(List<Vector3> obstacles,Vector2 shelter)
+  {
+   Action<float,float,float> add=(x,z,r)=>obstacles.Add(new Vector3(shelter.x+x,shelter.y+z,r));
    for(float x=-2.3f;x<=2.31f;x+=.5f)add(x,-1.62f,.3f);
    for(float z=-1.6f;z<=1.51f;z+=.5f){add(-2.3f,z,.3f);add(2.3f,z,.3f);}
    for(float x=.75f;x<=2.21f;x+=.45f)add(x,1.42f,.25f);
@@ -550,15 +566,13 @@ namespace FarmReferenceTools
   }
 
   // Wheelbarrow and bucket by the trough, a rake leaning on the shelter, trampled straw in front of it.
-  static void BuildYard(Transform fold,Terrain terrain,List<Vector3> obstacles)
+  static void BuildYard(Transform fold,Terrain terrain)
   {
    Func<Vector2,Vector3> at=v=>At(v,Ground(terrain,v));
    var barrow=Place("Wheelbarrow",fold,at(WheelbarrowPos),205,"Wheelbarrow");
    var wb=LocalBounds(barrow);AddBox(barrow,wb.center,wb.size,false);
-   obstacles.Add(new Vector3(WheelbarrowPos.x,WheelbarrowPos.y,.65f));
    var bucket=Place("FarmBucket",fold,at(BucketPos),40,"Bucket");
    var bb=LocalBounds(bucket);AddBox(bucket,bb.center,bb.size,false);
-   obstacles.Add(new Vector3(BucketPos.x,BucketPos.y,.25f));
    // Leaning against the west wall: the handle tips over towards the wall (+X).
    var rake=Place("Rake",fold,at(RakePos),0,"Rake");
    rake.transform.rotation=Quaternion.AngleAxis(-14f,Vector3.forward)*Quaternion.Euler(0,90,0);
@@ -750,6 +764,133 @@ namespace FarmReferenceTools
    }
    UnityEngine.Random.state=saved;
    report.AppendLine("Flock: 5 sheep and 2 lambs (lambs follow Sheep 1 and Sheep 3): graze by day, shade at noon, shelter at dusk.");
+  }
+
+  // Three cows (ArtSource/Cow) share the pasture and the flock's routine, but sleep under the shade trees.
+  const string CowPath="Assets/Art/Cow/Cow.glb";
+  const float CowWalkClip=1.756f; // ground speed of the Walk cycle at model scale 1, from ArtSource/Cow/cow_walk.py
+
+  // Re-creates only the herd in an existing pasture, leaving the terrain and the flock alone.
+  public static string RebuildHerd()
+  {
+   if(EditorApplication.isPlaying)throw new InvalidOperationException("Exit play mode before building the cows.");
+   var farm=GameObject.Find("Farm Reference Map");
+   var root=farm!=null?farm.transform.Find(RootName):null;
+   if(root==null)throw new InvalidOperationException("Build the sheep pasture first.");
+   var report=new System.Text.StringBuilder();
+   Undo.IncrementCurrentGroup();Undo.SetCurrentGroupName("Rebuild cows");int group=Undo.GetCurrentGroup();
+   var old=root.Find("Herd");if(old!=null)Undo.DestroyObjectImmediate(old.gameObject);
+   BuildHerd(root,root.GetComponent<SheepPen>(),report);
+   Undo.CollapseUndoOperations(group);
+   EditorSceneManager.MarkSceneDirty(farm.scene);
+   return report.ToString();
+  }
+
+  // The pasture has been re-laid by hand since the build (fields fence moved down to the gate, south fence pulled
+  // in, fold moved north). Re-reads the fence, the fold props and the scenery colliders inside so the animals'
+  // pen matches what actually stands in the scene, and brings any animal left outside back in.
+  public static string SyncPen()
+  {
+   if(EditorApplication.isPlaying)throw new InvalidOperationException("Exit play mode before syncing the pen.");
+   var farm=GameObject.Find("Farm Reference Map");
+   var root=farm!=null?farm.transform.Find(RootName):null;
+   var bays=root!=null?root.Find("Pasture Fence/Fence Bays"):null;
+   var gate=root!=null?root.Find("Gate - Crop Fields to Sheep Pasture"):null;
+   var fold=root!=null?root.Find("Fold"):null;
+   if(bays==null||gate==null||fold==null||fold.Find("Shelter")==null)throw new InvalidOperationException("Pasture fence, gate or fold missing.");
+   var pen=root.GetComponent<SheepPen>();
+   var terrain=farm.GetComponentInChildren<Terrain>();
+   Func<string,IEnumerable<Transform>> side=s=>bays.Cast<Transform>().Where(b=>b.name.StartsWith(s));
+   float west=side("West").Average(b=>b.position.x),east=side("East").Average(b=>b.position.x);
+   float south=side("South").Average(b=>b.position.z),north=gate.position.z;
+   var center=new Vector3((west+east)/2,root.position.y,(north+south)/2);
+   var half=new Vector2((east-west)/2-.5f,(north-south)/2-.5f);
+
+   var obstacles=new List<Vector3>();
+   FoldObstacles(fold,obstacles);
+   var trees=root.Find("Shade Trees");
+   if(trees!=null)foreach(Transform t in trees)obstacles.Add(new Vector3(t.position.x,t.position.z,.6f));
+   int scenery=obstacles.Count;
+   // Rocks, logs, trees, bushes and dressing props standing inside the fence (anything solid that is not
+   // the pasture's own build, a fence, the ground or an animal).
+   Physics.SyncTransforms();
+   foreach(var c in Physics.OverlapBox(center+Vector3.up*2,new Vector3(half.x,8,half.y),Quaternion.identity,~0,QueryTriggerInteraction.Ignore))
+   {
+    if(c is TerrainCollider||c.transform.IsChildOf(root)||c.GetComponentInParent<FarmSheep>()!=null)continue;
+    if(c.transform.GetComponentsInParent<Transform>().Any(t=>t.name=="04 Fences and Gates"))continue;
+    var b=c.bounds;
+    obstacles.Add(new Vector3(b.center.x,b.center.z,Mathf.Clamp(Mathf.Max(b.extents.x,b.extents.z)*.8f,.3f,1.5f)));
+   }
+   scenery=obstacles.Count-scenery;
+
+   Undo.RecordObject(pen,"Sync sheep pen");
+   pen.Configure(terrain,half,obstacles.ToArray(),center);
+   Func<Transform,Vector2,Vector3> near=(t,offset)=>{var p=new Vector3(t.position.x+offset.x,0,t.position.z+offset.y);p.y=pen.GroundHeight(p);return p;};
+   Transform shelter=fold.Find("Shelter"),trough=fold.Find("Water Trough"),rack=fold.Find("Hay Rack");
+   pen.ConfigurePlaces(RestSpots.Select(r=>near(shelter,r)).ToArray(),near(shelter,new Vector2(-.75f,2.4f)),pen.ShadeSpot,pen.ShadeRadius,
+    trough!=null?near(trough,new Vector2(.1f,-.95f)):pen.TroughStand,trough!=null?near(trough,Vector2.zero):pen.TroughCenter,
+    rack!=null?near(rack,new Vector2(0,1.15f)):pen.RackStand,rack!=null?near(rack,Vector2.zero):pen.RackCenter);
+
+   int moved=0;
+   foreach(var animal in root.GetComponentsInChildren<FarmSheep>(true))
+   {
+    var p=animal.transform.position;
+    if(Mathf.Abs(p.x-center.x)<=half.x&&Mathf.Abs(p.z-center.z)<=half.y)continue;
+    var spot=pen.RandomPoint(.5f);spot.y=pen.GroundHeight(spot);
+    Undo.RecordObject(animal.transform,"Sync sheep pen");animal.transform.position=spot;moved++;
+   }
+   EditorSceneManager.MarkSceneDirty(farm.scene);
+   return "Pen synced: x "+west.ToString("F1")+".."+east.ToString("F1")+", z "+south.ToString("F1")+".."+north.ToString("F1")+"; "+
+    obstacles.Count+" obstacles ("+scenery+" scenery); shelter, trough and rack places follow the props; "+moved+" animals brought inside.";
+  }
+
+  static void BuildHerd(Transform root,SheepPen pen,System.Text.StringBuilder report)
+  {
+   var model=AssetDatabase.LoadAssetAtPath<GameObject>(CowPath);
+   if(model==null)throw new InvalidOperationException("Missing "+CowPath+"; run ArtSource/Cow/cow_walk.py first.");
+   var clips=AssetDatabase.LoadAllAssetsAtPath(CowPath).OfType<AnimationClip>().ToDictionary(c=>c.name);
+   if(!AssetDatabase.IsValidFolder(AnimFolder))AssetDatabase.CreateFolder(SheepFoldImporter.Folder,"Animation");
+   string path=AnimFolder+"/CowHerd.controller";
+   AssetDatabase.DeleteAsset(path);
+   var controller=AnimatorController.CreateAnimatorControllerAtPath(path);
+   var machine=controller.layers[0].stateMachine;
+   // FarmSheep's states on the cow's clips: no lying clip, so a resting cow stands idle; Run is never asked of adults.
+   foreach(var (state,clip) in new[]{("Idle","Idle"),("Walk","Walk"),("Graze","Eating"),("Run","Walk"),("Lie","Idle")})
+   {
+    var s=machine.AddState(state);s.motion=clips[clip];
+    if(state=="Idle")machine.defaultState=s;
+   }
+   var herd=new GameObject("Herd").transform;Undo.RegisterCreatedObjectUndo(herd.gameObject,"Build cows");
+   herd.SetParent(root,false);
+   UnityEngine.Random.State saved=UnityEngine.Random.state;
+   UnityEngine.Random.InitState(7741);
+   const float body=.9f;
+   float[] scales={.33f,.31f,.35f}; // ~1.5 m tall, slightly different sizes
+   var placed=new List<Vector3>();
+   for(int i=0;i<scales.Length;i++)
+   {
+    // Anywhere free inside the pen (which follows the fence as it stands, see SyncPen), apart from each other.
+    Vector3 spot=pen.RandomPoint(body);
+    for(int tries=0;tries<30&&placed.Any(p=>Vector2.Distance(new Vector2(p.x,p.z),new Vector2(spot.x,spot.z))<3f);tries++)spot=pen.RandomPoint(body);
+    spot.y=pen.GroundHeight(spot);placed.Add(spot);
+    var go=new GameObject("Cow "+(i+1));
+    go.transform.SetParent(herd,false);
+    go.transform.SetPositionAndRotation(spot,Quaternion.Euler(0,UnityEngine.Random.Range(0f,360f),0));
+    var cow=(GameObject)PrefabUtility.InstantiatePrefab(model,go.transform);
+    cow.transform.localScale=Vector3.one*scales[i];
+    var animator=cow.GetComponent<Animator>();
+    animator.runtimeAnimatorController=controller;
+    animator.applyRootMotion=false;
+    animator.cullingMode=AnimatorCullingMode.CullUpdateTransforms;
+    var rb=go.AddComponent<Rigidbody>();rb.isKinematic=true;rb.interpolation=RigidbodyInterpolation.Interpolate;
+    var capsule=go.AddComponent<CapsuleCollider>();capsule.direction=2;
+    float k=scales[i]/.33f;
+    capsule.center=new Vector3(0,.95f,.3f)*k;capsule.radius=.42f*k;capsule.height=2.6f*k;
+    AddContactShadow(go,new Vector2(1.05f,2.5f)*k);
+    go.AddComponent<FarmSheep>().Configure(pen,null,animator,.5f,CowWalkClip*scales[i],body*k,i,false);
+   }
+   UnityEngine.Random.state=saved;
+   report.AppendLine("Herd: 3 cows graze with the flock and spend the night under the shade trees.");
   }
 
   // A soft dark blob under the animal so it reads as standing on the ground even when the

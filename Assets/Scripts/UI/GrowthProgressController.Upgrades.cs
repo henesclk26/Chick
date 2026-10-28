@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 public sealed partial class GrowthProgressController
 {
-    public enum UpgradeState { Progressing, GrowthReadyMessage, WaitingForUpgrade, HoldingUpgrade, UpgradeCompleted, EggLaidMessage }
+    public enum UpgradeState { Progressing, GrowthReadyMessage, WaitingForUpgrade, HoldingUpgrade, UpgradeCompleted, EggLaidMessage, StageUpMessage }
 
     [Header("Manual growth upgrade")]
     [SerializeField, Min(.1f)] private float upgradeHoldDuration = 1f;
@@ -42,6 +42,10 @@ public sealed partial class GrowthProgressController
         upgradePrompt = root.Q("UpgradePrompt");
         holdIndicator = root.Q<UpgradeHoldIndicator>("UpgradeHoldIndicator");
         rightIconImage = root.Q<Image>("RightIcon");
+        stageUpBanner = root.Q("StageUpBanner");
+        stageUpNumber = root.Q<Label>("StageUpNumber");
+        stageUpTitle = root.Q<Label>("StageUpTitle");
+        stageUpDetail = root.Q<Label>("StageUpDetail");
         BindEggPickupUI(root);
         stationPromptRoot = root.Q("StationPromptRoot") ?? InteractionPrompt(root, "StationPrompt", "TAB", "");
         stationPromptText = stationPromptRoot.Q<Label>("StationPromptText");
@@ -73,6 +77,7 @@ public sealed partial class GrowthProgressController
         ChangeUpgradeState(ActiveBarReady
             ? UpgradeState.WaitingForUpgrade : UpgradeState.Progressing);
         hud.EnableInClassList("egg-laying", presentedAsChicken);
+        bar.Segments = presentedAsChicken ? 1 : StageCount;
         fromProgress = DisplayProgress;
         bar.Progress = DisplayProgress;
         changeTime = Time.unscaledTime;
@@ -96,9 +101,22 @@ public sealed partial class GrowthProgressController
         if (IsChickForm) rightIconGlow = new GrowthIconGlow(rightIconImage);
     }
 
+    private static readonly string[] StageUpTitles = { "", "YEME HIZI ARTTI!", "STAMİNA ARTTI!", "YEME MENZİLİ ARTTI!", "YÜRÜME HIZI ARTTI!" };
+    private static readonly string[] StageUpDetails = { "", "Gagalama hızı 0.5x → 1x", "Koşma süresi 0.5x → 1x",
+        "Yeme menzili 0.5x → 1x", "Yürüme hızı 0.75x → 1.5x" };
+    private VisualElement stageUpBanner;
+    private Label stageUpNumber, stageUpTitle, stageUpDetail;
+
+    private void BeginStageUpMessage()
+    {
+        if (CurrentUpgradeState != UpgradeState.Progressing && CurrentUpgradeState != UpgradeState.StageUpMessage) return;
+        ChangeUpgradeState(UpgradeState.StageUpMessage);
+    }
+
     private void BeginGrowthReadyMessage()
     {
-        if (CurrentUpgradeState != UpgradeState.Progressing && CurrentUpgradeState != UpgradeState.EggLaidMessage) return;
+        if (CurrentUpgradeState != UpgradeState.Progressing && CurrentUpgradeState != UpgradeState.EggLaidMessage &&
+            CurrentUpgradeState != UpgradeState.StageUpMessage) return;
         CancelUpgradeHold(true);
         ChangeUpgradeState(UpgradeState.GrowthReadyMessage);
     }
@@ -177,6 +195,9 @@ public sealed partial class GrowthProgressController
                 // Growth waits for a safe moment; form sync then selects the egg cycle.
                 if (playerGrowth == null || !playerGrowth.GrowthPending) ChangeUpgradeState(UpgradeState.Progressing);
                 break;
+            case UpgradeState.StageUpMessage:
+                if (stateTime >= ReadyMessageDuration) ChangeUpgradeState(UpgradeState.Progressing);
+                break;
             case UpgradeState.EggLaidMessage:
                 if (stateTime >= ReadyMessageDuration)
                     ChangeUpgradeState(ActiveBarReady ? UpgradeState.WaitingForUpgrade : UpgradeState.Progressing);
@@ -229,7 +250,8 @@ public sealed partial class GrowthProgressController
     {
         if (notificationRoot == null || readyLabel == null || upgradePrompt == null) return;
         bool laid = CurrentUpgradeState == UpgradeState.EggLaidMessage;
-        bool ready = CurrentUpgradeState == UpgradeState.GrowthReadyMessage || laid;
+        bool stageUp = CurrentUpgradeState == UpgradeState.StageUpMessage;
+        bool ready = CurrentUpgradeState == UpgradeState.GrowthReadyMessage || laid || stageUp;
         readyLabel.text = laid ? (lastEggWasGolden ? "ALTIN YUMURTA " : "YUMURTA ") + (lastEggToBasket ? "SEPETE EKLENDİ" : "BIRAKILDI")
             : IsChickForm ? "GELİŞİM HAZIR!" : "YUMURTLAMA HAZIR!";
         if (actionLabel != null) actionLabel.text = IsChickForm ? "GELİŞTİR" : "YUMURTLA";
@@ -238,14 +260,25 @@ public sealed partial class GrowthProgressController
         if (!IsChickForm && (nearbyEgg != null || atBasket) && CurrentUpgradeState != UpgradeState.HoldingUpgrade)
             prompt = false; // The nearby pickup owns Z until collected or walked away from.
         notificationRoot.style.display = ready || prompt ? DisplayStyle.Flex : DisplayStyle.None;
-        readyLabel.style.display = ready ? DisplayStyle.Flex : DisplayStyle.None;
+        // The stage banner replaces the plain label so passive stages read as their own reward.
+        bool banner = stageUp && stageUpBanner != null;
+        readyLabel.style.display = ready && !banner ? DisplayStyle.Flex : DisplayStyle.None;
+        if (stageUpBanner != null) stageUpBanner.style.display = banner ? DisplayStyle.Flex : DisplayStyle.None;
+        if (banner)
+        {
+            int stage = Mathf.Clamp(ChickStage, 1, StageUpTitles.Length - 1);
+            stageUpNumber.text = stage.ToString();
+            stageUpTitle.text = StageUpTitles[stage];
+            stageUpDetail.text = "GELİŞİM " + stage + "/" + StageCount + "  ·  " + StageUpDetails[stage];
+        }
+        VisualElement pop = banner ? stageUpBanner : readyLabel;
         upgradePrompt.style.display = prompt ? DisplayStyle.Flex : DisplayStyle.None;
         if (ready)
         {
             float scale = stateTime < .16f ? Mathf.Lerp(.75f, 1.10f, Mathf.SmoothStep(0f, 1f, stateTime / .16f))
                 : Mathf.Lerp(1.10f, 1f, Mathf.SmoothStep(0f, 1f, (stateTime - .16f) / .16f));
-            readyLabel.style.scale = new Scale(new Vector3(scale, scale, 1f));
-            readyLabel.style.opacity = Mathf.Clamp01(stateTime / .12f) *
+            pop.style.scale = new Scale(new Vector3(scale, scale, 1f));
+            pop.style.opacity = Mathf.Clamp01(stateTime / .12f) *
                 (1f - Mathf.Clamp01((stateTime - 1.25f) / .25f));
         }
         if (prompt)

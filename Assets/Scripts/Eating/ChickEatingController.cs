@@ -127,7 +127,7 @@ public sealed class ChickEatingController : MonoBehaviour
     private void ApplyReach()
     {
         upgradeReachScale = upgrades != null ? Mathf.Max(1f, upgrades.CollectRangeMultiplier) : 1f;
-        float reach = formReachScale * upgradeReachScale;
+        float reach = formReachScale * upgradeReachScale * (growth != null ? growth.ReachMultiplier : 1f);
         eatDetectionRadius = baseDetectionRadius * reach;
         maxContactAssistDistance = baseAssistDistance * reach;
     }
@@ -178,7 +178,8 @@ public sealed class ChickEatingController : MonoBehaviour
         assistInvalidated = false;
 
         // Contact assist and impact timing read the live playback speed, so a faster peck stays in sync.
-        float peckMultiplier = upgrades != null ? upgrades.PeckSpeedMultiplier : 1f;
+        float peckMultiplier = (upgrades != null ? upgrades.PeckSpeedMultiplier : 1f) *
+            (growth != null ? growth.PeckSpeedMultiplier : 1f);
         animator.SetFloat(EatSpeed, Mathf.Clamp(eatAnimationSpeed, 1.3f, 1.5f) * peckMultiplier);
         impactHandled = false;
         LastImpactSucceeded = false;

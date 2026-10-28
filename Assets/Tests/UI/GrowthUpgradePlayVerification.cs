@@ -86,7 +86,7 @@ public sealed class GrowthUpgradePlayVerification : MonoBehaviour
     }
     private IEnumerator StateChecks()
     {
-        Restore(new FarmSaveData { growthUpgradeVersion = 1, currentGrowthProgress = .99f });
+        Restore(new FarmSaveData { growthUpgradeVersion = 1, currentGrowthProgress = .996f });
         Tick(.01f);
         Check(growth.CurrentUpgradeState == GrowthProgressController.UpgradeState.Progressing && PromptHidden(),
             "Below 100% has no upgrade prompt (99% save cannot round up)");
@@ -98,7 +98,7 @@ public sealed class GrowthUpgradePlayVerification : MonoBehaviour
         Tick(1.19f); Check(growth.CurrentUpgradeState == GrowthProgressController.UpgradeState.GrowthReadyMessage, "Ready stays for 1.5 seconds");
         Tick(.02f); Check(growth.CurrentUpgradeState == GrowthProgressController.UpgradeState.WaitingForUpgrade, "Ready becomes persistent Z prompt");
         Eat(); Eat();
-        Check(growth.EatenSeedCount == 50 && growth.CurrentUpgradeState == GrowthProgressController.UpgradeState.WaitingForUpgrade,
+        Check(growth.EatenSeedCount == GrowthProgressController.SeedGoal && growth.CurrentUpgradeState == GrowthProgressController.UpgradeState.WaitingForUpgrade,
             "Extra food is capped and does not replay ready message");
         Tick(.05f, true, true); Tick(.01f);
         Check(!form.GrowthPending, "Short tap grants nothing");
@@ -136,13 +136,13 @@ public sealed class GrowthUpgradePlayVerification : MonoBehaviour
 
         Restore(new FarmSaveData { growthUpgradeVersion = 1, currentGrowthProgress = .34f });
         Eat(); Eat();
-        Check(growth.EatenSeedCount == 17 && growth.EggSeedCount == 2 && HudVisible(), "Chicken food fills only the separate egg bar");
+        Check(growth.EatenSeedCount == 85 && growth.EggSeedCount == 2 && HudVisible(), "Chicken food fills only the separate egg bar");
 
         // Developer panel path: switching back to the chick shows the bar and counts again.
         form.SetForm(PlayerGrowthController.Form.Chick);
         Eat();
-        Check(HudVisible() && growth.EatenSeedCount == 18, "Developer switch back to chick shows the bar and counts seeds");
-        for (int i = 0; i < 40; i++) Eat();
+        Check(HudVisible() && growth.EatenSeedCount == 86, "Developer switch back to chick shows the bar and counts seeds");
+        for (int i = 0; i < GrowthProgressController.SeedGoal; i++) Eat();
         form.SetForm(PlayerGrowthController.Form.Chicken);
         Tick(.01f);
         Check(PromptHidden() && HudVisible() && growth.EggSeedCount == 2, "Developer switch to chicken selects the unfinished egg bar");
@@ -153,7 +153,7 @@ public sealed class GrowthUpgradePlayVerification : MonoBehaviour
 
         Restore(JsonUtility.FromJson<FarmSaveData>(
             "{\"version\":1,\"growthUpgradeVersion\":1,\"doubleJumpUnlocked\":true,\"currentGrowthStage\":1,\"currentGrowthProgress\":0.34}"));
-        Check(growth.EatenSeedCount == 17, "Save from the old double jump build still loads its growth progress");
+        Check(growth.EatenSeedCount == 85, "Save from the old double jump build still loads its growth progress");
         Restore(JsonUtility.FromJson<FarmSaveData>("{\"version\":1,\"eatenSeedCount\":17}"));
         Check(growth.EatenSeedCount == 17, "Oldest save format remains compatible");
         Check(root.Q<UpgradeHoldIndicator>() != null && growth.GetComponent<UIDocument>().visualTreeAsset != null &&
@@ -210,7 +210,7 @@ public sealed class GrowthUpgradePlayVerification : MonoBehaviour
         yield return StateChecks();
         form.SetForm(PlayerGrowthController.Form.Chick);
         yield return JumpChecks();
-        Restore(new FarmSaveData { eatenSeedCount = 50 });
+        Restore(new FarmSaveData { eatenSeedCount = GrowthProgressController.SeedGoal });
         growth.RefreshForReveal();
         renderHalfRing = true;
         yield return RenderHud("pending-half-ring");

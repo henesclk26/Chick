@@ -1,0 +1,8 @@
+Model Information:
+* title:	Cow
+* source:	https://sketchfab.com/3d-models/cow-3c1bbce7a64640cca28b49b3d181e347
+* author:	kenchoo (https://sketchfab.com/kenchoo)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works

@@ -23,11 +23,38 @@ public partial class GrowthProgressBarElement : VisualElement
     private readonly VisualElement reveal;
     private readonly Image fill;
     private readonly Image cursor;
+    private readonly VisualElement dividers;
 
     private float progress;
     private float eatingHighlight;
     private float trackWidth;
     private float cursorPosition;
+    private int segments = 1;
+
+    /// <summary>Equal stages marked by thin dividers across the track (1 = a plain bar).</summary>
+    public int Segments
+    {
+        get => segments;
+        set
+        {
+            int next = Mathf.Max(1, value);
+            if (segments == next) return;
+            segments = next;
+            dividers.Clear();
+            for (int i = 1; i < segments; i++)
+            {
+                var divider = new VisualElement { pickingMode = PickingMode.Ignore };
+                divider.style.position = Position.Absolute;
+                divider.style.left = Length.Percent(100f * i / segments);
+                divider.style.top = 0;
+                divider.style.bottom = 0;
+                divider.style.width = 2;
+                divider.style.marginLeft = -1;
+                divider.style.backgroundColor = new Color(.36f, .22f, .1f, .55f);
+                dividers.Add(divider);
+            }
+        }
+    }
 
     /// <summary>Optional warm highlight while the chick is eating.</summary>
     public float EatingHighlight
@@ -108,6 +135,18 @@ public partial class GrowthProgressBarElement : VisualElement
         reveal.style.top = 0;
         reveal.style.overflow = Overflow.Hidden;
         track.Add(reveal);
+
+        dividers = new VisualElement
+        {
+            name = "growth-dividers",
+            pickingMode = PickingMode.Ignore
+        };
+        dividers.style.position = Position.Absolute;
+        dividers.style.left = 0;
+        dividers.style.top = 0;
+        dividers.style.right = 0;
+        dividers.style.bottom = 0;
+        track.Add(dividers);
 
         fill = CreateImage("growth-fill");
         fill.style.position = Position.Absolute;

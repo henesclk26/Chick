@@ -12,6 +12,15 @@
         </ui:VisualElement>
         <ui:VisualElement name="UpgradeNotificationRoot" picking-mode="Ignore">
             <ui:Label name="GrowthReadyLabel" text="GELİŞİM HAZIR!" picking-mode="Ignore" />
+            <ui:VisualElement name="StageUpBanner" picking-mode="Ignore">
+                <ui:VisualElement name="StageUpBadge" picking-mode="Ignore">
+                    <ui:Label name="StageUpNumber" text="1" picking-mode="Ignore" />
+                </ui:VisualElement>
+                <ui:VisualElement name="StageUpTexts" picking-mode="Ignore">
+                    <ui:Label name="StageUpTitle" text="YEME HIZI ARTTI!" picking-mode="Ignore" />
+                    <ui:Label name="StageUpDetail" text="GELİŞİM 1/5" picking-mode="Ignore" />
+                </ui:VisualElement>
+            </ui:VisualElement>
             <ui:VisualElement name="UpgradePrompt" picking-mode="Ignore">
                 <UpgradeHoldIndicator name="UpgradeHoldIndicator" picking-mode="Ignore">
                     <ui:Label name="UpgradeKey" text="Z" picking-mode="Ignore" />

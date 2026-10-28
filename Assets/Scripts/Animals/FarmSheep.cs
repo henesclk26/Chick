@@ -27,6 +27,8 @@ public sealed class FarmSheep : MonoBehaviour
     [SerializeField, Min(2f)] private float strayDistance = 7f;
     [Tooltip("This sheep's sleeping place in the shelter (an index into the pen's rest spots).")]
     [SerializeField] private int restSlot;
+    [Tooltip("Off for animals too big for the shelter (cows): they spend the night under the shade trees instead.")]
+    [SerializeField] private bool usesShelter = true;
 
     [Header("Day rhythm (game hours)")]
     [SerializeField] private float shadeFrom = 12f;
@@ -63,8 +65,9 @@ public sealed class FarmSheep : MonoBehaviour
     public bool IsLying => mode == Mode.Lie;
 
     public void Configure(SheepPen home, FarmSheep followMother, Animator rig, float walk, float walkClip, float body,
-        int sleepingSlot)
+        int sleepingSlot, bool shelter = true)
     {
+        usesShelter = shelter;
         pen = home;
         mother = followMother;
         animator = rig;
@@ -95,7 +98,7 @@ public sealed class FarmSheep : MonoBehaviour
         {
             if (clock == null) return Routine.Pasture;
             float hour = clock.CurrentMinutes / 60f;
-            if (hour >= shelterFrom) return Routine.Shelter;
+            if (hour >= shelterFrom) return usesShelter ? Routine.Shelter : Routine.Shade;
             return hour >= shadeFrom && hour < shadeUntil ? Routine.Shade : Routine.Pasture;
         }
     }

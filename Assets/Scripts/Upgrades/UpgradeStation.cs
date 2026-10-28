@@ -14,15 +14,19 @@ public sealed class UpgradeStation : MonoBehaviour
     [SerializeField] private Vector3 areaSize = new Vector3(4f, 3f, 4f);
 
     private static readonly List<UpgradeStation> Active = new List<UpgradeStation>();
+    private static PlayerGrowthController playerGrowth;
 
     public Kind StationKind => kind;
     public string PromptText => kind == Kind.Barn ? "Yükseltmeler" : "Civciv Yükseltmeleri";
 
-    /// <summary>The station whose area contains <paramref name="position"/>, or null.</summary>
+    /// <summary>The station whose area contains <paramref name="position"/>, or null. The coop opens only for the chicken.</summary>
     public static UpgradeStation At(Vector3 position)
     {
+        if (playerGrowth == null) playerGrowth = FindFirstObjectByType<PlayerGrowthController>();
+        bool chick = playerGrowth != null && playerGrowth.CurrentForm == PlayerGrowthController.Form.Chick;
         foreach (var station in Active)
         {
+            if (chick && station.kind == Kind.Coop) continue;
             Vector3 local = station.transform.InverseTransformPoint(position) - station.areaCenter;
             Vector3 half = station.areaSize * .5f;
             if (Mathf.Abs(local.x) <= half.x && Mathf.Abs(local.y) <= half.y && Mathf.Abs(local.z) <= half.z) return station;

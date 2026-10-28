@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// The walkable inside of the fenced sheep pasture: a rectangle (this transform is its centre, axis aligned)
+/// The walkable inside of the fenced sheep pasture: a rectangle (centred on this transform plus an offset, axis aligned)
 /// minus round obstacles such as the shelter walls, trough and hay rack. Sheep pick targets here and are kept
 /// inside it. It also knows the flock's places: sleeping spots in the shelter, the trees' shade, trough and rack.
 /// </summary>
@@ -11,6 +11,8 @@ public sealed class SheepPen : MonoBehaviour
     [SerializeField] private Terrain terrain;
     [Tooltip("Usable half size inside the fence in world X and Z (m).")]
     [SerializeField] private Vector2 halfSize = new Vector2(10f, 8f);
+    [Tooltip("World offset of the fenced rectangle's centre from this transform (the fence was moved after the build).")]
+    [SerializeField] private Vector3 centerOffset;
     [Tooltip("x, z, radius in world space. Written by Tools/Chick/Sheep Pasture.")]
     [SerializeField] private Vector3[] obstacles = new Vector3[0];
 
@@ -22,7 +24,7 @@ public sealed class SheepPen : MonoBehaviour
     [SerializeField, Min(.5f)] private float shadeRadius = 3f;
     [SerializeField] private Vector3 troughStand, troughCenter, rackStand, rackCenter;
 
-    public Vector3 Center => transform.position;
+    public Vector3 Center => transform.position + centerOffset;
     public Vector2 HalfSize => halfSize;
     public Vector3 ShelterDoor => shelterDoor;
     public Vector3 ShadeSpot => shadeSpot;
@@ -33,10 +35,11 @@ public sealed class SheepPen : MonoBehaviour
     public Vector3 RackCenter => rackCenter;
     public Vector3 RestSpot(int index) => restSpots.Length > 0 ? restSpots[Mathf.Abs(index) % restSpots.Length] : Center;
 
-    public void Configure(Terrain ground, Vector2 usableHalfSize, Vector3[] obstacleCircles)
+    public void Configure(Terrain ground, Vector2 usableHalfSize, Vector3[] obstacleCircles, Vector3? center = null)
     {
         terrain = ground;
         halfSize = usableHalfSize;
+        centerOffset = center.HasValue ? center.Value - transform.position : Vector3.zero;
         obstacles = obstacleCircles;
     }
 

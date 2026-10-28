@@ -5,8 +5,17 @@ using UnityEngine.UIElements;
 [RequireComponent(typeof(UIDocument)), DisallowMultipleComponent, DefaultExecutionOrder(100)]
 public sealed partial class GrowthProgressController : MonoBehaviour
 {
-    public const int SeedGoal = 50;
+    public const int SeedGoal = 250;
+    // Every StageSeeds seeds the chick gains one passive stage; the last stage is reached with the growth goal.
+    public const int StageSeeds = 50;
+    public const int StageCount = SeedGoal / StageSeeds;
     public int EatenSeedCount { get; private set; }
+    public int ChickStage => EatenSeedCount / StageSeeds;
+    // Chick-only passive stages; the chicken always uses 1x.
+    public float PeckSpeedMultiplier => !IsChickForm ? 1f : ChickStage >= 5 ? 1.5f : ChickStage >= 1 ? 1f : .5f;
+    public float StaminaMultiplier => !IsChickForm ? 1f : ChickStage >= 2 ? 1f : .5f;
+    public float WalkSpeedMultiplier => !IsChickForm ? 1f : ChickStage >= 4 ? 1.5f : .75f;
+    public float ReachMultiplier => !IsChickForm ? 1f : ChickStage >= 3 ? 1f : .5f;
     public float Progress => EatenSeedCount / (float)SeedGoal;
     public float DisplayProgress => IsChickForm ? Progress : EggProgress;
     public event Action OnGrowthProgressComplete;
@@ -101,6 +110,7 @@ public sealed partial class GrowthProgressController : MonoBehaviour
             BeginGrowthReadyMessage();
             OnGrowthProgressComplete?.Invoke();
         }
+        else if (EatenSeedCount % StageSeeds == 0) BeginStageUpMessage();
     }
 
     private void Restore(FarmSaveData data)

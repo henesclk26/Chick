@@ -27,6 +27,7 @@ public sealed class ChickPlayerController : MonoBehaviour
     [SerializeField, Min(0f)] private float airSteeringAcceleration = 8f;
     [Tooltip("\"Sprint Hızı\" levels speed up running (Shift) and its run animation together.")]
     [SerializeField] private PlayerUpgrades upgrades;
+    private GrowthProgressController growth;
 
     [Header("Sprint Stamina")]
     [Tooltip("Seconds of continuous sprint before \"Sprint Süresi\" upgrades.")]
@@ -110,7 +111,8 @@ public sealed class ChickPlayerController : MonoBehaviour
     public bool DebugSprintSpeed5x { get; set; }
     public bool DebugJumpHeight2x { get; set; }
 
-    public float SprintSeconds => baseSprintSeconds + (upgrades != null ? upgrades.SprintDurationBonusSeconds : 0f);
+    public float SprintSeconds => (baseSprintSeconds + (upgrades != null ? upgrades.SprintDurationBonusSeconds : 0f)) *
+        (growth != null ? growth.StaminaMultiplier : 1f);
     public float SprintStamina01 => sprintStamina < 0f ? 1f : Mathf.Clamp01(sprintStamina / SprintSeconds);
     public bool SprintExhausted => sprintExhausted;
     public Vector3 FacingDirection => transform.forward;
@@ -219,6 +221,7 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
         drinkingController = GetComponent<ChickDrinkingController>();
         waterWading = GetComponent<ChickWaterWading>();
         if (upgrades == null) upgrades = FindFirstObjectByType<PlayerUpgrades>(FindObjectsInactive.Include);
+        growth = FindFirstObjectByType<GrowthProgressController>(FindObjectsInactive.Include);
 
         if (animator == null)
         {
@@ -600,7 +603,7 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
 
         float speed = chickenForm
             ? (running ? runSpeed : moveSpeed)
-            : (running ? chickRunSpeed : chickMoveSpeed);
+            : (running ? chickRunSpeed : chickMoveSpeed * (growth != null ? growth.WalkSpeedMultiplier : 1f));
         if (running) speed *= SprintMultiplier * (DebugSprintSpeed5x ? 5f : 1f);
         // Pond water slows the stride as it deepens.
         if (waterWading != null) speed *= waterWading.SpeedMultiplier;

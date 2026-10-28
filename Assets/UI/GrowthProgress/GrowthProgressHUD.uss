@@ -104,6 +104,61 @@
 #UpgradePrompt {
     display: none;
 }
+/* Passive chick stage: the bar's gold, with a numbered badge like the Z key circle. */
+#StageUpBanner {
+    display: none;
+    flex-direction: row;
+    align-items: center;
+    height: 50px;
+    padding-left: 6px;
+    padding-right: 16px;
+    background-color: rgba(255, 245, 211, .97);
+    border-color: rgb(39, 43, 30);
+    border-width: 2px;
+    border-radius: 12px;
+    border-bottom-width: 4px;
+    border-bottom-color: rgb(196, 132, 32);
+}
+#StageUpBadge {
+    width: 38px;
+    height: 38px;
+    margin-right: 10px;
+    border-radius: 19px;
+    border-width: 3px;
+    border-color: rgb(39, 43, 30);
+    background-color: rgb(244, 186, 52);
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+#StageUpNumber {
+    margin: 0;
+    padding: 0;
+    color: rgb(39, 43, 30);
+    font-size: 21px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+#StageUpTexts {
+    justify-content: center;
+}
+#StageUpTitle {
+    margin: 0;
+    padding: 0;
+    color: rgb(38, 74, 30);
+    font-size: 20px;
+    -unity-font-style: bold;
+    -unity-text-outline-color: rgb(38, 74, 30);
+    -unity-text-outline-width: .3px;
+}
+#StageUpDetail {
+    margin: 0;
+    margin-top: -2px;
+    padding: 0;
+    color: rgb(140, 92, 22);
+    font-size: 12px;
+    -unity-font-style: bold;
+}
 #UpgradePrompt, .interaction-prompt {
     flex-direction: row;
     align-items: center;
