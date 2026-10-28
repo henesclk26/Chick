@@ -141,6 +141,11 @@ Shader "Chick/InteractiveFoliage"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
+            // the material's share of the lean: _DetailNormalMapScale (no detail maps on foliage; it sits in the
+            // material constant buffer, so the SRP batcher still works). 1 = the grass's full lean; flowers lie over less.
+            #define FOLIAGE_BEND_SHARE saturate(_DetailNormalMapScale)
+            // a partial lean (the flowers) leans only away from the bird; the grass's full lean also follows its walk
+            #define FOLIAGE_BEND_WALK (_DetailNormalMapScale >= 0.999 ? 1.0 : 0.0)
             #include "FoliageBend.hlsl"
 
             Varyings FoliageLitVertex(Attributes input)
@@ -238,6 +243,11 @@ Shader "Chick/InteractiveFoliage"
             #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
+            // the material's share of the lean: _DetailNormalMapScale (no detail maps on foliage; it sits in the
+            // material constant buffer, so the SRP batcher still works). 1 = the grass's full lean; flowers lie over less.
+            #define FOLIAGE_BEND_SHARE saturate(_DetailNormalMapScale)
+            // a partial lean (the flowers) leans only away from the bird; the grass's full lean also follows its walk
+            #define FOLIAGE_BEND_WALK (_DetailNormalMapScale >= 0.999 ? 1.0 : 0.0)
             #include "FoliageBend.hlsl"
 
             Varyings FoliageShadowVertex(Attributes input)
@@ -268,6 +278,11 @@ Shader "Chick/InteractiveFoliage"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
+            // the material's share of the lean: _DetailNormalMapScale (no detail maps on foliage; it sits in the
+            // material constant buffer, so the SRP batcher still works). 1 = the grass's full lean; flowers lie over less.
+            #define FOLIAGE_BEND_SHARE saturate(_DetailNormalMapScale)
+            // a partial lean (the flowers) leans only away from the bird; the grass's full lean also follows its walk
+            #define FOLIAGE_BEND_WALK (_DetailNormalMapScale >= 0.999 ? 1.0 : 0.0)
             #include "FoliageBend.hlsl"
 
             Varyings FoliageDepthVertex(Attributes input)
@@ -299,6 +314,11 @@ Shader "Chick/InteractiveFoliage"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitDepthNormalsPass.hlsl"
+            // the material's share of the lean: _DetailNormalMapScale (no detail maps on foliage; it sits in the
+            // material constant buffer, so the SRP batcher still works). 1 = the grass's full lean; flowers lie over less.
+            #define FOLIAGE_BEND_SHARE saturate(_DetailNormalMapScale)
+            // a partial lean (the flowers) leans only away from the bird; the grass's full lean also follows its walk
+            #define FOLIAGE_BEND_WALK (_DetailNormalMapScale >= 0.999 ? 1.0 : 0.0)
             #include "FoliageBend.hlsl"
 
             Varyings FoliageDepthNormalsVertex(Attributes input)

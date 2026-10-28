@@ -1,11 +1,25 @@
+/* The time of day, with no panel behind it, in one of two looks (ClockHUDController):
+   - lettered: soft black Fredoka (rounded, OFL; Assets/UI/Fonts), a thin cream rim and a soft glow;
+   - segments: a bold black seven-segment readout, drawn by ClockHUDController as pointed segments with small gaps at
+     the joints and a faint cream rim, so it reads over the trees too. Digit 30 x 52 px. */
 #ClockHUD {
-    position: absolute; right: 28px; top: 24px; height: 52px; min-width: 150px;
-    flex-direction: row; align-items: center; justify-content: center;
-    background-color: rgba(255, 246, 222, 0.94); border-radius: 18px;
-    border-width: 2px; border-color: rgba(104, 76, 41, 0.25); display: none;
+    position: absolute; right: 30px; top: 22px; height: 54px;
+    flex-direction: row; align-items: center; display: none;
 }
-#ClockText { font-size: 25px; color: rgb(69, 52, 35); -unity-font-style: bold; margin-left: 12px; }
-#ClockIcon { width: 25px; height: 25px; border-radius: 15px; border-width: 2px; border-color: rgb(143, 106, 56); }
-.hand { position: absolute; background-color: rgb(143, 106, 56); border-radius: 2px; }
-.hour { left: 10px; top: 5px; width: 2px; height: 8px; }
-.minute { left: 10px; top: 11px; width: 8px; height: 2px; }
+#ClockText {
+    -unity-font-definition: url("../Fonts/Fredoka-SemiBold.ttf");
+    font-size: 44px; letter-spacing: 1px; color: rgb(33, 28, 22);
+    -unity-text-outline-width: 1px; -unity-text-outline-color: rgba(255, 249, 232, 0.55);
+    text-shadow: 0px 1px 4px rgba(255, 249, 232, 0.6);
+    margin: 0; padding: 0;
+}
+#ClockSegments { flex-direction: row; align-items: center; display: none; }
+#ClockHUD.segments #ClockText { display: none; }
+#ClockHUD.segments #ClockSegments { display: flex; }
+
+.digit { width: 30px; height: 52px; margin-left: 4px; margin-right: 4px; }
+#ClockColon { width: 10px; height: 52px; justify-content: center; align-items: center; margin-left: 1px; margin-right: 1px; }
+.dot {
+    width: 7px; height: 7px; margin-top: 5px; margin-bottom: 5px; border-radius: 2px;
+    background-color: rgb(24, 22, 20); border-width: 1px; border-color: rgba(255, 250, 238, 0.45);
+}

@@ -6,11 +6,19 @@
 // The whole plant leans as one piece (direction and amount are per object), so blades never tear apart; with
 // _FOLIAGE_BEND_LOCAL (wide grass clumps) each vertex is measured at its own spot instead.
 // Contact is measured against path segments and faded by age, so plants ease back up instead of snapping.
+// A shader may define FOLIAGE_BEND_SHARE before the include to take only a share of the tilt (1 = all of it), and
+// FOLIAGE_BEND_WALK 0 to lean only away from the bird, never along its walking direction (which flips when it turns).
 // Needs a real object matrix: bending renderers must not be static batched.
 #ifndef CHICK_FOLIAGE_BEND_INCLUDED
 #define CHICK_FOLIAGE_BEND_INCLUDED
 
 #define FOLIAGE_BEND_TRAIL 16
+#ifndef FOLIAGE_BEND_SHARE
+#define FOLIAGE_BEND_SHARE 1.0
+#endif
+#ifndef FOLIAGE_BEND_WALK
+#define FOLIAGE_BEND_WALK 1.0
+#endif
 
 float4 _FoliageBendTrail[FOLIAGE_BEND_TRAIL];
 float4 _FoliageBendParams;
@@ -83,18 +91,21 @@ float3 FoliageBendOS(float3 positionOS)
             if (blendedLen > 1e-4)
                 walk = blended / blendedLen;
         }
-        float2 dir = away + walk * (_FoliageBendMotion.w * 0.5);
+        float2 dir = away + walk * (_FoliageBendMotion.w * 0.5 * FOLIAGE_BEND_WALK);
         float len = length(dir);
+        // Without the walking-direction push the lean fades out towards the plant's centre, so a bird turning or
+        // crossing over it tips it through upright to the other side instead of flipping it in one frame.
+        float push = contact * lerp(saturate(len / (touchRange * 0.35)), 1.0, FOLIAGE_BEND_WALK);
         if (len > 1e-4)
-            lean += dir / len * contact;
-        amount = max(amount, contact);
+            lean += dir / len * push;
+        amount = max(amount, push);
     }
     float leanLen = length(lean);
     if (amount <= 1e-3 || leanLen <= 1e-4)
         return positionOS;
 
     float s, c;
-    sincos(_FoliageBendParams.x * amount, s, c);
+    sincos(_FoliageBendParams.x * amount * FOLIAGE_BEND_SHARE, s, c);
     // Lean around the root: every vertex tilts the same way, the tip moves out and drops.
     positionWS.xz += (lean / leanLen) * height * s;
     positionWS.y = pivotWS.y + height * c;

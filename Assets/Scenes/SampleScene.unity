@@ -349413,6 +349413,75 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d78ea7b99ed704444b36097ab684c384, type: 3}
+--- !u!1 &1265214341
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1265214342}
+  - component: {fileID: 1265214343}
+  m_Layer: 0
+  m_Name: Chick Stalk Blockers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1265214342
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265214341}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2003381689}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1265214343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265214341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a268229d67bc82c46943f2f573082e6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChickStemBlockers
+  stalks:
+  - mesh: SM_Prop_Sunflower_01
+    radius: 0.025
+    centre: {x: 0.025, y: -0.03}
+  - mesh: SM_Prop_Sunflower_02
+    radius: 0.03
+    centre: {x: 0, y: 0}
+  - mesh: Hyacinth_PastellBlue_Big
+    radius: 0.045
+    centre: {x: 0.036, y: -0.03}
+  - mesh: Rose_Red_Open
+    radius: 0.022
+    centre: {x: 0, y: 0}
+  - mesh: Rose_Black_Open
+    radius: 0.022
+    centre: {x: 0, y: 0}
+  - mesh: Flower_Poppy
+    radius: 0.03
+    centre: {x: 0.025, y: -0.006}
+  - mesh: Daisy_Single
+    radius: 0.035
+    centre: {x: 0.03, y: 0.02}
+  heightShare: 0.45
+  minimumRadius: 0.012
+  liftOffGround: 0.06
 --- !u!1001 &1265726715
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -429595,6 +429664,61 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 691952046065959600, guid: c2c8315f62f3add45bb666a7ca751b68, type: 3}
   m_PrefabInstance: {fileID: 2112089298}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1565323711
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1565323712}
+  - component: {fileID: 1565323713}
+  m_Layer: 0
+  m_Name: Flower Sway
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1565323712
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1565323711}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2003381689}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1565323713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1565323711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a2b12501aadee5469e1685433d9e6f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FlowerSway
+  flowerMaterials:
+  - {fileID: 2100000, guid: 275b966602fb27b4093ba6cbe73fa0d6, type: 2}
+  - {fileID: 2100000, guid: e432edac68570b94aa02ae4f3faf3a01, type: 2}
+  - {fileID: 2100000, guid: 09eb84efb8b487e489d51499fa3a2adc, type: 2}
+  - {fileID: 2100000, guid: 882a4f2b0a3573b4db7dad1e2fdc72c4, type: 2}
+  - {fileID: 2100000, guid: bb4827b4d69042929fd9f2c52c8d3b70, type: 2}
+  maxLean: 14
+  radiusScale: 2.4
+  swayFrequency: 0.6
+  swayDamping: 0.4
+  verticalRange: 0.75
 --- !u!1001 &1565363789
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -453995,6 +454119,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClockHUDController
   document: {fileID: 1656662689}
+  segments: 0
 --- !u!114 &1656662689
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -556189,6 +556314,8 @@ Transform:
   - {fileID: 2061714301}
   - {fileID: 2047494474}
   - {fileID: 977085544}
+  - {fileID: 1565323712}
+  - {fileID: 1265214342}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &2003486742 stripped
