@@ -1,18 +1,12 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="ClockHUD.uss" />
-    <!-- The time of day, no panel behind it. Two looks, picked on ClockHUDController: the time lettered in Fredoka, or a
-         seven-segment readout (each digit draws its own segments, ClockHUDController). -->
+    <!-- The gameplay corners, no panels behind them: where on the farm the bird is (top left, FarmLocationHUD) and
+         the time of day (top right, ClockHUDController). Both show and hide together with the clock. -->
+    <ui:VisualElement name="LocationHUD" picking-mode="Ignore">
+        <ui:VisualElement name="LocationPin" picking-mode="Ignore" />
+        <ui:VisualElement name="LocationNames" picking-mode="Ignore" />
+    </ui:VisualElement>
     <ui:VisualElement name="ClockHUD" picking-mode="Ignore">
         <ui:Label name="ClockText" text="07:00" picking-mode="Ignore" />
-        <ui:VisualElement name="ClockSegments" picking-mode="Ignore">
-            <ui:VisualElement name="D0" class="digit" picking-mode="Ignore"></ui:VisualElement>
-            <ui:VisualElement name="D1" class="digit" picking-mode="Ignore"></ui:VisualElement>
-            <ui:VisualElement name="ClockColon" picking-mode="Ignore">
-                <ui:VisualElement class="dot" picking-mode="Ignore" />
-                <ui:VisualElement class="dot" picking-mode="Ignore" />
-            </ui:VisualElement>
-            <ui:VisualElement name="D2" class="digit" picking-mode="Ignore"></ui:VisualElement>
-            <ui:VisualElement name="D3" class="digit" picking-mode="Ignore"></ui:VisualElement>
-        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

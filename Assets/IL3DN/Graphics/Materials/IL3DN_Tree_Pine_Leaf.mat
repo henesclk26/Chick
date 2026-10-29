@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: IL3DN_Tree_Pine_Leaf
-  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+  m_Shader: {fileID: 4800000, guid: 9c00c34be38adfd4dba808f4ca546436, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -31,8 +31,7 @@ Material:
   m_CustomRenderQueue: 2450
   stringTagMap:
     RenderType: TransparentCutout
-  disabledShaderPasses:
-  - MOTIONVECTORS
+  disabledShaderPasses: []
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -179,8 +178,8 @@ Material:
     - _ZWrite: 1
     - __dirty: 1
     m_Colors:
-    - _BaseColor: {r: 0.094117425, g: 0.44313705, b: 0.32116345, a: 1}
-    - _Color: {r: 0.094117396, g: 0.44313702, b: 0.32116342, a: 1}
+    - _BaseColor: {r: 0.12, g: 0.27, b: 0.13, a: 1}
+    - _Color: {r: 0.11999995, g: 0.26999995, b: 0.12999997, a: 1}
     - _Color0: {r: 1, g: 1, b: 1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _HueVariation: {r: 1, g: 0.8997179, b: 0.740566, a: 1}

@@ -1,25 +1,33 @@
-/* The time of day, with no panel behind it, in one of two looks (ClockHUDController):
-   - lettered: soft black Fredoka (rounded, OFL; Assets/UI/Fonts), a thin cream rim and a soft glow;
-   - segments: a bold black seven-segment readout, drawn by ClockHUDController as pointed segments with small gaps at
-     the joints and a faint cream rim, so it reads over the trees too. Digit 30 x 52 px. */
+/* The gameplay corners, with no panels behind them: soft black lettering in Fredoka (rounded, OFL; Assets/UI/Fonts,
+   with the Turkish letters added), a thin cream rim and a soft glow, so it reads over the sky and the trees alike. */
 #ClockHUD {
     position: absolute; right: 30px; top: 22px; height: 54px;
     flex-direction: row; align-items: center; display: none;
 }
-#ClockText {
+#ClockText, .location-name {
     -unity-font-definition: url("../Fonts/Fredoka-SemiBold.ttf");
-    font-size: 44px; letter-spacing: 1px; color: rgb(33, 28, 22);
+    color: rgb(33, 28, 22);
     -unity-text-outline-width: 1px; -unity-text-outline-color: rgba(255, 249, 232, 0.55);
     text-shadow: 0px 1px 4px rgba(255, 249, 232, 0.6);
     margin: 0; padding: 0;
 }
-#ClockSegments { flex-direction: row; align-items: center; display: none; }
-#ClockHUD.segments #ClockText { display: none; }
-#ClockHUD.segments #ClockSegments { display: flex; }
+#ClockText { font-size: 44px; letter-spacing: 1px; }
 
-.digit { width: 30px; height: 52px; margin-left: 4px; margin-right: 4px; }
-#ClockColon { width: 10px; height: 52px; justify-content: center; align-items: center; margin-left: 1px; margin-right: 1px; }
-.dot {
-    width: 7px; height: 7px; margin-top: 5px; margin-bottom: 5px; border-radius: 2px;
-    background-color: rgb(24, 22, 20); border-width: 1px; border-color: rgba(255, 250, 238, 0.45);
+/* Where the bird is: a map pin (drawn by FarmLocationHUD) and the region's name. On a new region the old name lifts
+   up and fades, the new one rises in from below, and the pin gives a little hop. */
+#LocationHUD {
+    position: absolute; left: 26px; top: 22px; height: 34px;
+    flex-direction: row; align-items: center; display: none;
 }
+#LocationPin {
+    width: 17px; height: 23px; margin-right: 8px;
+    transition-property: scale, translate; transition-duration: 0.18s; transition-timing-function: ease-out-back;
+}
+#LocationPin.hop { scale: 1.15 1.15; translate: 0 -2px; }
+#LocationNames { height: 34px; min-width: 200px; }
+.location-name {
+    position: absolute; left: 0; top: 3px; font-size: 22px; white-space: nowrap;
+    transition-property: opacity, translate; transition-duration: 0.45s; transition-timing-function: ease-out-cubic;
+}
+.location-name.enter { opacity: 0; translate: 0 10px; }
+.location-name.leave { opacity: 0; translate: 0 -10px; transition-duration: 0.3s; transition-timing-function: ease-in-cubic; }
