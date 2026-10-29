@@ -46,6 +46,16 @@ public sealed class FarmGate : MonoBehaviour
     private bool shut;
     private static PlayerGrowthController playerGrowth;
 
+    // With domain reload off (Enter Play Mode Options) these would carry the last session's walkers and lookup time
+    // into the next, and the gates would not see anyone until the clock caught up.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetWalkers()
+    {
+        walkers = Array.Empty<CharacterController>();
+        walkersFoundAt = float.NegativeInfinity;
+        playerGrowth = null;
+    }
+
     public bool Locked
     {
         get => locked;

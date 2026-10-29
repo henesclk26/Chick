@@ -13,6 +13,7 @@
                     <ui:Button name="new-game" text="YENİ OYUN" class="menu-button primary" />
                     <ui:Button name="continue" text="DEVAM ET" class="menu-button" />
                     <ui:Button name="settings-button" text="AYARLAR" class="menu-button" />
+                    <ui:Button name="credits-button" text="EMEĞİ GEÇENLER" class="menu-button" />
                     <ui:Button name="quit" text="ÇIKIŞ" class="menu-button quiet" />
                     <ui:Label name="save-status" text="Kayıt kontrol ediliyor…" />
                 </ui:VisualElement>
@@ -40,6 +41,35 @@
                 </ui:ScrollView>
                 <ui:Label name="settings-status" class="hint" />
                 <ui:VisualElement class="actions"><ui:Button name="settings-back" text="GERİ" /><ui:Button name="settings-apply" text="UYGULA" class="primary" /></ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <!-- Keep in step with CREDITS.md at the project root. -->
+        <ui:VisualElement name="credits-page" class="hidden">
+            <ui:VisualElement class="settings-card">
+                <ui:Label text="TEŞEKKÜRLER" class="eyebrow" />
+                <ui:Label text="Emeği Geçenler" class="page-title" />
+                <ui:ScrollView name="credits-scroll">
+                    <ui:Label text="Civcik'te kullandığımız ve yapımcılarına teşekkür ettiğimiz eserler." class="credit-intro" />
+                    <ui:Label text="MÜZİK VE SES" class="section-title" />
+                    <ui:VisualElement class="credit"><ui:Label text="&quot;Caketown&quot; — Matthew Pablo" class="credit-title" /><ui:Label text="matthewpablo.com · OpenGameArt · CC BY-SA 3.0" class="credit-detail" /></ui:VisualElement>
+                    <ui:VisualElement class="credit"><ui:Label text="&quot;Apple Cider&quot; — Zane Little Music" class="credit-title" /><ui:Label text="zanelittle.com · OpenGameArt · CC0" class="credit-detail" /></ui:VisualElement>
+                    <ui:VisualElement class="credit"><ui:Label text="&quot;Birds and Wind - Ambient&quot; — Spring Spring" class="credit-title" /><ui:Label text="Kuş sesleri: isaiah658, syncopika, pauliuw · OpenGameArt · CC0" class="credit-detail" /></ui:VisualElement>
+                    <ui:VisualElement class="credit"><ui:Label text="Şelale sesi — BOKI, Low Poly Nature" class="credit-title" /><ui:Label text="Unity Asset Store" class="credit-detail" /></ui:VisualElement>
+                    <ui:Label text="MODELLER" class="section-title" />
+                    <ui:VisualElement class="credit"><ui:Label text="Vegetation Stylized Pack — LUX ART STUDIOS" class="credit-title" /><ui:Label text="Meyve ağaçlarının gövde ve yaprakları; yeniden boyandı, meyve eklendi" class="credit-detail" /></ui:VisualElement>
+                    <ui:VisualElement class="credit"><ui:Label text="&quot;Stylized Tree&quot; — yonimantz" class="credit-title" /><ui:Label text="Meşe ağaçları; ölçeklendi, sadeleştirildi, yeniden boyandı · Sketchfab · CC BY 4.0" class="credit-detail" /></ui:VisualElement>
+                    <ui:VisualElement class="credit"><ui:Label text="&quot;Frog&quot; — johnrife48" class="credit-title" /><ui:Label text="Göldeki kurbağalar; ölçeklendi · Sketchfab · CC BY 4.0" class="credit-detail" /></ui:VisualElement>
+                    <ui:VisualElement class="credit"><ui:Label text="Low Poly Cartoon Bugs — POLYGROVE Studio" class="credit-title" /><ui:Label text="Elmadan çıkan tırtıl; ölçeklendi · Fab · CC BY 4.0" class="credit-detail" /></ui:VisualElement>
+                    <ui:VisualElement class="credit"><ui:Label text="Cartoon Butterflies — Mixall" class="credit-title" /><ui:Label text="Çiftlikte uçuşan kelebekler · Fab" class="credit-detail" /></ui:VisualElement>
+                    <ui:VisualElement class="credit"><ui:Label text="Free Fruits — PolyOne" class="credit-title" /><ui:Label text="Ağaçlardaki meyveler · Unity Asset Store" class="credit-detail" /></ui:VisualElement>
+                    <ui:VisualElement class="credit"><ui:Label text="Nature Starter Kit 2 — Shapes" class="credit-title" /><ui:Label text="Ağaç ve çalılar · Unity Asset Store" class="credit-detail" /></ui:VisualElement>
+                    <ui:VisualElement class="credit"><ui:Label text="Diğer paketler" class="credit-title" /><ui:Label text="Synty Studios, BOKI, polygonTrees, IL3DN, FlipGameDev, BluBlu Games, VertexRage Studio, PolyRonin, ithappy, Mnostva Art, Emilulz" class="credit-detail" /></ui:VisualElement>
+                    <ui:Label text="ARAÇLAR" class="section-title" />
+                    <ui:VisualElement class="credit"><ui:Label text="Vegetation Spawner — Staggart Creations" class="credit-title" /><ui:Label text="Ağaç ve çalıların haritaya dağıtılması" class="credit-detail" /></ui:VisualElement>
+                    <ui:VisualElement class="credit"><ui:Label text="Point Grass Renderer — MicahW" class="credit-title" /><ui:Label text="Tavuk bahçesindeki çimen" class="credit-detail" /></ui:VisualElement>
+                    <ui:Label text="CC BY 4.0: creativecommons.org/licenses/by/4.0  ·  CC BY-SA 3.0: creativecommons.org/licenses/by-sa/3.0" class="hint" />
+                </ui:ScrollView>
+                <ui:VisualElement class="actions"><ui:Button name="credits-back" text="GERİ" class="primary" /></ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="pause-overlay" class="pause-overlay hidden">

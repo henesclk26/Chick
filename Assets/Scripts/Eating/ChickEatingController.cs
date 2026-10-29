@@ -56,6 +56,8 @@ public sealed class ChickEatingController : MonoBehaviour
 
     // The beak has hit (the ground or the food) at this point; presentation hooks in here (GroundEffects).
     public event System.Action<Vector3> Pecked;
+    // The beak has taken a bite of this food; true when that bite finished it (EatingFeedback).
+    public event System.Action<EdibleObject, bool> Bit;
 
     public bool IsEating => phase == EatPhase.Eating;
     public bool IsBusy => phase != EatPhase.Ready;
@@ -270,6 +272,8 @@ public sealed class ChickEatingController : MonoBehaviour
         impactHandled = true;
         Pecked?.Invoke(PredictedContact);
         if (atContact && IsTargetValid(target)) LastImpactSucceeded = target.Consume();
+        // Before the visual goes back to its resting place: the food is still at the beak.
+        if (LastImpactSucceeded && target != null) Bit?.Invoke(target, target.IsConsumed);
         RestoreContactVisual();
         // A purchased double collection can take one additional reachable seed, never a
         // companion's reserved meal or an extra bite from the same multi-bite fruit.
@@ -277,7 +281,7 @@ public sealed class ChickEatingController : MonoBehaviour
             upgrades.DoubleCollectChance > 0f && Random.value < upgrades.DoubleCollectChance)
         {
             EdibleObject extra = FindTarget(target);
-            if (extra != null && extra.BiteHandler == null) extra.Consume();
+            if (extra != null && extra.BiteHandler == null && extra.Consume()) Bit?.Invoke(extra, true);
         }
     }
 

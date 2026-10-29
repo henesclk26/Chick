@@ -14,7 +14,7 @@ public sealed class MainMenuController : MonoBehaviour
     [SerializeField] private SettingsMenuController settings;
     [SerializeField] private FarmSaveSystem saves;
     [SerializeField] private MainMenuGameplayGate gameplayGate;
-    private VisualElement root, home, popup, loading;
+    private VisualElement root, home, popup, loading, credits;
     private Button resume;
     private Label status;
     private bool busy;
@@ -24,7 +24,7 @@ public sealed class MainMenuController : MonoBehaviour
     {
         UnityEngine.Cursor.lockState = CursorLockMode.None; UnityEngine.Cursor.visible = true;
         root = GetComponent<UIDocument>().rootVisualElement;
-        home = root.Q("home"); popup = root.Q("confirmation"); loading = root.Q("loading");
+        home = root.Q("home"); popup = root.Q("confirmation"); loading = root.Q("loading"); credits = root.Q("credits-page");
         resume = root.Q<Button>("continue"); status = root.Q<Label>("save-status");
         if (saves == null) saves = GetComponent<FarmSaveSystem>();
         if (saves == null) saves = FindFirstObjectByType<FarmSaveSystem>();
@@ -33,6 +33,8 @@ public sealed class MainMenuController : MonoBehaviour
         root.Q<Button>("new-game").clicked += RequestNew;
         resume.clicked += Continue;
         root.Q<Button>("settings-button").clicked += OpenSettings;
+        root.Q<Button>("credits-button").clicked += OpenCredits;
+        root.Q<Button>("credits-back").clicked += CloseCredits;
         root.Q<Button>("quit").clicked += Quit;
         root.Q<Button>("confirm-yes").clicked += ConfirmNew;
         root.Q<Button>("confirm-no").clicked += CancelNew;
@@ -45,6 +47,7 @@ public sealed class MainMenuController : MonoBehaviour
         if (root == null) return;
         root.Q<Button>("new-game").clicked -= RequestNew; resume.clicked -= Continue;
         root.Q<Button>("settings-button").clicked -= OpenSettings; root.Q<Button>("quit").clicked -= Quit;
+        root.Q<Button>("credits-button").clicked -= OpenCredits; root.Q<Button>("credits-back").clicked -= CloseCredits;
         root.Q<Button>("confirm-yes").clicked -= ConfirmNew; root.Q<Button>("confirm-no").clicked -= CancelNew;
         root.UnregisterCallback<KeyDownEvent>(KeyDown);
     }
@@ -110,9 +113,18 @@ public sealed class MainMenuController : MonoBehaviour
     }
     private void OpenSettings() { if (!busy) { home.AddToClassList("hidden"); settings.Show(BackFromSettings); } }
     private void BackFromSettings() { home.RemoveFromClassList("hidden"); root.Q<Button>("settings-button").Focus(); }
+    private void OpenCredits()
+    {
+        if (busy) return;
+        home.AddToClassList("hidden"); credits.RemoveFromClassList("hidden");
+        root.Q<ScrollView>("credits-scroll").scrollOffset = Vector2.zero;
+        root.Q<Button>("credits-back").Focus();
+    }
+    private void CloseCredits() { credits.AddToClassList("hidden"); home.RemoveFromClassList("hidden"); root.Q<Button>("credits-button").Focus(); }
     private void KeyDown(KeyDownEvent evt)
     {
         if (evt.keyCode == KeyCode.Escape && !popup.ClassListContains("hidden")) { CancelNew(); evt.StopPropagation(); }
+        else if (evt.keyCode == KeyCode.Escape && !credits.ClassListContains("hidden")) { CloseCredits(); evt.StopPropagation(); }
     }
     public void Quit()
     {

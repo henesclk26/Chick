@@ -41,7 +41,7 @@ public static class ObjectInfo
                       $"pos {t.position}, rot {t.eulerAngles}, scale {t.lossyScale}, prefab {PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(t.gameObject)}");
         foreach (Renderer r in t.GetComponents<Renderer>())
         {
-            Mesh mesh = r.GetComponent<MeshFilter>()?.sharedMesh;
+            Mesh mesh = r is SkinnedMeshRenderer skinned ? skinned.sharedMesh : r.TryGetComponent(out MeshFilter filter) ? filter.sharedMesh : null;
             sb.AppendLine($"{pad}  {r.GetType().Name} enabled {r.enabled}, bounds {r.bounds.center} size {r.bounds.size}, mesh {(mesh != null ? mesh.name + " " + AssetDatabase.GetAssetPath(mesh) : "-")}, " +
                           $"materials {string.Join(", ", r.sharedMaterials.Select(m => m == null ? "null" : $"{m.name} [{m.shader.name}] {AssetDatabase.GetAssetPath(m)}"))}");
         }
