@@ -26,6 +26,8 @@ public sealed partial class GrowthProgressController
     private bool requireZRelease;
     private bool formPresentationBound, presentedAsChicken;
     private const float ReadyMessageDuration = 1.5f;
+    // Passive stage banners carry two lines of text, so they stay a second longer.
+    private const float StageUpMessageDuration = ReadyMessageDuration + 1f;
     private const float RingResetDuration = .2f;
 
     // Chick growth and chicken laying keep independent progress behind the same HUD.
@@ -196,7 +198,7 @@ public sealed partial class GrowthProgressController
                 if (playerGrowth == null || !playerGrowth.GrowthPending) ChangeUpgradeState(UpgradeState.Progressing);
                 break;
             case UpgradeState.StageUpMessage:
-                if (stateTime >= ReadyMessageDuration) ChangeUpgradeState(UpgradeState.Progressing);
+                if (stateTime >= StageUpMessageDuration) ChangeUpgradeState(UpgradeState.Progressing);
                 break;
             case UpgradeState.EggLaidMessage:
                 if (stateTime >= ReadyMessageDuration)
@@ -279,7 +281,7 @@ public sealed partial class GrowthProgressController
                 : Mathf.Lerp(1.10f, 1f, Mathf.SmoothStep(0f, 1f, (stateTime - .16f) / .16f));
             pop.style.scale = new Scale(new Vector3(scale, scale, 1f));
             pop.style.opacity = Mathf.Clamp01(stateTime / .12f) *
-                (1f - Mathf.Clamp01((stateTime - 1.25f) / .25f));
+                (1f - Mathf.Clamp01((stateTime - ((banner ? StageUpMessageDuration : ReadyMessageDuration) - .25f)) / .25f));
         }
         if (prompt)
         {

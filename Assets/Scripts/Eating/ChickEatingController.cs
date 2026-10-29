@@ -107,6 +107,8 @@ public sealed class ChickEatingController : MonoBehaviour
         baseAssistDistance = maxContactAssistDistance;
         if (upgrades == null) upgrades = FindFirstObjectByType<PlayerUpgrades>(FindObjectsInactive.Include);
         growth = FindFirstObjectByType<GrowthProgressController>(FindObjectsInactive.Include);
+        // Added here so every scene's player gets the outline without a scene edit.
+        if (GetComponent<FoodTargetHighlight>() == null) gameObject.AddComponent<FoodTargetHighlight>();
         ReadAnimationTiming();
     }
 
@@ -158,6 +160,16 @@ public sealed class ChickEatingController : MonoBehaviour
     }
 
     private void OnDestroy() => eatAction.Dispose();
+
+    /// <summary>The food the next peck would take (the one being pecked while busy), or null.</summary>
+    public EdibleObject PeekTarget()
+    {
+        if (!isActiveAndEnabled || !player.isActiveAndEnabled || animator == null || beakEatPoint == null ||
+            (growth != null && growth.EggReady)) return null;
+        if (IsBusy) return target != null && target.CanBeEaten() ? target : null;
+        ApplyReach();
+        return FindTarget();
+    }
 
     // The existing player controller owns grounded/action/movement eligibility.
     public bool TryBeginEat()

@@ -33,7 +33,8 @@ public sealed class FallingLeaves : MonoBehaviour
     private float nearShed = 8f;
 
     private static readonly string[] NoLeaves = { "Pine", "Fir", "Needle" };
-    private const int Sample = 256, MaxCards = 6;
+    // A particle renderer takes at most 4 meshes (ParticleSystemRenderer.SetMeshes clamps and warns above that).
+    private const int Sample = 256, MaxCards = 4;
 
     private sealed class Kind
     {

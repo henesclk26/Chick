@@ -9,6 +9,7 @@ public sealed class MenuAudioChannel : MonoBehaviour
     private float originalVolume;
     private void Awake() { source = GetComponent<AudioSource>(); originalVolume = source.volume; }
     private void OnEnable() => Apply();
+    public void SetBus(Bus value) { bus = value; Apply(); }
     private void Apply() { if (source != null) source.volume = originalVolume * (bus == Bus.Music ? MenuPreferences.Music : MenuPreferences.Sfx); }
     public static void RefreshAll()
     {
