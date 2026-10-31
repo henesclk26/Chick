@@ -809,10 +809,15 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
         // Lifting the head from the water to swallow: a short linear blend shot the head up and stopped it dead
         // at the top; a longer one lets it rise with the swallow tilt.
         bool swallowBlend = IsDrinking && layerIndex == 0 && stateName == "idle" && currentState.IsName("eat");
+        // Into a peck: quick, but not so quick that a lowered head snaps up to the clip's first frame (a hop).
+        // Out of it: the head rises from the food a little slower than other blends, instead of shooting up.
+        bool eatOut = layerIndex == 0 && currentState.IsName("eat") && stateName != "eat";
         float transitionDuration = stateName == "jump" || stateName == "jump_descent"
             ? 0.18f
             : swallowBlend ? 0.4f
-            : stateName == "eat" || plantPeckBlend ? 0.05f : 0.16f;
+            : plantPeckBlend ? 0.05f
+            : stateName == "eat" ? 0.1f
+            : eatOut ? 0.2f : 0.16f;
 
         animator.CrossFadeInFixedTime(stateName, transitionDuration, layerIndex, 0f);
     }

@@ -42,7 +42,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - Texture2D_CAD82441:
-        m_Texture: {fileID: 2800000, guid: 3bafe83868ac7834c810abe31dc4ae9f, type: 3}
+        m_Texture: {fileID: 2800000, guid: a224131be415f394e9e3acfebf2b388c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseMap:

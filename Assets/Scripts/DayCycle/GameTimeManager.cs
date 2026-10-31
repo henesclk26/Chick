@@ -61,6 +61,7 @@ public sealed class GameTimeManager : MonoBehaviour
             orbit.SnapToTarget();
             EdibleObject.RestoreConsumedIds(data.consumedEdibleIds);
             WatermelonSliceBites.RestoreAll(data.foodBites);
+            EdibleMushroom.RestoreAll(data.foodBites);
         }
         Publish();
         yield return transition.InitialHold();
@@ -112,7 +113,7 @@ public sealed class GameTimeManager : MonoBehaviour
             cameraPitch = orbit.OrbitPitch,
             playerForm = player.GetComponent<PlayerGrowthController>() != null ? (int)player.GetComponent<PlayerGrowthController>().CurrentForm : 0,
             consumedEdibleIds = EdibleObject.CaptureConsumedIds(),
-            foodBites = WatermelonSliceBites.CaptureAll()
+            foodBites = EdibleMushroom.AppendTo(WatermelonSliceBites.CaptureAll())
         };
         System.Threading.Tasks.Task task = null;
         try { task = saves.SaveAsync(snapshot); }

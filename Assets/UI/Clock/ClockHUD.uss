@@ -1,14 +1,15 @@
-/* The gameplay corners, with no panels behind them: soft black lettering in Fredoka (rounded, OFL; Assets/UI/Fonts,
-   with the Turkish letters added), a thin cream rim and a soft glow, so it reads over the sky and the trees alike. */
+/* The gameplay corners, with no panels behind them: white lettering in Fredoka (rounded, OFL; Assets/UI/Fonts,
+   with the Turkish letters added), as the quests, with a thin dark rim and a soft shadow, so it reads over the sky
+   and the trees alike. */
 #ClockHUD {
     position: absolute; right: 30px; top: 22px; height: 54px;
     flex-direction: row; align-items: center; display: none;
 }
 #ClockText, .location-name {
     -unity-font-definition: url("../Fonts/Fredoka-SemiBold.ttf");
-    color: rgb(33, 28, 22);
-    -unity-text-outline-width: 1px; -unity-text-outline-color: rgba(255, 249, 232, 0.55);
-    text-shadow: 0px 1px 4px rgba(255, 249, 232, 0.6);
+    color: rgb(255, 255, 255);
+    -unity-text-outline-width: 1px; -unity-text-outline-color: rgba(24, 19, 14, 0.45);
+    text-shadow: 0px 1px 4px rgba(0, 0, 0, 0.5);
     margin: 0; padding: 0;
 }
 #ClockText { font-size: 44px; letter-spacing: 1px; }
@@ -31,3 +32,96 @@
 }
 .location-name.enter { opacity: 0; translate: 0 10px; }
 .location-name.leave { opacity: 0; translate: 0 -10px; transition-duration: 0.3s; transition-timing-function: ease-in-cubic; }
+
+/* Under the clock: the quests (QuestHUD), light lettering on a see-through dark panel. A finished quest is struck
+   through left to right, then fades and slides away; with none left the panel fades out. */
+#SideStack {
+    position: absolute; right: 26px; top: 84px; width: 300px;
+    flex-direction: column; align-items: flex-end; display: none;
+}
+#QuestHUD {
+    width: 300px;
+    padding: 10px 14px 6px 14px; border-radius: 10px;
+    background-color: rgba(24, 19, 14, 0.42);
+    transition-property: opacity, translate; transition-duration: 0.4s; transition-timing-function: ease-out-cubic;
+}
+#QuestHUD.empty { opacity: 0; translate: 0 -6px; }
+#QuestHeader, .quest-title, .quest-count, .quest-text {
+    -unity-font-definition: url("../Fonts/Fredoka-SemiBold.ttf");
+    margin: 0; padding: 0;
+    text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.45);
+}
+#QuestHeader { font-size: 15px; letter-spacing: 1.5px; color: rgb(255, 214, 102); margin-bottom: 6px; }
+.quest {
+    margin-bottom: 8px;
+    transition-property: opacity, translate; transition-duration: 0.4s; transition-timing-function: ease-in-cubic;
+}
+.quest.gone { opacity: 0; translate: 14px 0; }
+.quest-line { flex-direction: row; align-items: center; }
+.quest-bullet { width: 6px; height: 6px; margin-right: 8px; border-radius: 1px; background-color: rgb(255, 249, 232); }
+.quest-name { flex-direction: row; }
+.quest-gap { flex-grow: 1; }
+.quest-title { font-size: 18px; color: rgb(255, 255, 255); transition-property: color; transition-duration: 0.35s; }
+.quest-count { font-size: 15px; color: rgba(255, 249, 232, 0.85); margin-left: 8px; }
+.quest-text { font-size: 13px; color: rgba(255, 245, 225, 0.78); white-space: normal; margin-left: 14px; margin-top: 1px; }
+/* the strike: a line drawn across the title */
+.quest-strike {
+    position: absolute; left: -2px; top: 52%; height: 2.5px; width: 0%; border-radius: 1px;
+    background-color: rgb(255, 214, 102);
+    transition-property: width; transition-duration: 0.45s; transition-timing-function: ease-out-cubic;
+}
+.quest.done .quest-strike { width: 104%; }
+.quest.done .quest-title { color: rgba(255, 255, 255, 0.6); }
+
+/* Under the quests: the eggs the chicken carries (CarriedEggHUD), one slot per egg it can carry: a white or golden
+   egg where one is carried, a faint egg where there is room, and "carried / room"; pops in, fades out. */
+#CarryHUD {
+    flex-direction: row; align-items: center; margin-top: 8px;
+    padding: 5px 12px 5px 9px; border-radius: 10px;
+    background-color: rgba(24, 19, 14, 0.42);
+    transition-property: opacity, scale; transition-duration: 0.25s; transition-timing-function: ease-out-back;
+}
+#CarryHUD.off { opacity: 0; scale: 0.8 0.8; transition-timing-function: ease-in-cubic; }
+#CarryHUD.full #CarryCount { color: rgb(255, 214, 102); }
+#CarrySlots { flex-direction: row; align-items: center; margin-right: 8px; }
+.carry-slot {
+    width: 22px; height: 28px; margin-right: 3px;
+    transition-property: scale; transition-duration: 0.2s; transition-timing-function: ease-out-back;
+}
+.carry-slot.empty { opacity: 0.28; }
+.carry-slot.pop { scale: 1.25 1.25; }
+#CarryCount {
+    -unity-font-definition: url("../Fonts/Fredoka-SemiBold.ttf");
+    font-size: 18px; color: rgb(255, 255, 255); margin: 0; padding: 0;
+    text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.45);
+    transition-property: color; transition-duration: 0.2s;
+}
+
+/* "New region": under the growth bar, a few seconds, then away; rises in with a little pop. */
+#RegionUnlockRow { position: absolute; left: 0; right: 0; top: 96px; align-items: center; }
+#RegionUnlock {
+    align-items: center; padding: 10px 26px 12px 26px; border-radius: 12px;
+    background-color: rgba(24, 19, 14, 0.55);
+    transition-property: opacity, translate, scale; transition-duration: 0.35s; transition-timing-function: ease-out-back;
+}
+#RegionUnlock.off { opacity: 0; translate: 0 -10px; scale: 0.9 0.9; transition-timing-function: ease-in-cubic; }
+#RegionUnlockHeader, #RegionUnlockName, #RegionUnlockHint {
+    -unity-font-definition: url("../Fonts/Fredoka-SemiBold.ttf");
+    margin: 0; padding: 0; -unity-text-align: middle-center;
+    text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.45);
+}
+#RegionUnlockHeader { font-size: 15px; letter-spacing: 2px; color: rgb(255, 214, 102); }
+#RegionUnlockName { font-size: 34px; color: rgb(255, 255, 255); margin-top: -2px; }
+#RegionUnlockHint { font-size: 15px; color: rgba(255, 245, 225, 0.85); }
+
+/* "Inventory full": under the growth bar, a moment, then away. */
+#CarryFullRow { position: absolute; left: 0; right: 0; top: 74px; align-items: center; }
+#CarryFull {
+    -unity-font-definition: url("../Fonts/Fredoka-SemiBold.ttf");
+    font-size: 19px; color: rgb(255, 255, 255); margin: 0;
+    padding: 7px 16px 7px 16px; border-radius: 10px;
+    background-color: rgba(24, 19, 14, 0.55);
+    text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.45);
+    transition-property: opacity, translate; transition-duration: 0.25s; transition-timing-function: ease-out-cubic;
+}
+#CarryFull.off { opacity: 0; translate: 0 -8px; }

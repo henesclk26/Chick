@@ -67,7 +67,9 @@ public sealed class DeveloperPanelController : MonoBehaviour
         Bind("sprint-speed-5x", ToggleSprintSpeed);
         Bind("jump-height-2x", ToggleJumpHeight);
         Bind("grant-eggs", GrantEggs);
-        if (timeLabel == null || statusLabel == null || bindings.Count != 16)
+        Bind("open-regions", OpenAllRegions);
+        Bind("close-regions", CloseAllRegions);
+        if (timeLabel == null || statusLabel == null || bindings.Count != 18)
             Debug.LogError("DeveloperPanel.uxml has a missing control.", this);
 #else
         enabled = false;
@@ -203,6 +205,18 @@ public sealed class DeveloperPanelController : MonoBehaviour
         RefreshEggControls();
         SetStatus(granted ? "+20 altın eklendi. Bakiye: " + upgrades.AvailableEggs
             : "Altın eklenemedi: sistem veya bakiye sınırını kontrol et.");
+    }
+
+    private void OpenAllRegions()
+    {
+        FarmRegions.OpenAll();
+        SetStatus("Tüm kapılar açıldı: ahır ve ağaçlık kapıları artık hep açık.");
+    }
+
+    private void CloseAllRegions()
+    {
+        FarmRegions.CloseAll();
+        SetStatus("Tüm kapılar kapatıldı: ahır ve ağaçlık kapıları kilitli.");
     }
 
     private void ToggleInfiniteSprint()

@@ -165,7 +165,7 @@ Shader "Chick/TreeSway"
             HLSLPROGRAM
             #pragma target 2.0
             #pragma vertex TreeShadowVertex
-            #pragma fragment ShadowPassFragment
+            #pragma fragment TreeShadowFragment
             #pragma shader_feature_local _ALPHATEST_ON
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma multi_compile_instancing
@@ -174,7 +174,9 @@ Shader "Chick/TreeSway"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
             #define TREE_SWAY_SHARE _DetailNormalMapScale
-            #define TREE_FLUTTER_SHARE _DetailAlbedoMapScale
+            // The shadow sways and bows with the tree but leaves out the leaves' quick flutter: thousands of small leaf
+            // spots shaking out of step every frame made the canopy's shadow shimmer. The leaves themselves still flutter.
+            #define TREE_FLUTTER_SHARE 0.0
             #include "TreeSway.hlsl"
 
             Varyings TreeShadowVertex(Attributes input)
@@ -182,6 +184,25 @@ Shader "Chick/TreeSway"
                 UNITY_SETUP_INSTANCE_ID(input);
                 input.positionOS.xyz = TreeSwayOS(input.positionOS.xyz);
                 return ShadowPassVertex(input);
+            }
+
+            // The leaves are cut out of their texture a few mip levels coarser for the shadow than for the leaves
+            // themselves: the finest cut-outs, smaller than a shadow-map texel, were caught differently in every frame
+            // as the sun turned and made the canopy's shadow flicker. A little blurrier pattern of leaves holds still.
+            // The leaves you see are cut as before.
+            #define TREE_SHADOW_MIP_BIAS 3.5
+
+            half4 TreeShadowFragment(Varyings input) : SV_TARGET
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                #if defined(_ALPHATEST_ON)
+                    half alpha = SAMPLE_TEXTURE2D_BIAS(_BaseMap, sampler_BaseMap, input.uv, TREE_SHADOW_MIP_BIAS).a;
+                    Alpha(alpha, _BaseColor, _Cutoff);
+                #endif
+                #if defined(LOD_FADE_CROSSFADE)
+                    LODFadeCrossFade(input.positionCS);
+                #endif
+                return 0;
             }
             ENDHLSL
         }

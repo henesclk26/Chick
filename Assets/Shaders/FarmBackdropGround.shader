@@ -44,6 +44,17 @@ Shader "Farm/Backdrop Ground"
         _DetailNormal("Close-up Detail Normal", Range(0, 1)) = 0.45
         _DetailDistance("Close-up Detail Distance (m)", Float) = 5
 
+        // The map's own paint (its terrain's splat maps), mirrored out past its edge over the first metres, so right at
+        // the join this ground is drawn exactly as the map draws itself.
+        [NoScaleOffset] _Ctrl0("Map Splat 0", 2D) = "black" {}
+        [NoScaleOffset] _Ctrl1("Map Splat 1", 2D) = "black" {}
+        [NoScaleOffset] _Ctrl2("Map Splat 2", 2D) = "black" {}
+        [NoScaleOffset] _Ctrl3("Map Splat 3", 2D) = "black" {}
+        [NoScaleOffset] _Ctrl4("Map Splat 4", 2D) = "black" {}
+        _LayerCount("Map Layer Count", Float) = 20
+        _CtrlRes("Map Splat Resolution", Float) = 1024
+        _JoinBand("Map Paint Carried Out (m)", Float) = 5
+
         _MapRect("Map Rect (x min, z min, x max, z max)", Vector) = (0, 0, 1, 1)
         _Reach("Scenery Reach Out From The Map (x, z)", Vector) = (35, 90, 0, 0)
         _HazeStart("Haze Starts (share of the reach)", Range(0, 1)) = 0.3
@@ -65,7 +76,31 @@ Shader "Farm/Backdrop Ground"
             float _DetailSize, _DetailEarth, _DetailGrass, _DetailNormal, _DetailDistance;
             float4 _MapRect, _Reach;
             float _HazeStart, _HazeEnd, _HazeMax;
+            float _LayerCount, _CtrlRes, _JoinBand;
         CBUFFER_END
+
+        // The map terrain's own normals (its normal map, one texel per heightmap sample; set by BackdropForest), so over
+        // the first metres out this ground is lit by the very slope the map is lit by, not its own coarser one.
+        TEXTURE2D(_ChickMapNormal); SAMPLER(sampler_ChickMapNormal);
+        float _ChickMapNormalRes;
+
+        float JoinShare(float3 positionWS)
+        {
+            float2 past = max(max(_MapRect.xy - positionWS.xz, positionWS.xz - _MapRect.zw), 0);
+            return 1.0 - smoothstep(0.0, max(_JoinBand, 0.01), length(past));
+        }
+
+        float3 JoinNormal(float3 positionWS, float3 normalWS, float join)
+        {
+            [branch] if (join > 0.001 && _ChickMapNormalRes > 1.0)
+            {
+                float2 uv = saturate((positionWS.xz - _MapRect.xy) / (_MapRect.zw - _MapRect.xy));
+                float2 nuv = (uv * (_ChickMapNormalRes - 1.0) + 0.5) / _ChickMapNormalRes;
+                float3 mapNormal = SAMPLE_TEXTURE2D_LOD(_ChickMapNormal, sampler_ChickMapNormal, nuv, 0).rgb * 2.0 - 1.0;
+                normalWS = normalize(lerp(normalize(normalWS), normalize(mapNormal), join));
+            }
+            return normalWS;
+        }
         ENDHLSL
 
         Pass
@@ -78,6 +113,10 @@ Shader "Farm/Backdrop Ground"
             #pragma fragment frag
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+            // as the map's terrain: its screen-space ambient occlusion and the sun's drifting cloud shadows (the light
+            // cookie), so neither stops short along the join
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fog
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -88,6 +127,71 @@ Shader "Farm/Backdrop Ground"
             TEXTURE2D(_MacroTex); SAMPLER(sampler_MacroTex);
             TEXTURE2D(_CloseDetail); SAMPLER(sampler_CloseDetail);
             TEXTURE2D(_CloseDetailNormal);
+            TEXTURE2D(_Ctrl0); SAMPLER(sampler_Ctrl0);
+            TEXTURE2D(_Ctrl1);
+            TEXTURE2D(_Ctrl2);
+            TEXTURE2D(_Ctrl3);
+            TEXTURE2D(_Ctrl4);
+
+            // The map's own ground at a point past its edge, as ChickTerrainRich.hlsl draws it: its paint read mirrored
+            // back across the edge (no streaks), the five strongest layers, height-mixed. Layers tile on the real uv.
+            void MapGround(float2 uv, float2 dx, float2 dy, out half3 albedoMix, out half3 n, out half4 m, out float earthShare)
+            {
+                float2 mirrored = 1.0 - abs(1.0 - abs(uv));
+                float2 ctrlUV = (mirrored * (_CtrlRes - 1.0) + 0.5) / _CtrlRes;
+                float4 c[5];
+                c[0] = SAMPLE_TEXTURE2D_LOD(_Ctrl0, sampler_Ctrl0, ctrlUV, 0);
+                c[1] = SAMPLE_TEXTURE2D_LOD(_Ctrl1, sampler_Ctrl0, ctrlUV, 0);
+                c[2] = SAMPLE_TEXTURE2D_LOD(_Ctrl2, sampler_Ctrl0, ctrlUV, 0);
+                c[3] = SAMPLE_TEXTURE2D_LOD(_Ctrl3, sampler_Ctrl0, ctrlUV, 0);
+                c[4] = SAMPLE_TEXTURE2D_LOD(_Ctrl4, sampler_Ctrl0, ctrlUV, 0);
+                float best[6] = { -1.0, -1.0, -1.0, -1.0, -1.0, -1.0 };
+                int id[6] = { 0, 0, 0, 0, 0, 0 };
+                [unroll] for (int i = 0; i < 20; i++)
+                {
+                    float w = c[i >> 2][i & 3];
+                    if (i >= (int)_LayerCount) w = 0;
+                    int nn = i;
+                    [unroll] for (int k = 0; k < 6; k++)
+                    {
+                        if (w > best[k]) { float tw = best[k]; int tn = id[k]; best[k] = w; id[k] = nn; w = tw; nn = tn; }
+                    }
+                }
+                float floorW = max(best[5], 0.0);
+                float weight[5]; float wsum = 0;
+                [unroll] for (int j = 0; j < 5; j++) { weight[j] = max(best[j] - floorW, 0.0); wsum += weight[j]; }
+                [unroll] for (int j2 = 0; j2 < 5; j2++) weight[j2] /= max(wsum, 1e-5);
+                half3 albedo[5]; half3 nrm[5]; half4 mask[5]; float h[5]; float isEarth[5];
+                float hmax = 0;
+                [unroll] for (int s = 0; s < 5; s++)
+                {
+                    albedo[s] = 0; nrm[s] = half3(0, 0, 1); mask[s] = half4(1, 1, 0, 0); h[s] = 0; isEarth[s] = 0;
+                    [branch] if (weight[s] > 0.001)
+                    {
+                        float4 st = LOAD_TEXTURE2D(_LayerData, int2(id[s], 0));
+                        float4 tint = LOAD_TEXTURE2D(_LayerData, int2(id[s], 1));
+                        float4 extra = LOAD_TEXTURE2D(_LayerData, int2(id[s], 2));
+                        float2 luv = uv * st.xy + st.zw;
+                        float2 ldx = dx * st.xy, ldy = dy * st.xy;
+                        albedo[s] = SAMPLE_TEXTURE2D_ARRAY_GRAD(_AlbedoArray, sampler_AlbedoArray, luv, id[s], ldx, ldy).rgb * tint.rgb;
+                        half2 nxy = SAMPLE_TEXTURE2D_ARRAY_GRAD(_NormalArray, sampler_NormalArray, luv, id[s], ldx, ldy).rg * 2.0 - 1.0;
+                        nxy *= tint.a * _NormalStrength;
+                        nrm[s] = half3(nxy, sqrt(saturate(1.0 - dot(nxy, nxy))));
+                        mask[s] = SAMPLE_TEXTURE2D_ARRAY_GRAD(_MaskArray, sampler_MaskArray, luv, id[s], ldx, ldy);
+                        h[s] = (mask[s].b + extra.x) * weight[s];
+                        isEarth[s] = extra.y;
+                    }
+                    hmax = max(hmax, h[s]);
+                }
+                float hw[5]; float hsum = 0;
+                [unroll] for (int k2 = 0; k2 < 5; k2++) { hw[k2] = (max(h[k2] + _RichHeightTransition - hmax, 0.0) + 1e-5) * weight[k2]; hsum += hw[k2]; }
+                albedoMix = 0; n = 0; m = 0; earthShare = 0;
+                [unroll] for (int k3 = 0; k3 < 5; k3++)
+                {
+                    float f = hw[k3] / max(hsum, 1e-6);
+                    albedoMix += albedo[k3] * f; n += nrm[k3] * f; m += mask[k3] * f; earthShare += isEarth[k3] * f;
+                }
+            }
 
             struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; float4 color : COLOR; float4 weights : TEXCOORD1; float4 weights2 : TEXCOORD2; };
             struct Varyings
@@ -153,6 +257,16 @@ Shader "Farm/Backdrop Ground"
                     albedoMix += albedo[k3] * f; n += nrm[k3] * f; m += mask[k3] * f; earthShare += isEarth[k3] * f;
                 }
 
+                // over the first metres out, the map's own ground, fading into this one's
+                float join = JoinShare(i.positionWS);
+                [branch] if (join > 0.001)
+                {
+                    half3 mapAlbedo; half3 mapN; half4 mapM; float mapEarth;
+                    MapGround(uv, dx, dy, mapAlbedo, mapN, mapM, mapEarth);
+                    albedoMix = lerp(albedoMix, mapAlbedo, join); n = lerp(n, mapN, join);
+                    m = lerp(m, mapM, join); earthShare = lerp(earthShare, mapEarth, join);
+                }
+
                 float detailFade = saturate(1.0 - distance(i.positionWS, GetCameraPositionWS()) / max(_DetailDistance, 0.01));
                 detailFade *= detailFade;
                 [branch] if (detailFade > 0.001)
@@ -190,7 +304,7 @@ Shader "Farm/Backdrop Ground"
                 colour *= i.color.rgb;   // forest floor further out
 
                 // The terrain's tangent frame (as URP's terrain builds it), so the layers' normal maps light alike.
-                float3 normalWS = normalize(i.normalWS);
+                float3 normalWS = normalize(JoinNormal(i.positionWS, i.normalWS, join));
                 float3 tangentWS = normalize(cross(float3(0, 0, 1), normalWS));
                 float3 bitangentWS = cross(normalWS, tangentWS);
                 InputData data = (InputData)0;
@@ -207,9 +321,13 @@ Shader "Farm/Backdrop Ground"
                 half alpha = 1;
                 BRDFData brdf;
                 InitializeBRDFData(colour, 0, half3(0, 0, 0), smoothness, alpha, brdf);
-                Light sun = GetMainLight(data.shadowCoord, data.positionWS, half4(1, 1, 1, 1));
+                Light sun = GetMainLight(data.shadowCoord, data.positionWS, half4(1, 1, 1, 1));   // with the cloud cookie
                 sun.distanceAttenuation = 1;
-                half3 lit = GlobalIllumination(brdf, data.bakedGI, occlusion, data.positionWS, data.normalWS, data.viewDirectionWS)
+                AmbientOcclusionFactor ao = CreateAmbientOcclusionFactor(data.normalizedScreenSpaceUV, occlusion);
+                #if defined(_SCREEN_SPACE_OCCLUSION)
+                    sun.color *= ao.directAmbientOcclusion;
+                #endif
+                half3 lit = GlobalIllumination(brdf, data.bakedGI, ao.indirectAmbientOcclusion, data.positionWS, data.normalWS, data.viewDirectionWS)
                             + LightingPhysicallyBased(brdf, sun, data.normalWS, data.viewDirectionWS);
 
                 float2 outside = max(max(_MapRect.xy - i.positionWS.xz, i.positionWS.xz - _MapRect.zw), 0);
@@ -243,15 +361,20 @@ Shader "Farm/Backdrop Ground"
             #pragma vertex vert
             #pragma fragment frag
             struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; };
-            struct Varyings { float4 positionCS : SV_POSITION; float3 normalWS : TEXCOORD0; };
+            struct Varyings { float4 positionCS : SV_POSITION; float3 normalWS : TEXCOORD0; float3 positionWS : TEXCOORD1; };
             Varyings vert(Attributes i)
             {
                 Varyings o;
-                o.positionCS = TransformObjectToHClip(i.positionOS.xyz);
+                o.positionWS = TransformObjectToWorld(i.positionOS.xyz);
+                o.positionCS = TransformWorldToHClip(o.positionWS);
                 o.normalWS = TransformObjectToWorldNormal(i.normalOS);
                 return o;
             }
-            half4 frag(Varyings i) : SV_Target { return half4(NormalizeNormalPerPixel(i.normalWS), 0); }
+            half4 frag(Varyings i) : SV_Target
+            {
+                float3 n = JoinNormal(i.positionWS, i.normalWS, JoinShare(i.positionWS));
+                return half4(NormalizeNormalPerPixel(n), 0);
+            }
             ENDHLSL
         }
     }

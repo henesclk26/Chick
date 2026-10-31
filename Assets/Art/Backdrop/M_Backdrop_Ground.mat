@@ -36,6 +36,26 @@ Material:
         m_Texture: {fileID: 2800000, guid: d25fae6094d7b1d41990631151fcd3bb, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Ctrl0:
+        m_Texture: {fileID: 7535604761550581300, guid: cff8807ff00ac1e4d8880c3172dadc49, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Ctrl1:
+        m_Texture: {fileID: -42396216413592185, guid: cff8807ff00ac1e4d8880c3172dadc49, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Ctrl2:
+        m_Texture: {fileID: 8938311229042968465, guid: cff8807ff00ac1e4d8880c3172dadc49, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Ctrl3:
+        m_Texture: {fileID: -763425762342200812, guid: cff8807ff00ac1e4d8880c3172dadc49, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Ctrl4:
+        m_Texture: {fileID: -2487542746107643645, guid: cff8807ff00ac1e4d8880c3172dadc49, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _LayerData:
         m_Texture: {fileID: 2800000, guid: cdaa8f51e3657df408570915fc15a44f, type: 2}
         m_Scale: {x: 1, y: 1}
@@ -61,6 +81,7 @@ Material:
     - _BlendDarken: 0
     - _BlendSoften: 0
     - _CavityStrength: 0.7
+    - _CtrlRes: 1024
     - _Debug: 0
     - _DetailDistance: 5
     - _DetailEarth: 0.45
@@ -71,6 +92,8 @@ Material:
     - _HazeEnd: 1
     - _HazeMax: 0.55
     - _HazeStart: 0.35
+    - _JoinBand: 5
+    - _LayerCount: 20
     - _MacroBrightness: 0.07
     - _MacroFine: 0.05
     - _MacroLush: 0.15

@@ -1,0 +1,1822 @@
+{
+    "entries": [
+        {
+            "material": "GlobalObjectId_V1-3-5ab19813045a6044eae251a057d4e4ac-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-9edc13ae3504b7543b7af77f65c49599-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-bb4827b4d69042929fd9f2c52c8d3b70-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-f79d212dd1934ab1bca2d1920b7a3f0f-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-d3a09648abba643498d1c815b7b4ed17-2100000-0",
+            "property": "_BaseColor",
+            "original": "",
+            "colour": true,
+            "was": {
+                "r": 1.0,
+                "g": 0.7200000286102295,
+                "b": 0.21999996900558473,
+                "a": 1.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-a4e65601024a3144eb633ea579107e4d-2100000-0",
+            "property": "_BaseColor",
+            "original": "",
+            "colour": true,
+            "was": {
+                "r": 0.5764705538749695,
+                "g": 0.5634424090385437,
+                "b": 0.5113293528556824,
+                "a": 1.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-47ff6219c3dfbd14c82df2b3ac1199e3-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-bd9b13308850e8f42b7fad0ea9e4235c-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-bc66a7b6061fb9a40be3fd7d1e99e646-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-c31a60abb58670c4ebef2018b3bde1d9-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-2a95f9ff80948c643a57b9e94a98eb3f-2100000-0",
+            "property": "_Albedo_Map",
+            "original": "GlobalObjectId_V1-1-3fc3c11290504854c9e76317f3f97045-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-b2883ca5fad5063429e07950a2a998e6-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-9559ad7663677134e95528f42bb43dd9-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-e432edac68570b94aa02ae4f3faf3a01-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-73fc3b6b4f238f345b683df571dc61d6-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-a54807c0e19c57344bb23ea8dce0d25a-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-4bbb3e537e1b4f74fa20c6fe04411f42-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-3ad728732c4c40c44ae0074dab0b46eb-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-f9fb2fdf0bdf75b4dbacd6068d0032c6-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-617091529d0bbe141a58e8ae32275698-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-cfa9993b1961a13468c8a56d4d777838-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-61a96e85b5417db4fbb55ab9653ec0b8-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-bbac65c9c748d374bb42a1373e9dd263-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-6c0843a79ec8ec84a92a5ba8c641f8d8-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-249f99d44c689404aabc65aece442077-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-f8da856d517b5244fb3a3b22ddb92e52-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-866de4b3b1edd064681862725e68eedb-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-e25a90cb004d9f54794bf659d735a0a5-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-2f5a082804ab73e439ea5ff0a0ba0866-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-7e24be8206c6e664eac11ecdfbc743af-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-e29dc083ceffa7a4ea2b1cd77714675a-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-882a4f2b0a3573b4db7dad1e2fdc72c4-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-94a5a2813d44c124a93a634bf2e0df49-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-ec7dd0f130d782e4596fc80f2cdfe978-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-5e4158579dbe31842a9d4c57dc8d6e9b-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-e3899e8ea0a34464495b841e93b2b059-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-8835aae2e0f3dc442be8edfb4b7e1284-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-ad39eccb39be39f40b3ba8c2298f9fd2-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-ea8778cb32ef063418f60d62a9f75e05-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-608cea058e077264696793f360989e43-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-351a1269d0354ad4f9010cae8010f44d-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-979bd4101dfe4c947be4845dcd7b0981-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-5e4158579dbe31842a9d4c57dc8d6e9b-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-e0f974c6ecc51fc4c8db35ac2ff541cf-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-f10db2b08ba84a14b8a44b3a700ac7cc-6107228799987672122-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-60a2e3b1c9c9c9044b6998fa4278a1a4-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-cf2b3184381651e40a640d69b6d1fe1a-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-f910b6cc334683e4d986c61ae28211d8-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-f10db2b08ba84a14b8a44b3a700ac7cc-11028577636592762615-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-fdf18c58b725a2f469593ece1786d307-2100000-0",
+            "property": "_Albedo_Map",
+            "original": "GlobalObjectId_V1-1-04b7bb4212f0e9b498769b2077336c89-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-60d648c5ff69ae447b78b786f9f204e9-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-3-92ab89e0b2a849b4a8a58cd1dc3ee3c9-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-d44bcc5321fd3f54cb03bca086022482-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-5e4158579dbe31842a9d4c57dc8d6e9b-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-a36c48c146943bc4096daa4fa5bc91f4-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-ed49fe7a441a9ab48a6854b8ab78193c-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-086f5f228b8a0284380bfbfb18d0d018-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-841f8d425228ee044a351bc68d94551c-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-275b966602fb27b4093ba6cbe73fa0d6-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-4bbb3e537e1b4f74fa20c6fe04411f42-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-28a625fe3e67b0a46b6772c77024b508-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-4623cdf7e9ebb2b48ba4fbba31e9bbca-13056594558061596480-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-8a8735dd7d8560c4480fbed2ea943844-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-e534eba911580784991b41b2fe4f4f23-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-e8dd123e6f01f7844b797aa1b94d2cbe-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-2a16fc8faed032b4ab34ca9d1b442f04-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-09eb84efb8b487e489d51499fa3a2adc-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-4bbb3e537e1b4f74fa20c6fe04411f42-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-23cff97b68725874dbc609350255b1dd-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-f2a907a82e6a1f048bfd61c07b6c7696-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-e6e8c889aaf7dbc468bbea8092e39283-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-7bd2b7873ae2a5844af3f5499b7d2176-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-1d97d3e66d3177240ae59310c2388d2b-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-e632c8e2a28f7e445a58672b91bfd65e-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-49a047f6fab4c994cb92aa690ba93401-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-f6ca14d1b28767248b6da146831632a1-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-5ad91b11449e65042888a0837f7ce373-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-0bd473b0fd55f6e4b87882227682c09d-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-6adbce54a1c68554092c2fb4b818ca06-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-5e4158579dbe31842a9d4c57dc8d6e9b-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-f109d670799af3e41bdf13858da83dec-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-f9d3c341070a4e14fb5d7b9d77139162-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-b8bdf42a259e6a245b5ab7350cbfbb7f-2100000-0",
+            "property": "_BaseColor",
+            "original": "",
+            "colour": true,
+            "was": {
+                "r": 0.44999998807907107,
+                "g": 0.44999998807907107,
+                "b": 0.41999995708465578,
+                "a": 1.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-9c1d0560d592f3945bbf3fcca963944a-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-1ef8cd5eaad36c54888fbdeb9f3fd1fd-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-63022bcc0e1f0374aab2e5129a46fbc3-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-4c797fd35cd5e1f4589fe951df6b020a-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-5f7e395e01b3c014199f8284b3c6f369-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-c262afbc083b304498ac9e8e9d2fdf65-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-cf67a4231123ebc49b70b9055a679b16-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-bafc686f0df7aae4caf77729e466036e-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-42cd945e2380b6c4e71c6d8cc9b6e6d9-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-561bc317fb764cd66a76b478bfde4de7-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-d4740aa5969ad9c42a0f5ce07236020b-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-f10db2b08ba84a14b8a44b3a700ac7cc-12922814701151376023-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-913f88489b3538e47be96e67ed8e3506-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-5e4158579dbe31842a9d4c57dc8d6e9b-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-2473ece275a993444ad5adeec20f77d5-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-93280d18e7035c446bb251f67c806277-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-51360d187e4e698498a07fad2ba21727-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-aea812db9478f9348a2e945d7be322fc-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-dd78ab307d686a6409db14ba36b7c8a5-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-73fc3b6b4f238f345b683df571dc61d6-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-f6a1604046cb3114d86fe147f38e42e6-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-f10db2b08ba84a14b8a44b3a700ac7cc-12922814701151376023-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-5ad23908d1f12ef408aa3e1fffa3edb1-2100000-0",
+            "property": "_Albedo_Map",
+            "original": "GlobalObjectId_V1-1-04b7bb4212f0e9b498769b2077336c89-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-73978871f06a3354686801737a2f2bea-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-7148658ba5227e144a9e999f9e8581d1-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-4cab240249dfb384e8b47c3f096fdd40-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-96f1e5a80b18dcf47bd7a7222778a6fd-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-81de44ba352968f48996d5beeda36504-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-94a5a2813d44c124a93a634bf2e0df49-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-89c052a55f0154c418f809dc7bce5b32-2100000-0",
+            "property": "baseColorTexture",
+            "original": "GlobalObjectId_V1-1-78ab1584b63c9dc4cb87b5c94be29373-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-cc52dcee8c8471847916488794ca9693-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-f883f900af70b3443ae7136b90508935-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-7c72d88cfdc3cda4ba08ad07a1132ea3-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-4b44289a87458c74591653a68c0d2b09-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-95ad474c99c6d304880b2377ffd44fc1-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-f10db2b08ba84a14b8a44b3a700ac7cc-9072189059158080921-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-adbfee12b4f59b94abac1c6fa14a89b8-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-3480edabaf2c59a4b99fbaeaa990ba9f-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-fc9042c929646df4c880848a78b0792d-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-4bbb3e537e1b4f74fa20c6fe04411f42-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-d58d3c78b547f8a48aa4a1b3fc3d5f5d-2100000-0",
+            "property": "_BaseColor",
+            "original": "",
+            "colour": true,
+            "was": {
+                "r": 0.37999993562698367,
+                "g": 0.19999995827674867,
+                "b": 0.07499998062849045,
+                "a": 1.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-dbd83c15bea057b428cbd719f762d05c-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-053f23d777c886343b33363af9637056-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-e91c20ef17d2c8f49bb89536ffc284be-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-6d82bbc9e04dd6642b8bbb6bbabe254c-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-ecd5d865e2853d3419486392ebdf7128-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-c2c32711895b86a4a8fae1b3ddbdb62a-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-24c962419a5fffd4d94308345614d547-2100000-0",
+            "property": "_BaseColor",
+            "original": "",
+            "colour": true,
+            "was": {
+                "r": 1.0,
+                "g": 1.0,
+                "b": 1.0,
+                "a": 1.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-70a5709f780fd47459961e3655a68e0d-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-2d025a9df9af270409f7a137aa111293-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-f60c2dcfcbb9eab4c9b17aef4209dedd-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-cfa9993b1961a13468c8a56d4d777838-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-b14fc3ac652312443a1e58f2bbcf8639-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-679ba853230e0104a9b9d66e809701a9-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-6effab0bd8b1af341ae237e1a3bd3b8f-2100000-0",
+            "property": "_BaseColor",
+            "original": "",
+            "colour": true,
+            "was": {
+                "r": 0.9599999785423279,
+                "g": 0.8299999833106995,
+                "b": 0.37999993562698367,
+                "a": 1.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-ec18e8fcdfe63544c955ad04a77f84b8-2100000-0",
+            "property": "_BaseColor",
+            "original": "",
+            "colour": true,
+            "was": {
+                "r": 1.0,
+                "g": 0.8199999928474426,
+                "b": 0.2399999499320984,
+                "a": 1.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-88af0f4bc0ead7e4788c244b8d0ead12-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-c81abd4f876655e4b8eac7256d1937da-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-033220fd25e58df40bdbab22ba1c10b5-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-4bbb3e537e1b4f74fa20c6fe04411f42-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-35308a9bb13e9a945b8bc6c7bdb264ab-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-5db538fba5ae01a4ea3ea717a7eb2ab0-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-736fa3bc7a8fcd94285040052bc293ec-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-35c886fb7bcce0f44993877dad6c0f0e-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-893c10d5141fa0007a0eccb1d4a315d6-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-cbc72d48890bbf54401970e28e3d057a-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-7a7dc034297decc49932c9d89ceade50-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-1f543b919a0aa844887374a51a19f16e-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-efcbee6add41691469c99ab1a95a012b-2100000-0",
+            "property": "_BaseColor",
+            "original": "",
+            "colour": true,
+            "was": {
+                "r": 0.5764705538749695,
+                "g": 0.5634424090385437,
+                "b": 0.5113293528556824,
+                "a": 1.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-6f877812ed284c045990db3bd7cea565-2100000-0",
+            "property": "_BaseColor",
+            "original": "",
+            "colour": true,
+            "was": {
+                "r": 0.5,
+                "g": 0.3099999725818634,
+                "b": 0.21999996900558473,
+                "a": 1.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-8e10763de7f25b847b494eecbd6d0c79-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-3722e5815f4d5474fb26d6bee651db25-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-1b3aac04db0838848b17d80fdeeba787-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-2dc5f056be4311340b4f4e7aa8b310f6-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-eb95dc53e4c68994aa46e28d6b947f53-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-12de1a8858f8af541a6522594c31ddc7-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-d8c90ab5487839c45af06bd49241b365-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-8ba2245dda20aaf4b9141509e3aad824-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-f81fc3a4a3c656845b0d0a04e450322e-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-0baab8f4c1a4fa74ba4a072ccb477bd4-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-fcf8cf4a7616e2a4cb0eb249a3a5fd5e-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-4bbb3e537e1b4f74fa20c6fe04411f42-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-3e757cb8b65acf047b472ae4361a6678-2100000-0",
+            "property": "_BaseColor",
+            "original": "",
+            "colour": true,
+            "was": {
+                "r": 0.7400000095367432,
+                "g": 0.5099999308586121,
+                "b": 0.17999997735023499,
+                "a": 1.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-f255ac595ed75d042907c6870d03c8bb-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-fa6d5aa89892b0543899f368d5618c0f-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-c1eab4f43fac46440b20065cd237e732-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-0270af864e223034f96ec213a6f6e1c3-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-bafd5f78cef059143b542a233df24a7b-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-042026de16802e8488982766c47076e7-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-5a2f1dc20bc6323cb64b4cb148b0d86a-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-2f31a30e461e9a39cef2d0fa5c85f9e2-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-a2a86c5ae886b7c44b06a6b8fa249255-2100000-0",
+            "property": "_Albedo_Map",
+            "original": "GlobalObjectId_V1-1-04b7bb4212f0e9b498769b2077336c89-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-e9a63b0da62ba74419ef5da52a9e8c3d-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-4bbb3e537e1b4f74fa20c6fe04411f42-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-baf6964a63b06764e9ce3c74dd1187e4-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-4d86908e6ce5d94448d94456548e045d-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-7f486484cbe55ad4b903822515a0f1ed-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-748eaa0f9167b4442a432d550ad3c7a5-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-49bfe2f91dc1cccc2135de5083a5744c-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-9740a314439e446189bfb09ea5abe9e3-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-166f2f95780d36d41aab7cc185146b17-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-49f8554386ffa1d4c92514855f187641-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-2845f789a0bac5746b21033a32853739-2100000-0",
+            "property": "_Albedo_Map",
+            "original": "GlobalObjectId_V1-1-119ca2ae49113894f88dd6d12e68ac35-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-d17f3971f1c0a1e489c9cd68f3b116b1-2100000-0",
+            "property": "_BaseColor",
+            "original": "",
+            "colour": true,
+            "was": {
+                "r": 0.6274510622024536,
+                "g": 0.43921566009521487,
+                "b": 0.23529407382011414,
+                "a": 1.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-f3f14ef340b38de42949029080f1ec99-2100000-0",
+            "property": "_BaseColor",
+            "original": "",
+            "colour": true,
+            "was": {
+                "r": 0.4313724935054779,
+                "g": 0.2666666507720947,
+                "b": 0.13333329558372498,
+                "a": 1.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-b8b1ce27bdd35fe49ac47548059312ec-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-9431f5e107ebcba4ba36fc4b59201fd3-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-58b61e0e88af0a2478046e3f3107f38e-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-4bbb3e537e1b4f74fa20c6fe04411f42-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-f4f2d02bf9652504c93169bcd8dd767f-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-6ae2976b5147bd343858af5d3f2134a8-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-452fe613cd3c3fd469fbda3816172cfb-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-dc229427612f4b5468e87457c2893c24-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-06a2ea26f967c4b4fb95c6e4522a7533-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-badc0f97c717a634984c8eeae278c63e-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-43552de06b345ad449b891c3295c57d3-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-654df0c1a4586224eae913079d4acac9-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-66e2abecfe91c574a8c731c0080ff05e-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-2401a5f3398053a4e9a7f848e3ca34e5-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-4c2dc7af501bf9e44b8c9d76cb13132a-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-48ff3c2721265a947995fbfa637165c3-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-7a120773a2450ea4d949b8d81d85cf76-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-983ff7a46c57944aaa9a789a400b437d-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-40dfe10585cd7614680d81ba79c4df50-2100000-0",
+            "property": "Texture2D_CAD82441",
+            "original": "GlobalObjectId_V1-1-4bbb3e537e1b4f74fa20c6fe04411f42-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-94c7487f9022d3642b684e237465790b-2100000-0",
+            "property": "Texture2D_CAD82441",
+            "original": "GlobalObjectId_V1-1-9559ad7663677134e95528f42bb43dd9-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-2e0efcea6442422408f1f6220cc6cbb4-2100000-0",
+            "property": "Texture2D_CAD82441",
+            "original": "GlobalObjectId_V1-1-febfbc4c8a87344478302066e37ef095-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-09f32ebd78727c24a8c5fbe3eef55f90-2100000-0",
+            "property": "_BaseColor",
+            "original": "",
+            "colour": true,
+            "was": {
+                "r": 1.0,
+                "g": 1.0,
+                "b": 1.0,
+                "a": 1.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-97c8abdc53a8a4449b024cab7b2b8175-2100000-0",
+            "property": "Texture2D_CAD82441",
+            "original": "GlobalObjectId_V1-1-9559ad7663677134e95528f42bb43dd9-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-0ae81218fd3ce77499b23eb369e2dd17-2100000-0",
+            "property": "Texture2D_CAD82441",
+            "original": "GlobalObjectId_V1-1-febfbc4c8a87344478302066e37ef095-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-e2347508da7b2544b8230e679c152120-2100000-0",
+            "property": "_BaseMap",
+            "original": "GlobalObjectId_V1-1-7b5824e0dc3b50744b84ad18f81233ee-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-c5eb2486bcece01409e13f4f928d4da7-2100000-0",
+            "property": "Texture2D_CAD82441",
+            "original": "GlobalObjectId_V1-1-9559ad7663677134e95528f42bb43dd9-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-eaf22ee60d70c2649aaa82b7b76c9577-2100000-0",
+            "property": "Texture2D_CAD82441",
+            "original": "GlobalObjectId_V1-1-4bbb3e537e1b4f74fa20c6fe04411f42-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-0edfc1f06c2e7f64da8d551e87b4f9a8-2100000-0",
+            "property": "Texture2D_CAD82441",
+            "original": "GlobalObjectId_V1-1-4bbb3e537e1b4f74fa20c6fe04411f42-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-b69f2988f59f54a429ac2046b7361144-2100000-0",
+            "property": "Texture2D_CAD82441",
+            "original": "GlobalObjectId_V1-1-9559ad7663677134e95528f42bb43dd9-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-4f59398e8515e104caa81a4135f587dc-2100000-0",
+            "property": "Texture2D_CAD82441",
+            "original": "GlobalObjectId_V1-1-3bafe83868ac7834c810abe31dc4ae9f-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-95ce0281dd970484398eb5f41b952f8f-2100000-0",
+            "property": "Texture2D_5c0905998a064af19664902b91317dc6",
+            "original": "GlobalObjectId_V1-1-dbc0e33dc0a438242b66ffe2c6a62ac9-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        },
+        {
+            "material": "GlobalObjectId_V1-3-a2a26fa8be016e44f892007b85995614-2100000-0",
+            "property": "Texture2D_CAD82441",
+            "original": "GlobalObjectId_V1-1-3bafe83868ac7834c810abe31dc4ae9f-2800000-0",
+            "colour": false,
+            "was": {
+                "r": 0.0,
+                "g": 0.0,
+                "b": 0.0,
+                "a": 0.0
+            }
+        }
+    ],
+    "swaps": [
+        {
+            "original": "GlobalObjectId_V1-1-b8843d55dcbcdf34b8a916d67e230e00-8828962688773733849-0",
+            "copy": "Assets/Art/ModelGrade/Materials/GradientColors_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-dac459845209bf24198646d051433cd3-8828962688773733849-0",
+            "copy": "Assets/Art/ModelGrade/Materials/GradientColors_G 1.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-bdae8a8f903e13649a2c278c678dbf2d-5213433131970347048-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Fisherman_Material_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-fe1ba754602a2d84a8bf05f741443c54-5213433131970347048-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Fisherman_Material_G 1.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-e730090da2488c04ca5e49785ab540b9-8828962688773733849-0",
+            "copy": "Assets/Art/ModelGrade/Materials/GradientColors_G 2.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-26eeb99cacdc160428d804c0f085d1cb-8828962688773733849-0",
+            "copy": "Assets/Art/ModelGrade/Materials/GradientColors_G 3.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-3198001adb14b6641a9692954101651f-8828962688773733849-0",
+            "copy": "Assets/Art/ModelGrade/Materials/GradientColors_G 4.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-c8efccd6fa8cc4b468a8c28cac6efec4-8828962688773733849-0",
+            "copy": "Assets/Art/ModelGrade/Materials/GradientColors_G 5.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-890259ec8fc012043a9ffc84cb594c10-8828962688773733849-0",
+            "copy": "Assets/Art/ModelGrade/Materials/GradientColors_G 6.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-24d1c7dc810987346a978f33687b6850-8828962688773733849-0",
+            "copy": "Assets/Art/ModelGrade/Materials/GradientColors_G 7.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-9653b399efa7b4f41a042501ecd11479-8828962688773733849-0",
+            "copy": "Assets/Art/ModelGrade/Materials/GradientColors_G 8.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-0ff6844dceca3cd489090e94f0e1c6dd-8828962688773733849-0",
+            "copy": "Assets/Art/ModelGrade/Materials/GradientColors_G 9.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-7e3b425ab3478eb46b37a6f9b74bc91f-8828962688773733849-0",
+            "copy": "Assets/Art/ModelGrade/Materials/GradientColors_G 10.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ab071d9421874c448a041b7b95d3dea5-8828962688773733849-0",
+            "copy": "Assets/Art/ModelGrade/Materials/GradientColors_G 11.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-9fae1a2345b3ae64a9a8b473bed12bf2-8828962688773733849-0",
+            "copy": "Assets/Art/ModelGrade/Materials/GradientColors_G 12.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-36a01830a9d14734a88d5dba38f0070e-8828962688773733849-0",
+            "copy": "Assets/Art/ModelGrade/Materials/GradientColors_G 13.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-fb85a73f9a4789241a92a3076583940f-8828962688773733849-0",
+            "copy": "Assets/Art/ModelGrade/Materials/GradientColors_G 14.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-b84ad9daa528734e5930406e445c30fe-13793536772144914542-0",
+            "copy": "Assets/Art/ModelGrade/Materials/deadTreeMaterial_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ee60ac5bc0bdd34f18a231aede46f681-12009384159960226090-0",
+            "copy": "Assets/Art/ModelGrade/Materials/grassMaterial_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-c79fabe36f46308ce9812c017552943f-8407307719720128271-0",
+            "copy": "Assets/Art/ModelGrade/Materials/shrubMaterial_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-c79fabe36f46308ce9812c017552943f-14904789797070127923-0",
+            "copy": "Assets/Art/ModelGrade/Materials/leavesMaterial_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-8de141720bc4aa5debd9f47d7cac2db5-12660015423090523848-0",
+            "copy": "Assets/Art/ModelGrade/Materials/treeMaterial_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-8de141720bc4aa5debd9f47d7cac2db5-14904789797070127923-0",
+            "copy": "Assets/Art/ModelGrade/Materials/leavesMaterial_G 1.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-dab065333028e7dbc8bdea91c6e0e797-14904789797070127923-0",
+            "copy": "Assets/Art/ModelGrade/Materials/leavesMaterial_G 2.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-1886820026795636259-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.013_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-880774007180850119-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.012_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-8593791192047424874-0",
+            "copy": "Assets/Art/ModelGrade/Materials/blackRockMaterial_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-17570197099809943445-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-11816946773071747925-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.005_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-11523950375986416103-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.004_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-12009384159960226090-0",
+            "copy": "Assets/Art/ModelGrade/Materials/grassMaterial_G 1.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-14200264671517645824-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.019_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-1110233775959259594-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.028_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-9185737683893222716-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.009_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-14923788295170128083-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.008_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-12681309829990572735-0",
+            "copy": "Assets/Art/ModelGrade/Materials/redRockMaterial_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-4310565460414645495-0",
+            "copy": "Assets/Art/ModelGrade/Materials/rockMaterial_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-15633406707565993970-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.023_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-725804396391725484-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.022_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-7993982598810627253-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.027_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-7498461928983958705-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.026_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-17905035227501004480-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.025_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-12448739477793778214-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.024_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-6699446615349125189-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.011_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-12358972715544442164-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.010_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-4874126678125670354-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.003_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-ef7148b3fe80b1466b73d00b3717b79c-14600725979728452320-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.002_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-194f81eb84dd24d4ca93dc6b4a6b3a06-4855638414264437767-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material.001_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-21bce34669729984c8c37b8885a446cc-1451308660237995045-0",
+            "copy": "Assets/Art/ModelGrade/Materials/white.007_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-650278ab507a60d4695704dd042bf264-6539598196374353823-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Sunflower_Seed_TEX_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-31cb96024ceba3548b10b66132c9df40-13897109220358120796-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Standardmaterial_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-32c05491166cc374fae24cc0326f319a-2339999054400044301-0",
+            "copy": "Assets/Art/ModelGrade/Materials/material_9_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-32c05491166cc374fae24cc0326f319a-5015684159543974202-0",
+            "copy": "Assets/Art/ModelGrade/Materials/material_10_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-9f1f0b2f4cca3e1419d6b91119f7b2e1-5714141643358488195-0",
+            "copy": "Assets/Art/ModelGrade/Materials/LIST_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-f0dcbe17a7041f44abb372d0eea575aa-13608092222852087646-0",
+            "copy": "Assets/Art/ModelGrade/Materials/M1_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-d698e4c180fe9224694728a1ddea5395-7507351741451124035-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Nail_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-d698e4c180fe9224694728a1ddea5395-1224781380963471092-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Stone_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-9f1f0b2f4cca3e1419d6b91119f7b2e1-5185429643589961455-0",
+            "copy": "Assets/Art/ModelGrade/Materials/BLACK_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-d698e4c180fe9224694728a1ddea5395-17148874555627262141-0",
+            "copy": "Assets/Art/ModelGrade/Materials/material_G 1.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-9f1f0b2f4cca3e1419d6b91119f7b2e1-13105027466332446507-0",
+            "copy": "Assets/Art/ModelGrade/Materials/SENO_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-d698e4c180fe9224694728a1ddea5395-12433046853884378528-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Tree_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-d698e4c180fe9224694728a1ddea5395-5192041515966586650-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Mail_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-d698e4c180fe9224694728a1ddea5395-61644545997007993-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Mail_Box_Cap_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-d698e4c180fe9224694728a1ddea5395-12712506891885013338-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Screw_001_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-9f1f0b2f4cca3e1419d6b91119f7b2e1-16129633873775423659-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Material_G 2.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-32c05491166cc374fae24cc0326f319a-16025611361717064862-0",
+            "copy": "Assets/Art/ModelGrade/Materials/material_5_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-d698e4c180fe9224694728a1ddea5395-9864399985675129805-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Locked_Down_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-d698e4c180fe9224694728a1ddea5395-13375469959749052876-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Locked_Up_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-d698e4c180fe9224694728a1ddea5395-2307022932070548505-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Mail_Box_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-12df28aa72de6094ea2db054b2f4d232-2274784982264618575-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Eye_White_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-12df28aa72de6094ea2db054b2f4d232-6779276408823375340-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Horns_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-12df28aa72de6094ea2db054b2f4d232-6484893700170195114-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Muzzle_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-12df28aa72de6094ea2db054b2f4d232-11558772400902771370-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Main_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-12df28aa72de6094ea2db054b2f4d232-13442335374945850553-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Main_Light_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-12df28aa72de6094ea2db054b2f4d232-15877615662211319551-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Hooves_G.mat"
+        },
+        {
+            "original": "GlobalObjectId_V1-1-12df28aa72de6094ea2db054b2f4d232-5139950013875035442-0",
+            "copy": "Assets/Art/ModelGrade/Materials/Eye_Black_G.mat"
+        }
+    ]
+}

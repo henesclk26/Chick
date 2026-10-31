@@ -54,7 +54,7 @@ public sealed partial class GameplayJournalController
         chickenScroll.Add(chickenGrid);
         foreach (string prefix in new[] { "peck", "range", "sprint-speed", "sprint-duration", "double-collect" })
             MoveCard(prefix, chickenGrid, "grid-card");
-        chickenGrid.Add(NewUpgradeCard("auto-basket", "Otomatik Sepet", "Yumurtlayınca yumurta kendiliğinden sepete gider.",
+        chickenGrid.Add(NewUpgradeCard("auto-basket", "Otomatik Sepet", "Önce 2, sonra 3 yumurta taşı; en son otomatik sepet.",
             () => PurchaseClicked(LiveUpgrades[12])));
         SetImage("auto-basket-art", Resources.Load<Texture2D>("Journal/BasketArt"));
         root.Q<Button>("double-collect-price").Q<Label>(className: "price-text").name = "double-collect-cost";

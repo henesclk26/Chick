@@ -50,6 +50,8 @@ MonoBehaviour:
   category: 1
   persistentId: 
   requiredEatLevel: 0
+  statisticKey: 
+  statisticDisplayName: 
   bitePoint: {fileID: 7489885351025891387}
   contactVisual: {fileID: 402446578498468688}
   interactionAssistMultiplier: 1.35
@@ -143,7 +145,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 4855638414264437767, guid: 194f81eb84dd24d4ca93dc6b4a6b3a06, type: 3}
+  - {fileID: 2100000, guid: 9ebacb74a8ab5ed468ca37a9bdd0479d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

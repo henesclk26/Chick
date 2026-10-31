@@ -102,7 +102,7 @@ Shader "Chick/InteractiveFoliage"
             HLSLPROGRAM
             #pragma target 2.0
             #pragma vertex FoliageLitVertex
-            #pragma shader_feature_local_vertex _FOLIAGE_BEND_LOCAL
+            #pragma shader_feature_local_vertex _ _FOLIAGE_BEND_LOCAL _FOLIAGE_BEND_BUSH
             #pragma fragment FoliageLitFragment
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local_fragment _GROUND_TINT
@@ -234,8 +234,8 @@ Shader "Chick/InteractiveFoliage"
             HLSLPROGRAM
             #pragma target 2.0
             #pragma vertex FoliageShadowVertex
-            #pragma shader_feature_local_vertex _FOLIAGE_BEND_LOCAL
-            #pragma fragment ShadowPassFragment
+            #pragma shader_feature_local_vertex _ _FOLIAGE_BEND_LOCAL _FOLIAGE_BEND_BUSH
+            #pragma fragment FoliageShadowFragment
             #pragma shader_feature_local _ALPHATEST_ON
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma multi_compile_instancing
@@ -256,6 +256,26 @@ Shader "Chick/InteractiveFoliage"
                 input.positionOS.xyz = FoliageBendOS(input.positionOS.xyz);
                 return ShadowPassVertex(input);
             }
+
+            // The shadow cuts the blades out a little fuller than they are drawn (a slightly coarser mip of the texture,
+            // a lower cut-off): a thin blade's shadow, narrower than a shadow-map texel, was caught in one frame and
+            // missed in the next as the sun turned, and blade shadows blinked on and off. The blades you see are cut
+            // as before.
+            #define FOLIAGE_SHADOW_MIP_BIAS 1.5
+            #define FOLIAGE_SHADOW_CUTOFF_SHARE 0.6
+
+            half4 FoliageShadowFragment(Varyings input) : SV_TARGET
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                #if defined(_ALPHATEST_ON)
+                    half alpha = SAMPLE_TEXTURE2D_BIAS(_BaseMap, sampler_BaseMap, input.uv, FOLIAGE_SHADOW_MIP_BIAS).a*_BaseColor.a;
+                    clip(alpha - _Cutoff*FOLIAGE_SHADOW_CUTOFF_SHARE);
+                #endif
+                #if defined(LOD_FADE_CROSSFADE)
+                    LODFadeCrossFade(input.positionCS);
+                #endif
+                return 0;
+            }
             ENDHLSL
         }
 
@@ -270,7 +290,7 @@ Shader "Chick/InteractiveFoliage"
             HLSLPROGRAM
             #pragma target 2.0
             #pragma vertex FoliageDepthVertex
-            #pragma shader_feature_local_vertex _FOLIAGE_BEND_LOCAL
+            #pragma shader_feature_local_vertex _ _FOLIAGE_BEND_LOCAL _FOLIAGE_BEND_BUSH
             #pragma fragment DepthOnlyFragment
             #pragma shader_feature_local _ALPHATEST_ON
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
@@ -304,7 +324,7 @@ Shader "Chick/InteractiveFoliage"
             HLSLPROGRAM
             #pragma target 2.0
             #pragma vertex FoliageDepthNormalsVertex
-            #pragma shader_feature_local_vertex _FOLIAGE_BEND_LOCAL
+            #pragma shader_feature_local_vertex _ _FOLIAGE_BEND_LOCAL _FOLIAGE_BEND_BUSH
             #pragma fragment DepthNormalsFragment
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local _ALPHATEST_ON

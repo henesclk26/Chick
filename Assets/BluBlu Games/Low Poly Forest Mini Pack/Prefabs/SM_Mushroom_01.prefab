@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1184484091864882794}
   - component: {fileID: 2873289504687002063}
   - component: {fileID: 16623366742664453}
+  - component: {fileID: 4104323789928139898}
   m_Layer: 0
   m_Name: SM_Mushroom_01
   m_TagString: Untagged
@@ -88,4 +89,18 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &4104323789928139898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1962428887946577104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bbdeb147ea151142948777ee3bc460c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EdibleMushroom
+  crumbColour: {r: 1, g: 0.31631407, b: 0.31267715, a: 1}

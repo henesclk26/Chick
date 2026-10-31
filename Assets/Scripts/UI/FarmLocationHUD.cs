@@ -32,7 +32,8 @@ public sealed class FarmLocationHUD : MonoBehaviour
     [SerializeField, Min(0f), Tooltip("How far (m) into a region the bird must be before its name shows.")]
     private float enterMargin = .4f;
 
-    private static readonly Color Ink = new Color(.13f, .11f, .086f), Rim = new Color(1f, .976f, .91f, .55f);
+    // white with a thin dark rim, as the region's name
+    private static readonly Color Ink = Color.white, Rim = new Color(.094f, .075f, .055f, .45f);
 
     private VisualElement names, pin;
     private Label current;

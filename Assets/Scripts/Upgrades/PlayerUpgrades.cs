@@ -52,7 +52,7 @@ public sealed class PlayerUpgrades : MonoBehaviour
         new UpgradeDefinition { id = DoubleCollect, levelPrices = new[] { 25, 40, 60 } },
         new UpgradeDefinition { id = DoubleJump, levelPrices = new[] { 200 } },
         new UpgradeDefinition { id = Glide, levelPrices = new[] { 200 } },
-        new UpgradeDefinition { id = AutoBasket, levelPrices = new[] { 100 } }
+        new UpgradeDefinition { id = AutoBasket, levelPrices = new[] { 40, 70, 100 } }
     };
 
     [Header("Daha Hızlı Gagalama")]
@@ -90,6 +90,8 @@ public sealed class PlayerUpgrades : MonoBehaviour
 
     /// <summary>Raised when a level or the spendable egg balance changes.</summary>
     public event Action Changed;
+    /// <summary>Raised when a level is bought, with the upgrade's id.</summary>
+    public event Action<string> Purchased;
 
     public int AvailableEggs => (int)Math.Max(0L, Math.Min(int.MaxValue,
         (long)bonusEggs + WhiteEggsLaid + 5L * GoldenEggsLaid - spentEggs));
@@ -100,8 +102,10 @@ public sealed class PlayerUpgrades : MonoBehaviour
     public float SprintDurationBonusSeconds => sprintDurationPerLevel * GetLevel(SprintDuration);
     public bool DoubleJumpUnlocked => GetLevel(DoubleJump) > 0;
     public bool GlideUnlocked => GetLevel(Glide) > 0;
-    /// <summary>"Otomatik Sepet": laid eggs go straight into the basket.</summary>
-    public bool AutoBasketUnlocked => GetLevel(AutoBasket) > 0;
+    /// <summary>"Otomatik Sepet": its first two levels let the chicken carry 2, then 3 eggs at once to the basket.</summary>
+    public int EggCarryCapacity => Mathf.Min(1 + GetLevel(AutoBasket), 3);
+    /// <summary>"Otomatik Sepet" at its last level: eggs laid or collected go straight into the basket.</summary>
+    public bool AutoBasketUnlocked => GetLevel(AutoBasket) >= 3;
     // Each purchased level adds one independent companion.
     public int HelperChickCount => Mathf.Min(GetLevel(HelperChick), MaxHelperChicks);
     public float HelperRangeMultiplier => GetHelperRangeMultiplier(0);
@@ -200,6 +204,7 @@ public sealed class PlayerUpgrades : MonoBehaviour
         spentEggs += price;
         levels[id] = GetLevel(id) + 1;
         Changed?.Invoke();
+        Purchased?.Invoke(id);
         return true;
     }
 

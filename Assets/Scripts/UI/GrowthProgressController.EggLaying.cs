@@ -16,6 +16,13 @@ public sealed partial class GrowthProgressController
     // A full egg bar pauses all eating (player and helper chicks) until the egg is laid.
     public bool EggReady => !IsChickForm && EggSeedCount >= EggSeedGoal;
     public event Action<bool> OnEggLaid;
+    /// <summary>An egg picked up off the ground (or, with the auto basket, collected straight into it).</summary>
+    public static event Action EggCollected;
+    /// <summary>Eggs put into the basket (how many at once).</summary>
+    public static event Action<int> EggsDelivered;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetEggListeners() { EggCollected = null; EggsDelivered = null; }
 
     private bool eggCycleSelected, lastEggWasGolden, lastEggToBasket;
     private Texture2D whiteEggIcon, goldEggIcon;
@@ -53,25 +60,48 @@ public sealed partial class GrowthProgressController
         return holder;
     }
 
-    // Z picks up a nearby egg (one at a time) and, carrying it, drops it into the basket by the barn for gold.
+    // Z picks up nearby eggs (as many at once as "Otomatik Sepet" allows: 1, 2, then 3) and, carrying them, drops them
+    // all into the basket by the barn for gold. At the upgrade's last level a picked-up egg goes straight to the basket.
+    // Full up beside another egg, the prompt says so and Z tells the player (CarriedEggHUD).
     private bool HandleEggPickup(bool pressed, bool available)
     {
         bool canCollect = available && upgradePlayer != null && !upgradePlayer.EggLayingPose &&
             CurrentUpgradeState != UpgradeState.HoldingUpgrade;
-        bool carrying = LaidEggPresentation.Carried != null;
-        EggBasket basket = canCollect && carrying && EggBasket.Active != null &&
+        if (eggWallet == null) eggWallet = FindFirstObjectByType<PlayerUpgrades>();
+        int capacity = eggWallet != null ? eggWallet.EggCarryCapacity : 1;
+        bool straightToBasket = eggWallet != null && eggWallet.AutoBasketUnlocked && EggBasket.Active != null;
+        int carrying = LaidEggPresentation.CarriedCount;
+        bool full = !straightToBasket && carrying >= capacity;
+        EggBasket basket = canCollect && carrying > 0 && EggBasket.Active != null &&
             EggBasket.Active.InReach(upgradePlayer.transform.position) ? EggBasket.Active : null;
-        nearbyEgg = canCollect && !carrying ? LaidEggPresentation.FindNearest(upgradePlayer.transform, eggPickupRange) : null;
+        nearbyEgg = canCollect ? LaidEggPresentation.FindNearest(upgradePlayer.transform, eggPickupRange) : null;
         atBasket = basket != null;
         if (eggPickupRoot != null)
         {
             eggPickupRoot.style.display = nearbyEgg != null || basket != null ? DisplayStyle.Flex : DisplayStyle.None;
-            eggPickupRoot.Q<Label>("EggPickupText").text = basket != null ? "SEPETE BIRAK" : "TOPLA";
+            eggPickupRoot.Q<Label>("EggPickupText").text = basket != null ? "SEPETE BIRAK" : full ? "ENVANTER DOLU" : "TOPLA";
         }
         if ((nearbyEgg == null && basket == null) || !pressed || requireZRelease) return false;
         requireZRelease = true;
-        if (basket != null && LaidEggPresentation.TryTakeCarried(out bool golden)) basket.Deposit(golden);
-        else if (nearbyEgg != null && nearbyEgg.TryPickUp(upgradePlayer.transform, eggPickupRange)) nearbyEgg = null;
+        if (basket != null)
+        {
+            int delivered = 0;
+            while (LaidEggPresentation.TryTakeCarried(out bool golden)) { basket.Deposit(golden); delivered++; }
+            if (delivered > 0) EggsDelivered?.Invoke(delivered);
+        }
+        else if (full) CarriedEggHUD.ShowFull();
+        else if (straightToBasket && nearbyEgg.TryCollectStraight(upgradePlayer.transform, eggPickupRange, out bool collectedGolden))
+        {
+            EggBasket.Active.Deposit(collectedGolden);
+            nearbyEgg = null;
+            EggCollected?.Invoke();
+            EggsDelivered?.Invoke(1);
+        }
+        else if (nearbyEgg.TryPickUp(upgradePlayer.transform, eggPickupRange, capacity))
+        {
+            nearbyEgg = null;
+            EggCollected?.Invoke();
+        }
         return true; // One Z press can only pick up, drop OR start laying.
     }
 
@@ -96,12 +126,37 @@ public sealed partial class GrowthProgressController
         eggCycleSelected = true;
     }
 
-    private void FeedEggCycle()
+    // How far one food fills the egg bar: a seed (and a caterpillar) 1, an ant, a vegetable, a berry or grape 2, a fruit 3; a
+    // mushroom 2 for every bite (EdibleMushroom.Bitten counts the bites before the last). Lettuce only 1: it is many
+    // leaves, each eaten on its own.
+    private static int EggPoints(EdibleObject food)
+    {
+        if (food.Category == EdibleCategory.Seed) return 1;
+        switch (food.StatisticKey)
+        {
+            case "apple": case "cherry": case "orange": case "pear": case "watermelon_flesh":
+                return 3;
+            case "strawberry": case "blackberry": case "grape":
+            case "tomato_fruit": case "pepper": case EdibleMushroom.StatisticKey: case "ant":
+                return 2;
+            default:
+                return 1;   // lettuce, caterpillars, anything else
+        }
+    }
+
+    private void MushroomBitten(EdibleMushroom mushroom)
+    {
+        SyncUpgradeWithForm();
+        if (!IsChickForm) FeedEggCycle(EggPoints(mushroom.Edible));
+        else GrowChick(GrowthPoints(mushroom.Edible));
+    }
+
+    private void FeedEggCycle(int points = 1)
     {
         EnsureEggCycle();
         if (EggSeedCount >= EggSeedGoal) return;
         fromProgress = bar.Progress;
-        EggSeedCount++;
+        EggSeedCount = Mathf.Min(EggSeedCount + Mathf.Max(1, points), EggSeedGoal);
         changeTime = Time.unscaledTime;
         glowUntil = Time.unscaledTime + GlowHoldSeconds;
         if (EggSeedCount == EggSeedGoal) BeginGrowthReadyMessage();
@@ -128,6 +183,8 @@ public sealed partial class GrowthProgressController
             return;
         }
         lastEggWasGolden = golden;
+        // laid straight into the basket: collected and delivered at once
+        if (lastEggToBasket) { EggCollected?.Invoke(); EggsDelivered?.Invoke(1); }
         CancelUpgradeHold(true);
         EggSeedCount = 0;
         fromProgress = 0f;

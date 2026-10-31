@@ -5,7 +5,8 @@ using UnityEngine;
 // CharacterController) comes near, and swings shut a little after everyone has gone. The leaves always open away from
 // whoever arrived first, so they never sweep into them, and stay on that side until the gate has closed again.
 // Each leaf turns about its own hinge (its transform's pivot; closed at its rotation in the scene). A locked gate stays
-// shut, like the farm's road gate, which keeps the chick inside the farm.
+// shut, like the farm's road gate, which keeps the chick inside the farm. A gate into a region (FarmRegions) stays shut
+// until the region is opened, then swings open and stands open for good.
 [DisallowMultipleComponent]
 public sealed class FarmGate : MonoBehaviour
 {
@@ -23,6 +24,8 @@ public sealed class FarmGate : MonoBehaviour
     private bool locked;
     [SerializeField, Tooltip("Stays shut while the player is a chick and opens once it has grown into a chicken.")]
     private bool chickenOnly;
+    [SerializeField, Tooltip("A region (FarmRegions, e.g. \"barn\"): shut until it is opened, then open for good. Empty: none.")]
+    private string region;
     [SerializeField, Range(20f, 120f), Tooltip("How far the leaves open, in degrees.")]
     private float openAngle = 100f;
     [SerializeField, Min(.5f), Tooltip("A walker this close to the gate's centre (m, along the ground) opens it. Larger than " +
@@ -80,7 +83,7 @@ public sealed class FarmGate : MonoBehaviour
             Scan();
         }
         emptyTimer = someoneNear ? 0f : emptyTimer + Time.deltaTime;
-        bool open = !shut && (someoneNear || emptyTimer < closeDelay) && side != 0f;
+        bool open = !shut && (someoneNear || emptyTimer < closeDelay || RegionOpen) && side != 0f;
         float target = open ? openAngle : 0f;
         if (Mathf.Approximately(angle, target)) return;
         angle = Mathf.MoveTowards(angle, target, swingSpeed * Time.deltaTime);
@@ -88,12 +91,18 @@ public sealed class FarmGate : MonoBehaviour
         Pose();
     }
 
+    private bool HasRegion => !string.IsNullOrEmpty(region);
+    private bool RegionOpen => HasRegion && FarmRegions.IsOpen(region);
+
     private void Scan()
     {
         someoneNear = false;
         if (chickenOnly && playerGrowth == null) playerGrowth = FindFirstObjectByType<PlayerGrowthController>();
-        shut = locked || (chickenOnly && playerGrowth != null && playerGrowth.CurrentForm == PlayerGrowthController.Form.Chick);
+        shut = locked || (HasRegion && !RegionOpen) ||
+            (chickenOnly && !RegionOpen && playerGrowth != null && playerGrowth.CurrentForm == PlayerGrowthController.Form.Chick);
         if (shut) return;
+        // a region's gate opens for good: away from whoever is there, else to its +Z side
+        if (RegionOpen && side == 0f) side = 1f;
         if (Time.unscaledTime - walkersFoundAt > WalkerRefreshInterval)
         {
             walkers = FindObjectsByType<CharacterController>(FindObjectsSortMode.None);
@@ -132,7 +141,7 @@ public sealed class FarmGate : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = locked ? Color.red : chickenOnly ? Color.yellow : Color.green;
+        Gizmos.color = locked ? Color.red : HasRegion ? new Color(1f, .5f, 0f) : chickenOnly ? Color.yellow : Color.green;
         Gizmos.DrawWireSphere(transform.position + Vector3.up * .5f, reach);
     }
 }

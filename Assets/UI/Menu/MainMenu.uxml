@@ -80,6 +80,7 @@
                 <ui:VisualElement class="pause-divider" />
                 <ui:Button name="pause-resume" text="OYUNA DEVAM ET" class="menu-button primary" />
                 <ui:Button name="pause-settings" text="AYARLAR" class="menu-button" />
+                <ui:Button name="pause-rescue" text="KURTAR" class="menu-button" />
                 <ui:Button name="pause-save-exit" text="KAYDET VE ÇIK" class="menu-button quiet pause-exit" />
                 <ui:Label name="pause-status" class="pause-status" />
                 <ui:Label text="ESC ile geri dön" class="pause-hint" />

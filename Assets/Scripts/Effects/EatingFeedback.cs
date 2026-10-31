@@ -3,8 +3,8 @@ using UnityEngine;
 
 /// <summary>
 /// What a bite feels like: crumbs in the food's colour fly from the beak at every bite; when the bite finishes the food,
-/// the food shrinks away at the beak with a little twist instead of vanishing on the spot and the bird gives a happy
-/// squash and stretch. Optional sounds for a bite and for a finished food (left empty, nothing plays).
+/// the food shrinks away at the beak with a little twist instead of vanishing on the spot and the bird gives a soft
+/// happy stretch. Optional sounds for a bite and for a finished food (left empty, nothing plays).
 /// Presentation only: listens to <see cref="ChickEatingController.Bit"/> and touches neither eating nor movement.
 /// </summary>
 [DisallowMultipleComponent, DefaultExecutionOrder(130)]
@@ -16,8 +16,8 @@ public sealed class EatingFeedback : MonoBehaviour
     [SerializeField, Range(0, 16)] private int crumbsPerBite = 6;
     [SerializeField, Min(.05f)] private float shrinkSeconds = .16f;
     [Tooltip("How far the bird stretches up in its happy squash (share of its height).")]
-    [SerializeField, Range(0f, .3f)] private float squash = .13f;
-    [SerializeField, Min(.05f)] private float squashSeconds = .3f;
+    [SerializeField, Range(0f, .3f)] private float squash = .06f;
+    [SerializeField, Min(.05f)] private float squashSeconds = .45f;
     [SerializeField] private AudioClip biteSound;
     [SerializeField] private AudioClip finishSound;
     [SerializeField, Range(0f, 1f)] private float volume = .7f;
@@ -115,6 +115,7 @@ public sealed class EatingFeedback : MonoBehaviour
 
     private static Color CrumbColour(EdibleObject food)
     {
+        if (food.TryGetComponent(out EdibleMushroom mushroom)) return mushroom.CrumbColour;
         if (FoodStatisticIdentity.ResolveBadge(food.StatisticKey) != "YE") return FoodStatisticIdentity.ResolveColor(food.StatisticKey);
         var renderer = food.GetComponentInChildren<Renderer>(true);
         if (renderer != null && renderer.sharedMaterial != null)
@@ -140,7 +141,8 @@ public sealed class EatingFeedback : MonoBehaviour
         var meshes = food.GetComponentsInChildren<MeshRenderer>(true);
         if (meshes.Length == 0) yield break;
         Vector3 pivot = Vector3.zero;
-        foreach (MeshRenderer r in meshes) pivot += r.transform.position;
+        // the meshes' middle, not their pivots (a model's pivot can sit well away from it)
+        foreach (MeshRenderer r in meshes) pivot += r.bounds.center;
         pivot /= meshes.Length;
         var ghost = new GameObject("Eaten " + food.name);
         ghost.transform.position = pivot;
@@ -198,8 +200,9 @@ public sealed class EatingFeedback : MonoBehaviour
         if (squashBone == null) return;
         float t = (Time.time - squashStart) / squashSeconds;
         if (t >= 1f) { EndSquash(); return; }
-        // up (stretch), down (squash), settle
-        float up = t < .3f ? Mathf.Sin(t / .3f * Mathf.PI * .5f) : t < .65f ? Mathf.Cos((t - .3f) / .35f * Mathf.PI) : -Mathf.Sin((1f - t) / .35f * Mathf.PI) * .4f;
+        // one soft swell up, a slight dip, settled: a single smooth curve (no step between its parts, which read as
+        // a jitter), peaking at 1 a third of the way in and back to 0 at the end
+        float up = Mathf.Sin(1.5f * Mathf.PI * t) * (1f - t) / .69f;
         float y = 1f + up * squash, xz = 1f / Mathf.Sqrt(Mathf.Max(.5f, y));
         var factor = new Vector3(xz, xz, xz);
         factor[squashAxis] = y;

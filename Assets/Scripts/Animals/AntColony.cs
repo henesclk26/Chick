@@ -12,6 +12,9 @@ using UnityEngine;
 // orderly. Routes are planned once at start: candidate lines are scored against the colliders in the way (trees,
 // coops, fences) and the clearest ones are laid onto the terrain and the nest mounds with raycasts. Legs swing in an
 // alternating tripod gait, the antennae twitch and the mandibles nibble.
+// Around every nest a few more ants (3 to 7, each nest its own number) potter about on their own: out of the hole,
+// to a spot near the nest, a pause, somewhere else near it, never far; now and then one goes back in and another comes
+// out. They can be pecked too, scatter home like the others, and an eaten one is replaced from the nest after a while.
 [DisallowMultipleComponent]
 public sealed class AntColony : MonoBehaviour
 {
@@ -60,6 +63,16 @@ public sealed class AntColony : MonoBehaviour
     [SerializeField, Tooltip("Chance per second that an ant stops for a moment.")]
     private float pausesPerSecond = 0.07f;
 
+    [Header("Around the nests")]
+    [SerializeField, Tooltip("Ants pottering about each nest (random between x and y, the same for a nest all game).")]
+    private Vector2Int nestWanderers = new Vector2Int(3, 7);
+    [SerializeField, Tooltip("How far from its nest's hole such an ant goes, in metres.")]
+    private float nestWanderRadius = 1.2f;
+    [SerializeField, Tooltip("Seconds an ant stays in the nest before coming out again (random between x and y).")]
+    private Vector2 nestStayInside = new Vector2(3f, 10f);
+    [SerializeField, Tooltip("Seconds before an eaten ant's place is taken by a new one from the nest (random between x and y).")]
+    private Vector2 nestRefill = new Vector2(12f, 25f);
+
     [Header("Ants")]
     [SerializeField] private float antScale = 1f;
     [SerializeField, Tooltip("Distance covered by one full step cycle by an unscaled ant, in metres.")]
@@ -99,6 +112,7 @@ public sealed class AntColony : MonoBehaviour
     private readonly List<Ant> pool = new List<Ant>();
     private readonly List<Ant> walking = new List<Ant>();
     private readonly Dictionary<EdibleObject, Ant> byEdible = new Dictionary<EdibleObject, Ant>();
+    private readonly List<Wanderer> wanderers = new List<Wanderer>();
     private System.Random random;
     private ChickEatingController eater;
     private float nextEaterSearch, clock, nextGroup, interval, antLength = 0.16f;
@@ -156,6 +170,7 @@ public sealed class AntColony : MonoBehaviour
             Ant ant = walking[i];
             if (ant.Edible.IsConsumed || !Step(ant, dt, camPosition, animateSq)) Release(i);
         }
+        foreach (Wanderer w in wanderers) Potter(w, dt, camPosition, animateSq);
     }
 
     // Nests: the ones set by hand, else every AntNest in the scene, else the original pair.
@@ -202,6 +217,7 @@ public sealed class AntColony : MonoBehaviour
         foreach (var key in new List<(Transform, Transform)>(pairRoutes.Keys)) if (!keep.Contains(key)) pairRoutes.Remove(key);
         plannedAt.Clear();
         foreach (Transform n in nestList) plannedAt[n] = n.position;
+        SyncWanderers();
 
         // Groups leave often enough to keep the routes busy, but never more often than the ant budget allows.
         float trip = TripSeconds();
@@ -309,11 +325,12 @@ public sealed class AntColony : MonoBehaviour
         }
     }
 
-    private Ant Acquire()
+    // A free ant from the pool; the travelling groups keep to Max Ants, the nests' own ants come on top of it.
+    private Ant Acquire(bool aroundNest = false)
     {
         foreach (Ant ant in pool)
             if (!ant.Busy) { ant.Busy = true; return ant; }
-        if (pool.Count >= maxAnts) return null;
+        if (!aroundNest && pool.Count >= maxAnts + wanderers.Count) return null;
         var created = new Ant(antModel, wheatPrefab, transform, pool.Count, seed);
         antLength = created.Length;
         pool.Add(created);
@@ -390,6 +407,169 @@ public sealed class AntColony : MonoBehaviour
             if (clock >= ant.PanicUntil) ant.Direction = ant.Distance < routes[ant.Route].Length * 0.5f ? -1 : 1;
             ant.PanicUntil = clock + panicSeconds;
         }
+        foreach (Wanderer w in wanderers)
+            if (w.Out && w.Ant != null && (w.Ant.Root.position - centre).sqrMagnitude <= radiusSq) w.Ant.PanicUntil = clock + panicSeconds;
+    }
+
+    // ---------------------------------------------------------------- around the nests
+
+    // One of a nest's own ants: in the nest (hidden) or out pottering about it.
+    private sealed class Wanderer
+    {
+        public Transform Nest;
+        public Ant Ant;
+        public bool Out;
+        public Vector3 Position, Target, Heading = Vector3.forward;
+        public float WaitUntil;     // in the nest: until it comes out; outside: until it walks on from a stop
+        public int Legs;            // stops before it goes back in
+    }
+
+    // Each nest keeps its own number of ants about it; gone nests take theirs along.
+    private void SyncWanderers()
+    {
+        for (int i = wanderers.Count - 1; i >= 0; i--)
+        {
+            if (nestList.Contains(wanderers[i].Nest)) continue;
+            FreeWanderer(wanderers[i]);
+            wanderers.RemoveAt(i);
+        }
+        foreach (Transform nest in nestList)
+        {
+            int have = 0;
+            foreach (Wanderer w in wanderers) if (w.Nest == nest) have++;
+            if (have > 0) continue;
+            // the same number for a nest every time (from where it stands), 3..7 by default
+            var r = new System.Random(seed * 31 + Mathf.RoundToInt(nest.position.x * 10f) * 7919 + Mathf.RoundToInt(nest.position.z * 10f));
+            int count = r.Next(Mathf.Min(nestWanderers.x, nestWanderers.y), Mathf.Max(nestWanderers.x, nestWanderers.y) + 1);
+            for (int k = 0; k < count; k++)
+            {
+                var w = new Wanderer { Nest = nest };
+                // most start out and about, the rest come out soon
+                if (Random.value < 0.75f) { Emerge(w); w.Position = NearNest(nest); w.Target = w.Position; w.WaitUntil = clock + Random.Range(0f, 2f); }
+                else w.WaitUntil = clock + Random.Range(0.5f, nestStayInside.y);
+                wanderers.Add(w);
+            }
+        }
+    }
+
+    private void Emerge(Wanderer w)
+    {
+        if (w.Ant == null) w.Ant = Acquire(true);
+        if (w.Ant == null) return;
+        w.Out = true;
+        w.Position = w.Nest.position;
+        w.Target = NearNest(w.Nest);
+        w.Legs = Random.Range(3, 8);
+        w.Ant.PanicUntil = 0f;
+        w.Ant.Pace = 1f + Random.Range(-paceSpread, paceSpread);
+        HideWheat(w.Ant);
+        w.Ant.Root.gameObject.SetActive(true);
+    }
+
+    private void GoIn(Wanderer w, float stay)
+    {
+        w.Out = false;
+        w.WaitUntil = clock + stay;
+        if (w.Ant == null) return;
+        w.Ant.Root.gameObject.SetActive(false);
+    }
+
+    private void FreeWanderer(Wanderer w)
+    {
+        if (w.Ant == null) return;
+        w.Ant.Busy = false;
+        if (w.Ant.Edible.IsConsumed) w.Ant.Edible.ResetForReuse();
+        w.Ant.Root.gameObject.SetActive(false);
+        w.Ant = null;
+    }
+
+    // a spot on open ground near the nest's hole
+    private Vector3 NearNest(Transform nest)
+    {
+        for (int tries = 0; tries < 8; tries++)
+        {
+            Vector2 c = Random.insideUnitCircle;
+            Vector3 p = nest.position + new Vector3(c.x, 0f, c.y) * nestWanderRadius;
+            if (Ground(p, nest, out Vector3 at, out _)) return at;
+        }
+        return nest.position;
+    }
+
+    // the ground under p: the terrain or the nest's own mound, nothing else in the way
+    private static bool Ground(Vector3 p, Transform nest, out Vector3 at, out Vector3 up)
+    {
+        at = p; up = Vector3.up;
+        int hits = Physics.RaycastNonAlloc(p + Vector3.up * 1.5f, Vector3.down, Hits, 3f, ObstacleMask, QueryTriggerInteraction.Ignore);
+        float best = float.MaxValue; bool found = false, blocked = false;
+        for (int i = 0; i < hits; i++)
+        {
+            if (Hits[i].distance >= best) continue;
+            best = Hits[i].distance;
+            bool ground = Hits[i].collider is TerrainCollider || Hits[i].collider.transform.IsChildOf(nest);
+            blocked = !ground;
+            found = ground;
+            at = Hits[i].point; up = Hits[i].normal;
+        }
+        return found && !blocked;
+    }
+
+    private void Potter(Wanderer w, float dt, Vector3 camPosition, float animateSq)
+    {
+        Ant ant = w.Ant;
+        if (ant != null && ant.Edible.IsConsumed)
+        {
+            // eaten: a new one comes out of the nest in a while
+            ant.Edible.ResetForReuse();
+            GoIn(w, Random.Range(nestRefill.x, nestRefill.y));
+            return;
+        }
+        if (!w.Out)
+        {
+            if (clock >= w.WaitUntil) Emerge(w);
+            return;
+        }
+        if (ant == null) return;
+        // a chick in mid-peck needs its target to hold still
+        if (eater != null && eater.IsBusy && eater.CurrentTarget == ant.Edible) return;
+
+        bool panic = clock < ant.PanicUntil;
+        if (panic) w.Target = w.Nest.position;
+        Vector3 to = w.Target - w.Position; to.y = 0f;
+        float scale = antScale;
+        float v = 0f;
+        if (to.magnitude < 0.02f * scale + 0.01f)
+        {
+            if (panic || w.Legs <= 0) { GoIn(w, Random.Range(nestStayInside.x, nestStayInside.y)); return; }
+            // a stop, then on to another spot (the last one is the hole)
+            if (clock >= w.WaitUntil)
+            {
+                w.WaitUntil = clock + Random.Range(0.4f, 2.2f);
+                w.Legs--;
+                w.Target = w.Legs <= 0 ? w.Nest.position : NearNest(w.Nest);
+            }
+        }
+        else if (clock >= w.WaitUntil)
+        {
+            v = speed * ant.Pace * (panic ? panicSpeed : 0.8f);
+            // a little weave instead of a beeline
+            Vector3 dir = to.normalized;
+            float weave = (Mathf.PerlinNoise(clock * 0.8f + ant.Seed, ant.Seed) * 2f - 1f) * (panic ? 0.5f : 0.8f);
+            dir = Quaternion.AngleAxis(weave * 40f, Vector3.up) * dir;
+            w.Heading = Vector3.Slerp(w.Heading, dir, Mathf.Clamp01(dt * 6f)).normalized;
+            w.Position += w.Heading * Mathf.Min(v * dt, to.magnitude);
+        }
+
+        Vector3 up = Vector3.up;
+        if (Ground(w.Position, w.Nest, out Vector3 at, out Vector3 n)) { w.Position = at; up = n; }
+        else if (!panic) w.Target = w.Nest.position;   // walked into something: head back
+        Vector3 forward = Vector3.ProjectOnPlane(w.Heading, up);
+        if (forward.sqrMagnitude < 1e-8f) forward = ant.Root.forward;
+        ant.Root.SetPositionAndRotation(w.Position, Quaternion.LookRotation(forward, up));
+        // small in the mouth of the hole, as the travelling ants
+        Vector3 fromHole = w.Position - w.Nest.position; fromHole.y = 0f;
+        ant.Root.localScale = Vector3.one * (scale * Mathf.SmoothStep(0f, 1f, fromHole.magnitude / (HideLength * scale)));
+        if ((ant.Root.position - camPosition).sqrMagnitude < animateSq)
+            ant.Animate(clock * (panic ? 1.8f : 1f), v * dt / (stride * scale) * Mathf.PI * 2f);
     }
 
     // ---------------------------------------------------------------- routes

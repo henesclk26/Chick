@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Persistent world pickup; no per-egg Update, physics simulation or lifetime timer.
-// Picked up with Z, the egg rides on the chicken's back until it is dropped into the EggBasket.
+// Picked up with Z, the egg goes with the chicken, out of sight (CarriedEggHUD shows it under the quests), until it is
+// dropped into the EggBasket. How many go along at once is the caller's to say ("Otomatik Sepet" levels); with the
+// upgrade's last level an egg is collected straight into the basket instead.
 public sealed class LaidEggPresentation : MonoBehaviour
 {
     private const float TargetHeight = .136f; // 15% smaller; shared by white and golden eggs.
     private static readonly List<LaidEggPresentation> eggs = new();
+    private static readonly List<LaidEggPresentation> carriedEggs = new();
     private static readonly RaycastHit[] sightHits = new RaycastHit[16];
     [SerializeField] private string eggId;
     [SerializeField] private bool golden;
@@ -20,11 +23,18 @@ public sealed class LaidEggPresentation : MonoBehaviour
     public int Value => golden ? 5 : 1;
     public Vector3 GroundPosition => groundPosition;
     public static int ActiveEggCount => eggs.Count;
-    /// <summary>The egg on the chicken's back, if any. Only one is carried at a time.</summary>
-    public static LaidEggPresentation Carried { get; private set; }
+    /// <summary>The egg the chicken picked up last, if it carries any.</summary>
+    public static LaidEggPresentation Carried => carriedEggs.Count > 0 ? carriedEggs[carriedEggs.Count - 1] : null;
+    public static int CarriedCount => carriedEggs.Count;
+    public static int CountCarried(bool golden)
+    {
+        int n = 0;
+        foreach (var egg in carriedEggs) if (egg != null && egg.golden == golden) n++;
+        return n;
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetRegistry() { eggs.Clear(); Carried = null; }
+    private static void ResetRegistry() { eggs.Clear(); carriedEggs.Clear(); }
     private void OnEnable() { if (!eggs.Contains(this)) eggs.Add(this); }
     private void OnDisable() => eggs.Remove(this);
 
@@ -128,12 +138,12 @@ public sealed class LaidEggPresentation : MonoBehaviour
         return true;
     }
 
-    /// <summary>Lifts the egg onto the chicken's back; fails while another egg is carried.</summary>
-    public bool TryPickUp(Transform player, float range)
+    /// <summary>Takes the egg along with the chicken; fails once it carries <paramref name="capacity"/> eggs.</summary>
+    public bool TryPickUp(Transform player, float range, int capacity = 1)
     {
-        if (Carried != null || collected || carried || !isActiveAndEnabled || !IsReachable(player, range)) return false;
+        if (carriedEggs.Count >= capacity || collected || carried || !isActiveAndEnabled || !IsReachable(player, range)) return false;
         carried = true;
-        Carried = this;
+        carriedEggs.Add(this);
         carrier = player;
         // shortcut: a form switch to chick (developer panel only) hides the egg with the chicken model; drop it there if forms change in play.
         // Lying along the back between the wings, riding the body bone so it follows sitting and walking.
@@ -141,6 +151,8 @@ public sealed class LaidEggPresentation : MonoBehaviour
         transform.SetPositionAndRotation((body != null ? body.position : player.position + Vector3.up * .2f) +
             Vector3.up * .13f - player.forward * .07f, Quaternion.LookRotation(Vector3.up, -player.forward));
         transform.SetParent(body != null ? body : player, true);
+        // Not shown on the back any more: the HUD shows what is carried. The egg stays active so it is still saved.
+        foreach (var r in GetComponentsInChildren<Renderer>(true)) r.enabled = false;
         return true;
     }
 
@@ -155,24 +167,33 @@ public sealed class LaidEggPresentation : MonoBehaviour
         return null;
     }
 
-    /// <summary>Hands the carried egg over (to the basket): it leaves the world and the save.</summary>
+    /// <summary>Hands one carried egg over (to the basket), the earliest picked up: it leaves the world and the save.</summary>
     public static bool TryTakeCarried(out bool golden)
     {
         golden = false;
-        var egg = Carried;
-        if (egg == null || egg.collected) return false;
+        carriedEggs.RemoveAll(e => e == null || e.collected);
+        if (carriedEggs.Count == 0) return false;
+        var egg = carriedEggs[0];
+        carriedEggs.RemoveAt(0);
         golden = egg.golden;
         egg.collected = true;
-        Carried = null;
         egg.gameObject.SetActive(false);
         Destroy(egg.gameObject);
         return true;
     }
 
-    private void OnDestroy()
+    /// <summary>"Otomatik Sepet" at its last level: the egg is collected straight into the basket, never carried.</summary>
+    public bool TryCollectStraight(Transform player, float range, out bool wasGolden)
     {
-        if (Carried == this) Carried = null;
+        wasGolden = golden;
+        if (collected || carried || !isActiveAndEnabled || !IsReachable(player, range)) return false;
+        collected = true;
+        gameObject.SetActive(false);
+        Destroy(gameObject);
+        return true;
     }
+
+    private void OnDestroy() => carriedEggs.Remove(this);
 
     public static GroundEggSaveEntry[] CaptureAll()
     {
@@ -190,7 +211,7 @@ public sealed class LaidEggPresentation : MonoBehaviour
         foreach (var egg in eggs.ToArray())
             if (egg != null) { egg.gameObject.SetActive(false); Destroy(egg.gameObject); }
         eggs.Clear();
-        Carried = null;
+        carriedEggs.Clear();
         if (saved == null) return;
         var ids = new HashSet<string>();
         foreach (var entry in saved)

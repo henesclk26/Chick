@@ -102,6 +102,14 @@
                 </ui:VisualElement>
                 <ui:Button name="grant-eggs" text="+20 ALTIN" class="step-button egg-grant-button" enabled="false" />
             </ui:VisualElement>
+            <ui:VisualElement class="egg-card card">
+                <ui:VisualElement class="egg-info">
+                    <ui:Label text="06  ·  BÖLGELER" class="section-heading" />
+                    <ui:Label text="Ahır ve ağaçlık kapılarını kalıcı açar ya da kilitler (kayda da geçer)" class="section-help" />
+                </ui:VisualElement>
+                <ui:Button name="open-regions" text="TÜM KAPILARI AÇ" class="step-button egg-grant-button" />
+                <ui:Button name="close-regions" text="TÜM KAPILARI KAPAT" class="step-button egg-grant-button" style="width: 175px;" />
+            </ui:VisualElement>
             </ui:ScrollView>
             <ui:VisualElement class="panel-footer">
                 <ui:VisualElement class="status-dot" />

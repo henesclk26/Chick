@@ -16,6 +16,9 @@ public sealed class ChickEatingController : MonoBehaviour
     [SerializeField, Min(0.001f)] private float maxContactAssistDistance = 0.13f;
     [SerializeField, Range(0.08f, 0.15f)] private float contactAssistDuration = 0.14f;
     [SerializeField] private Transform beakEatPoint;
+    [Tooltip("Seconds the beak stays down after the bite before the head comes back up. The clip's own recovery mark " +
+             "(frame 30) comes much later at a slow peck (the young chick's), and the head held still at the food read as a freeze.")]
+    [SerializeField, Range(0f, .2f)] private float holdAfterImpact = .05f;
     // Measured contact position for ground-height validation / editor visualization only.
     // It is NOT a beak-alignment prerequisite for gameplay selection.
     [SerializeField, HideInInspector] private Vector3 localImpactPoint = new Vector3(-0.007f, 0.011f, 0.087f);
@@ -30,6 +33,7 @@ public sealed class ChickEatingController : MonoBehaviour
     private CharacterController characterController;
     private EdibleObject target;
     private bool impactHandled;
+    private float recoverAt;
     private bool enteredEatState;
     private float startDeadline;
     private Transform targetVisual;
@@ -270,6 +274,7 @@ public sealed class ChickEatingController : MonoBehaviour
         // evaluated bone pose, so low frame rates cannot consume before visual contact.
         bool atContact = ApplyContactAssist(1f);
         impactHandled = true;
+        recoverAt = Time.time + holdAfterImpact;
         Pecked?.Invoke(PredictedContact);
         if (atContact && IsTargetValid(target)) LastImpactSucceeded = target.Consume();
         // Before the visual goes back to its resting place: the food is still at the beak.
@@ -313,6 +318,9 @@ public sealed class ChickEatingController : MonoBehaviour
                 ApplyContactAssist(Mathf.Clamp01(1f - remaining / contactAssistDuration));
         }
 
+        // The head comes up a moment after the bite, without waiting for the clip's recovery mark.
+        if (IsEating && impactHandled && Time.time >= recoverAt)
+            phase = EatPhase.Recovering;
         // State-based cleanup also handles external interruption or missing recovery events.
         if (phase == EatPhase.Eating && currentEat && current.normalizedTime >= 1f)
             phase = EatPhase.Recovering;

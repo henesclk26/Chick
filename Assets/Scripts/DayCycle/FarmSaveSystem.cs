@@ -42,6 +42,9 @@ public sealed class FarmSaveData
     public UpgradeLevelSaveEntry[] upgradeLevels = new UpgradeLevelSaveEntry[0];
     // Partly eaten multi-peck food (watermelon slices); saves without it load every slice whole.
     public FoodBiteSaveEntry[] foodBites = new FoodBiteSaveEntry[0];
+    // Finished quests (QuestHUD ids); saves without it start with none done.
+    public string[] completedQuests = new string[0];
+    public string[] openRegions = new string[0];
 }
 
 [Serializable]
@@ -116,6 +119,8 @@ public sealed class FarmSaveSystem : MonoBehaviour
         if (data.foodStatistics == null) data.foodStatistics = new FoodStatSaveEntry[0];
         if (data.upgradeLevels == null) data.upgradeLevels = new UpgradeLevelSaveEntry[0];
         if (data.foodBites == null) data.foodBites = new FoodBiteSaveEntry[0];
+        if (data.completedQuests == null) data.completedQuests = new string[0];
+        if (data.openRegions == null) data.openRegions = new string[0];
         return data;
     }
     private static bool Finite(float x) => !float.IsNaN(x) && !float.IsInfinity(x);

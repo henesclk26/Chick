@@ -9,7 +9,7 @@ public static class FoodStatisticIdentity
     {
         "wheat", "rice", "corn", "sunflower", "watermelon", "tomato",
         "pumpkin", "apple", "cookie", "bread", "croissant", "donut", "strawberry", "blackberry", "watermelon_flesh",
-        "tomato_fruit", "lettuce", "pepper", "grape", "ant"
+        "tomato_fruit", "lettuce", "pepper", "grape", "ant", "mushroom"
     };
 
     public static string ResolveKey(EdibleObject edible, string explicitKey = null)
@@ -63,6 +63,7 @@ public static class FoodStatisticIdentity
             case "grape": return "Üzüm";
             case "ant": return "Karınca";
             case "caterpillar": return "Kurtçuk";
+            case "mushroom": return "Mantar";
             case "other": return "Diğer";
             default: return Humanize(key);
         }
@@ -83,6 +84,7 @@ public static class FoodStatisticIdentity
             case "grape": return "ÜZ";
             case "ant": return "KN";
             case "caterpillar": return "KÇ";
+            case "mushroom": return "MN";
             default: return "YE";
         }
     }
@@ -106,6 +108,7 @@ public static class FoodStatisticIdentity
             case "grape": return new Color(0.45f, 0.26f, 0.65f);
             case "ant": return new Color(0.62f, 0.27f, 0.15f);
             case "caterpillar": return new Color(0.93f, 0.48f, 0.66f);
+            case "mushroom": return new Color(0.80f, 0.36f, 0.30f);
             default: return new Color(0.45f, 0.58f, 0.32f);
         }
     }

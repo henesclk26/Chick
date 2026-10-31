@@ -143,6 +143,86 @@ public static class MapBackdropForest
         return (ground, trees);
     }
 
+    /// <summary>
+    /// Matches the scenery's ground to the map's ground as it is painted now, without touching the map. The ground
+    /// draws eight layers: the eight that cover most of the map's edge. Every layer painted on the edge is drawn as
+    /// itself if it is one of the eight, else as the one that looks most like it (by the average colour of its
+    /// texture), so the two grounds meet in the same colour and saturation instead of along a line; the forest floor
+    /// further out (olive grass, dry grass, grass with earth, bare earth) is drawn with whichever of the eight is
+    /// nearest each, so the whole scenery keeps the map's palette.
+    /// </summary>
+    [MenuItem("Tools/Chick/Map/Match Backdrop Ground To Map Edge")]
+    private static void MatchEdgeMenu() => Debug.Log(MatchEdge());
+
+    public static string MatchEdge()
+    {
+        var forest = Object.FindFirstObjectByType<BackdropForest>();
+        GameObject root = GameObject.Find("Farm Reference Map");
+        Terrain main = root != null ? root.GetComponentInChildren<Terrain>() : null;
+        if (forest == null || main == null) return "No backdrop forest or map terrain in the open scene.";
+        var report = new StringBuilder();
+        int[] picked = EdgeLayers(main, report);   // the edge's four by cover, then the forest floor's four
+        TerrainData data = main.terrainData;
+        int w = data.alphamapWidth, h = data.alphamapHeight, count = data.terrainLayers.Length;
+        var cover = new float[count];
+        foreach (float[,,] row in new[] { data.GetAlphamaps(0, 0, w, 1), data.GetAlphamaps(0, h - 1, w, 1), data.GetAlphamaps(0, 0, 1, h), data.GetAlphamaps(w - 1, 0, 1, h) })
+            for (int a = 0; a < row.GetLength(0); a++)
+                for (int b = 0; b < row.GetLength(1); b++)
+                    for (int l = 0; l < count; l++) cover[l] += row[a, b, l];
+
+        // the edge's eight most used layers
+        var slots = Enumerable.Range(0, count).OrderByDescending(l => cover[l]).Take(8).ToList();
+        while (slots.Count < 8) slots.Add(slots[0]);
+        int[] layers = slots.ToArray();
+
+        TerrainLayer[] terrainLayers = data.terrainLayers;
+        Color[] average = terrainLayers.Select(AverageColour).ToArray();
+        int Nearest(int l)
+        {
+            int at = slots.IndexOf(l);
+            if (at >= 0) return at;
+            int best = 0; float bestD = float.MaxValue;
+            for (int k = 0; k < 8; k++)
+            {
+                Color a = average[l], b = average[layers[k]];
+                float d = (a.r - b.r) * (a.r - b.r) + (a.g - b.g) * (a.g - b.g) + (a.b - b.b) * (a.b - b.b);
+                if (d < bestD) { bestD = d; best = k; }
+            }
+            return best;
+        }
+        // the forest floor's four kinds, each drawn with the nearest of the eight
+        int[] forestSlots = picked.Skip(4).Select(Nearest).ToArray();
+        int[] fold = Enumerable.Range(0, count).Select(Nearest).ToArray();
+        Undo.RecordObject(forest, "Match backdrop ground to map edge");
+        forest.SetEdgeLayers(layers, fold, forestSlots);
+        EditorSceneManager.MarkSceneDirty(forest.gameObject.scene);
+        float total = cover.Sum(), drawnAsIs = slots.Distinct().Sum(l => cover[l]);
+        report.AppendLine("forest floor drawn as: " + string.Join(", ", forestSlots.Select(k => terrainLayers[layers[k]].name)));
+        report.AppendLine("ground layers: " + string.Join(", ", layers.Select(l => terrainLayers[l].name)) +
+                          $" ({drawnAsIs / total:P0} of the map's edge drawn as itself)");
+        for (int l = 0; l < count; l++)
+            if (!slots.Contains(l) && cover[l] > 0f) report.Append(terrainLayers[l].name + $" ({cover[l] / total:P0}) → " + terrainLayers[layers[fold[l]]].name + "; ");
+        return "Backdrop ground matched to the map's edge. " + report;
+    }
+
+    // a layer's texture averaged to one colour (tinted as the layer is)
+    private static Color AverageColour(TerrainLayer layer)
+    {
+        if (layer == null || layer.diffuseTexture == null) return Color.grey;
+        var rt = RenderTexture.GetTemporary(16, 16, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+        Graphics.Blit(layer.diffuseTexture, rt);
+        var active = RenderTexture.active; RenderTexture.active = rt;
+        var read = new Texture2D(16, 16, TextureFormat.RGBA32, false);
+        read.ReadPixels(new Rect(0, 0, 16, 16), 0, 0);
+        RenderTexture.active = active; RenderTexture.ReleaseTemporary(rt);
+        Color sum = Color.clear;
+        foreach (Color c in read.GetPixels()) sum += c;
+        Object.DestroyImmediate(read);
+        Color avg = sum / 256f;
+        Vector4 tint = layer.diffuseRemapMax;
+        return new Color(avg.r * tint.x, avg.g * tint.y, avg.b * tint.z);
+    }
+
     // The eight map layers the scenery's ground draws: the four that cover most of the map's edges (the grass that covers
     // most first), then the forest floor's own.
     private static int[] EdgeLayers(Terrain main, StringBuilder report)

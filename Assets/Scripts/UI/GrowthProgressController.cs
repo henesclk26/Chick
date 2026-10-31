@@ -65,6 +65,7 @@ public sealed partial class GrowthProgressController : MonoBehaviour
             leftIconGlow = new GrowthIconGlow(root.Q<Image>("LeftIcon"));
         }
         EdibleObject.Consumed += FoodConsumed;
+        EdibleMushroom.Bitten += MushroomBitten;
         if (saves != null)
         {
             saves.Loaded += Restore;
@@ -81,6 +82,7 @@ public sealed partial class GrowthProgressController : MonoBehaviour
     private void OnDisable()
     {
         EdibleObject.Consumed -= FoodConsumed;
+        EdibleMushroom.Bitten -= MushroomBitten;
         if (saves != null) { saves.Loaded -= Restore; saves.Saving -= Capture; }
         tick?.Pause();
         CancelUpgradeHold(true);
@@ -98,11 +100,27 @@ public sealed partial class GrowthProgressController : MonoBehaviour
 
     private void FoodConsumed(EdibleObject food)
     {
-        if (food == null || food.Category != EdibleCategory.Seed || !food.IsConsumed) return;
+        if (food == null || !food.IsConsumed) return;
         SyncUpgradeWithForm();
-        if (!IsChickForm) { FeedEggCycle(); return; }
-        if (EatenSeedCount >= SeedGoal) return;
-        SetCount(EatenSeedCount + 1, false);
+        // The chicken's egg bar takes every food; the chick grows on seeds, ants and mushrooms.
+        if (!IsChickForm) { FeedEggCycle(EggPoints(food)); return; }
+        GrowChick(GrowthPoints(food));
+    }
+
+    // How far one food grows the chick: a seed 1, an ant 2, a mushroom 2 for every bite (EdibleMushroom.Bitten counts
+    // the bites before the last); anything else does not count.
+    private static int GrowthPoints(EdibleObject food)
+    {
+        if (food.Category == EdibleCategory.Seed) return 1;
+        string key = food.StatisticKey;
+        return key == "ant" || key == EdibleMushroom.StatisticKey ? 2 : 0;
+    }
+
+    private void GrowChick(int points)
+    {
+        if (points <= 0 || EatenSeedCount >= SeedGoal) return;
+        int stageBefore = EatenSeedCount / StageSeeds;
+        SetCount(Mathf.Min(EatenSeedCount + points, SeedGoal), false);
         // Extend the existing light instead of restarting a flash for every seed.
         glowUntil = Time.unscaledTime + GlowHoldSeconds;
         if (EatenSeedCount == SeedGoal)
@@ -110,7 +128,7 @@ public sealed partial class GrowthProgressController : MonoBehaviour
             BeginGrowthReadyMessage();
             OnGrowthProgressComplete?.Invoke();
         }
-        else if (EatenSeedCount % StageSeeds == 0) BeginStageUpMessage();
+        else if (EatenSeedCount / StageSeeds > stageBefore) BeginStageUpMessage();
     }
 
     private void Restore(FarmSaveData data)

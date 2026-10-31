@@ -20,6 +20,13 @@ public sealed class BackdropForest : MonoBehaviour
     [SerializeField] private Material groundMaterial, treeMaterial;
     [Tooltip("The eight map layers the ground draws (ids in the map's terrain layers): four that match the map's edge, then the forest's olive grass, dry grass, grass with earth and bare earth.")]
     [SerializeField] private int[] groundLayers = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    [Tooltip("For each of the map's terrain layers, which of the eight ground layers stands in for it (-1: none): the map's " +
+             "edge is painted with many layers, so each is drawn as itself if it is one of the eight, else as the one most " +
+             "like it, and the two grounds meet in the same colour. Empty: only the first four layers' own weights.")]
+    [SerializeField] private int[] edgeFold = new int[0];
+    [Tooltip("Which of the eight ground layers draws each of the forest floor's four (olive grass, dry grass, grass with " +
+             "earth, bare earth). Used with Edge Fold; empty: the last four.")]
+    [SerializeField] private int[] forestSlots = new int[0];
     [Tooltip("How far the scenery reaches out from the map: east-west (x) and north-south (y), metres.")]
     [SerializeField] private Vector2 reach = new Vector2(35f, 90f);
     [SerializeField] private float hillHeight = 22f;
@@ -37,6 +44,12 @@ public sealed class BackdropForest : MonoBehaviour
     [SerializeField] private int seed = 1905;
 
     private const float GroundCell = 2f, Chunk = 60f, PathFade = 6f;
+    // The apron drops steeply under the map: this far in, this far down, so where the terrain draws itself coarser
+    // in the distance the apron stays hidden under it instead of showing through in patches.
+    private const float ApronIn = 0.35f, ApronDepth = 0.45f;
+    // ...and a little way out, just under this ground, so where this ground's coarser rim rises above the map's edge
+    // between two of its points the hair-thin opening shows ground, not the sky below.
+    private const float ApronOut = 0.6f, ApronUnder = 0.03f;
     private readonly List<GameObject> built = new List<GameObject>();
     private bool dirty;
     // The map's layer weights along its four edges (south, north, west, east), read once per build.
@@ -52,12 +65,26 @@ public sealed class BackdropForest : MonoBehaviour
         Rebuild();
     }
 
+    /// <summary>New edge layers (the first four of <paramref name="layers"/>) and what stands in for the map's others.</summary>
+    public void SetEdgeLayers(int[] layers, int[] fold, int[] forest)
+    {
+        groundLayers = layers; edgeFold = fold; forestSlots = forest;
+        Rebuild();
+    }
+
     private void OnEnable() => Rebuild();
     private void OnDisable() => Clear();
     private void OnValidate() => dirty = true;   // rebuilt on the next Editor update: objects can't be made in OnValidate
 
+    private static readonly int MapNormalId = Shader.PropertyToID("_ChickMapNormal");
+    private static readonly int MapNormalResId = Shader.PropertyToID("_ChickMapNormalRes");
+
     private void Update()
     {
+        // the map terrain's normals for the join (its normal map is remade now and then, so handed over every frame)
+        Texture mapNormal = map != null ? map.normalmapTexture : null;
+        Shader.SetGlobalTexture(MapNormalId, mapNormal != null ? mapNormal : Texture2D.normalTexture);
+        Shader.SetGlobalFloat(MapNormalResId, mapNormal != null ? mapNormal.width : 0f);
         if (!dirty) return;
         dirty = false;
         Rebuild();
@@ -121,9 +148,11 @@ public sealed class BackdropForest : MonoBehaviour
         var outward = new Vector2(x - cx, z - cz);
         float d = outward.magnitude;
         if (d < 1e-3f) return edge;
-        // The edge's own slope carried on a little, levelling off, then hills rising with the reach.
+        // The edge's own slope carried on a little, levelling off, then hills rising with the reach. The slope is the
+        // one right at the edge (taken over the last metre, kept within reason), so the ground goes on from the map
+        // without a crease where the map's own hills run steeply up to its edge.
         Vector2 dir = outward / d;
-        float slope = Mathf.Clamp((edge - MapHeight(cx - dir.x * 4f, cz - dir.y * 4f)) / 4f, -0.4f, 0.5f);
+        float slope = Mathf.Clamp(edge - MapHeight(cx - dir.x, cz - dir.y), -1.2f, 1.2f);
         float carry = slope * 12f * (1f - Mathf.Exp(-d / 12f));
         float t = Reach(x, z);
         float broad = Fbm(x / 90f, z / 90f), detail = Fbm(x / 26f + 17f, z / 26f + 5f);
@@ -141,6 +170,20 @@ public sealed class BackdropForest : MonoBehaviour
         float sum = west + east + south + north;
         if (sum <= 0f) return 1f;
         return (west * perSide.x + east * perSide.y + south * perSide.z + north * perSide.w) / sum;
+    }
+
+    // The map's own normal at its edge, turning into the scenery's own over the first few metres out: the light
+    // across the join changes as gently as the ground does, with no fold along the line.
+    private const float SeamBlend = 6f;
+
+    private Vector3 SeamNormal(float x, float z)
+    {
+        Vector3 o = Origin, s = Size;
+        float u = Mathf.Clamp01((x - o.x) / s.x), v = Mathf.Clamp01((z - o.z) / s.z);
+        Vector3 mapNormal = map.terrainData.GetInterpolatedNormal(u, v);
+        float outside = Outside(x, z);
+        if (outside <= 0f) return mapNormal;
+        return Vector3.Slerp(mapNormal, Normal(x, z), Smooth(0f, SeamBlend, outside)).normalized;
     }
 
     private Vector3 Normal(float x, float z)
@@ -208,21 +251,75 @@ public sealed class BackdropForest : MonoBehaviour
         return Mathf.Sqrt(outX * outX + outZ * outZ);
     }
 
+    // The ground as the map shows it near each edge: its layer weights averaged over a strip a couple of metres deep,
+    // not the outermost texel row alone (which is often painted unlike the ground just inside it).
+    private const float EdgeDepth = 2.5f;
+
     private void ReadEdges()
     {
         TerrainData data = map.terrainData;
         int w = data.alphamapWidth, h = data.alphamapHeight;
-        edgeSouth = data.GetAlphamaps(0, 0, w, 1);
-        edgeNorth = data.GetAlphamaps(0, h - 1, w, 1);
-        edgeWest = data.GetAlphamaps(0, 0, 1, h);
-        edgeEast = data.GetAlphamaps(w - 1, 0, 1, h);
+        int depthX = Mathf.Clamp(Mathf.RoundToInt(EdgeDepth / data.size.x * w), 1, w / 4);
+        int depthZ = Mathf.Clamp(Mathf.RoundToInt(EdgeDepth / data.size.z * h), 1, h / 4);
+        edgeSouth = Average(data.GetAlphamaps(0, 0, w, depthZ), true);
+        edgeNorth = Average(data.GetAlphamaps(0, h - depthZ, w, depthZ), true);
+        edgeWest = Average(data.GetAlphamaps(0, 0, depthX, h), false);
+        edgeEast = Average(data.GetAlphamaps(w - depthX, 0, depthX, h), false);
         earthLayer = new bool[data.terrainLayers.Length];
         for (int i = 0; i < earthLayer.Length; i++) earthLayer[i] = data.terrainLayers[i] != null && IsEarth(data.terrainLayers[i].name);
+    }
+
+    // a strip of the alphamap ([z, x, layer]) folded into one row along its length
+    private static float[,,] Average(float[,,] strip, bool alongX)
+    {
+        int rows = strip.GetLength(0), cols = strip.GetLength(1), layers = strip.GetLength(2);
+        var row = alongX ? new float[1, cols, layers] : new float[rows, 1, layers];
+        int depth = alongX ? rows : cols;
+        for (int r = 0; r < rows; r++)
+            for (int c = 0; c < cols; c++)
+                for (int l = 0; l < layers; l++)
+                    if (alongX) row[0, c, l] += strip[r, c, l] / depth; else row[r, 0, l] += strip[r, c, l] / depth;
+        return row;
     }
 
     public static bool IsEarth(string layer) =>
         layer.Contains("Earth") || layer.Contains("Trodden") || layer.Contains("Path") || layer.Contains("Tilled") ||
         layer.Contains("Pebble") || layer.Contains("Sand") || layer.Contains("Stony") || layer.Contains("Soil");
+
+    // The forest floor, unlike the map: olive grass with dry stretches, grass worn through to earth, and bare earth in
+    // patches of every size (shares of the four, summing to 1).
+    private static Vector4 ForestMix(float x, float z)
+    {
+        float broad = Fbm(x / 45f + 11f, z / 45f + 4f), mid = Fbm(x / 22f + 50f, z / 22f + 20f), small = Fbm(x / 9f + 3f, z / 9f + 8f);
+        var forest = new Vector4(
+            0.9f,
+            Smooth(0.48f, 0.66f, broad) * 1.4f,
+            Smooth(0.45f, 0.62f, mid) * 1.1f,
+            Smooth(0.6f, 0.72f, small) * 1.2f + Smooth(0.62f, 0.74f, mid) * 0.8f);
+        return forest / (forest.x + forest.y + forest.z + forest.w);
+    }
+
+    // All eight ground layers for the map's edge: every layer painted there drawn as itself or as the one most like it
+    // (Edge Fold), turning further out into the forest floor drawn with its own four (Forest Slots).
+    private (Vector4 first, Vector4 second) EightSlotWeights(float x, float z, float[,,] row, int index, bool alongX, float outside)
+    {
+        var w = new float[8];
+        float sum = 0f;
+        for (int id = 0; id < edgeFold.Length; id++)
+        {
+            int k = edgeFold[id];
+            if (k < 0 || k > 7) continue;
+            float wk = alongX ? row[0, index, id] : row[index, 0, id];
+            if (earthLayer[id]) wk *= 1f - Smooth(0f, PathFade, outside);
+            w[k] += wk; sum += wk;
+        }
+        float far = Smooth(6f, 30f, Outside(x, z));
+        if (sum > 0.05f) for (int k = 0; k < 8; k++) w[k] *= (1f - far) / sum;
+        else { for (int k = 0; k < 8; k++) w[k] = 0f; far = 1f; }
+        Vector4 forest = ForestMix(x, z);
+        for (int k = 0; k < 4; k++) w[Mathf.Clamp(forestSlots[k], 0, 7)] += forest[k] * far;
+        return (new Vector4(w[0], w[1], w[2], w[3]), new Vector4(w[4], w[5], w[6], w[7]));
+    }
 
     // The eight layers' weights (edge four, forest four): the map's own at the nearest point of its edge (paths and
     // earth stop a few metres out), turning further out into the forest's own mix.
@@ -241,6 +338,8 @@ public sealed class BackdropForest : MonoBehaviour
         else { row = edgeEast; index = Mathf.RoundToInt(v * (h - 1)); alongX = false; }
         float outside = Mathf.Max(0f, -nearest);
         var edge = new Vector4();
+        if (edgeFold != null && edgeFold.Length == earthLayer.Length && forestSlots != null && forestSlots.Length == 4)
+            return EightSlotWeights(x, z, row, index, alongX, outside);
         for (int k = 0; k < 4; k++)
         {
             int id = groundLayers[k];
@@ -278,7 +377,7 @@ public sealed class BackdropForest : MonoBehaviour
                 float x = xs[i], z = zs[j];
                 int k = j * w + i;
                 verts[k] = new Vector3(x, Height(x, z), z);
-                normals[k] = Reach(x, z) <= 0f ? map.terrainData.GetInterpolatedNormal((x - Origin.x) / Size.x, (z - Origin.z) / Size.z) : Normal(x, z);
+                normals[k] = SeamNormal(x, z);
                 colours[k] = GroundColour(x, z);
                 (weights[k], weights2[k]) = GroundWeights(x, z);
             }
@@ -295,30 +394,38 @@ public sealed class BackdropForest : MonoBehaviour
     }
 
     // Under the map's edge: a narrow apron tucked just below its ground, so wherever the map's terrain and this ground
-    // part a little (the terrain lowers its detail with distance), the gap shows ground, not sky.
+    // part a little (the terrain lowers its detail with distance), the gap shows ground, not sky. It follows the map's
+    // heightmap point by point, right at its height on the edge, so nothing opens between the two along the join, and
+    // drops steeply under the map; it takes the map's own normals, so the thin rim that can show is lit as the
+    // ground around it.
     private void Skirt(MaterialPropertyBlock block)
     {
         Vector3 o = Origin, s = Size;
         var verts = new List<Vector3>();
         var tris = new List<int>();
+        // one point per heightmap sample along the edge
+        TerrainData data = map.terrainData;
+        float spacing = Mathf.Min(s.x, s.z) / Mathf.Max(1, data.heightmapResolution - 1);
         void Edge(Vector3 from, Vector3 to, Vector3 inward)
         {
             float length = Vector3.Distance(from, to);
-            int count = Mathf.CeilToInt(length / GroundCell);
+            int count = Mathf.CeilToInt(length / spacing);
             int start = verts.Count;
             for (int i = 0; i <= count; i++)
             {
                 Vector3 p = Vector3.Lerp(from, to, i / (float)count);
-                verts.Add(new Vector3(p.x, MapHeight(p.x, p.z), p.z));
-                Vector3 q = p + inward * 1.5f;
-                verts.Add(new Vector3(q.x, MapHeight(q.x, q.z) - 0.3f, q.z));
+                Vector3 q = p + inward * ApronIn, r = p - inward * ApronOut;
+                verts.Add(new Vector3(r.x, Height(r.x, r.z) - ApronUnder, r.z));      // under this ground, just out
+                verts.Add(new Vector3(p.x, MapHeight(p.x, p.z), p.z));                 // on the edge
+                verts.Add(new Vector3(q.x, MapHeight(q.x, q.z) - ApronDepth, q.z));    // under the map, just in
             }
             for (int i = 0; i < count; i++)
-            {
-                int a = start + i * 2;
-                tris.AddRange(new[] { a, a + 1, a + 2, a + 2, a + 1, a + 3 });
-                tris.AddRange(new[] { a, a + 2, a + 1, a + 2, a + 3, a + 1 });   // both faces
-            }
+                for (int band = 0; band < 2; band++)
+                {
+                    int a = start + i * 3 + band;
+                    tris.AddRange(new[] { a, a + 1, a + 3, a + 3, a + 1, a + 4 });
+                    tris.AddRange(new[] { a, a + 3, a + 1, a + 3, a + 4, a + 1 });   // both faces
+                }
         }
         Edge(new Vector3(o.x, 0f, o.z), new Vector3(o.x + s.x, 0f, o.z), Vector3.forward);
         Edge(new Vector3(o.x, 0f, o.z + s.z), new Vector3(o.x + s.x, 0f, o.z + s.z), Vector3.back);
@@ -330,7 +437,7 @@ public sealed class BackdropForest : MonoBehaviour
         var weights2 = new Vector4[verts.Count];
         for (int i = 0; i < normals.Length; i++)
         {
-            normals[i] = Vector3.up; colours[i] = Color.white;
+            normals[i] = SeamNormal(verts[i].x, verts[i].z); colours[i] = Color.white;
             (weights[i], weights2[i]) = GroundWeights(verts[i].x, verts[i].z);
         }
         Add("Ground Edge Apron", verts.ToArray(), normals, colours, tris.ToArray(), groundMaterial, block, weights, weights2);
@@ -505,7 +612,9 @@ public sealed class BackdropForest : MonoBehaviour
         renderer.shadowCastingMode = ShadowCastingMode.Off;
         renderer.receiveShadows = true;
         renderer.lightProbeUsage = LightProbeUsage.Off;
-        renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+        // the ground takes the environment reflection the map's terrain takes (without it, it reads a shade lighter
+        // and the join shows as a line)
+        renderer.reflectionProbeUsage = material == groundMaterial ? ReflectionProbeUsage.BlendProbes : ReflectionProbeUsage.Off;
         renderer.SetPropertyBlock(block);
         built.Add(go);
         TriangleCount += tris.Length / 3;

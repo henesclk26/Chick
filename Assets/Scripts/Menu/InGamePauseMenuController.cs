@@ -14,6 +14,8 @@ public sealed class InGamePauseMenuController : MonoBehaviour
     [SerializeField] private FreeOrbitThirdPersonCamera orbitCamera;
     [SerializeField] private SettingsMenuController settings;
     [SerializeField] private FarmSaveSystem saves;
+    [Tooltip("Where a new game starts; the rescue button sends the bird back there.")]
+    [SerializeField] private MainMenuController mainMenu;
 
     private VisualElement root;
     private VisualElement home;
@@ -22,6 +24,7 @@ public sealed class InGamePauseMenuController : MonoBehaviour
     private VisualElement settingsPage;
     private Button resumeButton;
     private Button settingsButton;
+    private Button rescueButton;
     private Button saveExitButton;
     private Label pauseStatus;
     private bool paused;
@@ -44,6 +47,7 @@ public sealed class InGamePauseMenuController : MonoBehaviour
         settingsPage = root.Q("settings-page");
         resumeButton = root.Q<Button>("pause-resume");
         settingsButton = root.Q<Button>("pause-settings");
+        rescueButton = root.Q<Button>("pause-rescue");
         saveExitButton = root.Q<Button>("pause-save-exit");
         pauseStatus = root.Q<Label>("pause-status");
 
@@ -53,6 +57,7 @@ public sealed class InGamePauseMenuController : MonoBehaviour
         if (orbitCamera == null) orbitCamera = FindFirstObjectByType<FreeOrbitThirdPersonCamera>();
         if (settings == null) settings = GetComponent<SettingsMenuController>();
         if (saves == null) saves = FindFirstObjectByType<FarmSaveSystem>();
+        if (mainMenu == null) mainMenu = FindFirstObjectByType<MainMenuController>(FindObjectsInactive.Include);
 
         if (pauseOverlay != null) pauseOverlay.AddToClassList("hidden");
         if (settingsPage != null)
@@ -63,6 +68,7 @@ public sealed class InGamePauseMenuController : MonoBehaviour
 
         if (resumeButton != null) resumeButton.clicked += Resume;
         if (settingsButton != null) settingsButton.clicked += OpenSettings;
+        if (rescueButton != null) rescueButton.clicked += Rescue;
         if (saveExitButton != null) saveExitButton.clicked += SaveAndExitClicked;
         if (pauseStatus != null) pauseStatus.text = string.Empty;
     }
@@ -71,6 +77,7 @@ public sealed class InGamePauseMenuController : MonoBehaviour
     {
         if (resumeButton != null) resumeButton.clicked -= Resume;
         if (settingsButton != null) settingsButton.clicked -= OpenSettings;
+        if (rescueButton != null) rescueButton.clicked -= Rescue;
         if (saveExitButton != null) saveExitButton.clicked -= SaveAndExitClicked;
         if (paused && !saving) Resume();
     }
@@ -139,6 +146,14 @@ public sealed class InGamePauseMenuController : MonoBehaviour
         root.Q<Button>("settings-back")?.Focus();
     }
 
+    // Stuck somewhere: back to the spot a new game starts from, and straight back into play.
+    private void Rescue()
+    {
+        if (!paused || saving || player == null || mainMenu == null) return;
+        Resume();
+        player.TeleportTo(mainMenu.NewGameSpawnPosition, mainMenu.NewGameSpawnRotation);
+    }
+
     private void SaveAndExitClicked()
     {
         if (!paused || saving) return;
@@ -150,6 +165,7 @@ public sealed class InGamePauseMenuController : MonoBehaviour
         saving = true;
         resumeButton?.SetEnabled(false);
         settingsButton?.SetEnabled(false);
+        rescueButton?.SetEnabled(false);
         saveExitButton?.SetEnabled(false);
         if (pauseStatus != null) pauseStatus.text = "Kayıt alınıyor…";
 
@@ -171,7 +187,7 @@ public sealed class InGamePauseMenuController : MonoBehaviour
             cameraPitch = orbitCamera != null ? orbitCamera.OrbitPitch : 0f,
             playerForm = player != null && player.GetComponent<PlayerGrowthController>() != null ? (int)player.GetComponent<PlayerGrowthController>().CurrentForm : 0,
             consumedEdibleIds = EdibleObject.CaptureConsumedIds(),
-            foodBites = WatermelonSliceBites.CaptureAll()
+            foodBites = EdibleMushroom.AppendTo(WatermelonSliceBites.CaptureAll())
         };
 
         System.Threading.Tasks.Task write = null;
@@ -205,6 +221,7 @@ public sealed class InGamePauseMenuController : MonoBehaviour
         saving = false;
         resumeButton?.SetEnabled(true);
         settingsButton?.SetEnabled(true);
+        rescueButton?.SetEnabled(true);
         saveExitButton?.SetEnabled(true);
         if (pauseStatus != null) pauseStatus.text = "Kayıt yapılamadı. Oyunda kalabilirsin.";
         Debug.LogWarning("Save and exit failed: " + reason);
