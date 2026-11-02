@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_WaterfallCave
-  m_Shader: {fileID: 4800000, guid: 06af496f09f9c2e4e92cc6a82b65beb3, type: 3}
+  m_Name: M_WaterfallSpout
+  m_Shader: {fileID: 4800000, guid: 420f4394b31c3d542956d33370f9a77d, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -25,8 +25,23 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Sky: 0.8
+    - _EdgeFade: 1
+    - _EdgeFoam: 0
+    - _EdgeSoftness: 0.18
+    - _EndFoam: 0.8
+    - _FadeIn: 0.08
+    - _FadeOut: 0
+    - _FoamLength: 0.15
+    - _Opacity: 0.55
+    - _Rings: 0
+    - _Sparkle: 1
+    - _Speed: 2.4
+    - _StartFoam: 0.9
+    - _Streaks: 0.85
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _DeepColor: {r: 0.19999996, g: 0.54999995, b: 0.6, a: 1}
+    - _FoamColor: {r: 0.95, g: 0.97999996, b: 1, a: 1}
+    - _ShallowColor: {r: 0.62, g: 0.88, b: 0.9, a: 1}
+    - _StreakScale: {r: 8, g: 0.9, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

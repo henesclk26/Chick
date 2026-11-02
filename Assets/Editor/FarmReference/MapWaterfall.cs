@@ -28,12 +28,10 @@ public static class MapWaterfall
     private const string RocksName = "Coop Side Rocks";
     private const string GroupName = "Waterfall";
     private const string Folder = "Assets/Art/Waterfall";
-    private const string Backup = "ArtSource/Waterfall/terrain_patch.bin";
-    private const string WallFolder = "Assets/BluBlu Games/Low Poly Forest Mini Pack/Prefabs/";
-    private const string WallMaterials = "Assets/BluBlu Games/Low Poly Forest Mini Pack/Materials/";
+    private const string Backup = "ArtSource/Waterfall/terrain_patch.bin.gz";
+    private const string OldBackup = "ArtSource/Waterfall/terrain_patch.bin";   // the first, smaller patch, uncompressed
     private const string GenericFolder = "Assets/Synty/PolygonGeneric/Prefabs/Environment/";
     private const string SoundSource = "Assets/_Unused/Audio/BOKI/LowPolyNature/Audio/Clips/waterfall_sfx.wav";
-    private static readonly string[] Boulders = { "SM_Gen_Env_Rock_01", "SM_Gen_Env_Rock_02", "SM_Gen_Env_Rock_03", "SM_Gen_Env_Rock_04", "SM_Gen_Env_Rock_05", "SM_Gen_Env_Rock_06", "SM_Gen_Env_Rock_09", "SM_Gen_Env_Rock_10" };
     private static readonly string[] Plants = { "SM_Gen_Env_Fern_02", "SM_Gen_Env_Fern_03", "SM_Gen_Env_Fern_02", "SM_Gen_Env_Flowers_03", "SM_Gen_Env_Flowers_05" };
 
     // The layout (world metres), across the slope at Z0: the pool at the foot, the shelf the water falls from (its edge
@@ -41,27 +39,27 @@ public static class MapWaterfall
     private const float Z0 = 22f;
     private static readonly Vector2 PoolCentre = new Vector2(146.4f, Z0);
     private const float PoolRadiusX = 3.3f, PoolRadiusZ = 2.9f, PoolDepth = .1f, Freeboard = .035f, ShoreMargin = .3f;
-    private const float LipX = 151.2f, ShelfY = -7.6f, ShelfHalfWidth = 3.4f;
+    private const float LipX = 151.2f, ShelfY = -7.6f, ShelfHalfWidth = 2.6f;
     // The rock wall in front of the shelf's face: the stream crosses its top and falls from its front edge.
     private const float WallFrontX = LipX - 1.7f;
-    // The cave the stream comes out of: its mouth facing down the slope (-x), its tunnel running back into a hill of
-    // rock piled over it.
-    private static readonly Vector2 CaveMouth = new Vector2(LipX + 3.6f, Z0 + .3f);
-    private const float CaveDepth = 3.8f, CaveHalfWidth = 1.45f, CaveHeight = 2.2f;
-    private static readonly Vector2 HillCentre = CaveMouth + new Vector2(2.6f, 0f);
-    private const float HillRadius = 6f, HillRise = 3.9f;
-    private static float caveFloor;   // set while building: the ground at the mouth
+    // The spring the stream comes from: a small pool on the knoll behind the fall, fed out of a cleft in the rock.
+    private static readonly Vector2 SpringPool = new Vector2(LipX + 3.3f, Z0);
+    private const float SpringRadius = 1.5f;
+    private const float CleftDepth = 1.7f;   // how far back into the rock the water comes from
+    private static readonly Vector2 HillCentre = SpringPool + new Vector2(2.8f, 0f);
+    private const float HillRadius = 6f, HillRise = 2.6f;
+    private static float springLevel;   // set while building: the spring pool's water
     private const float FallSpeed = 1.9f;   // how fast the water leaves the lip, m/s
     // The flow speed the water material runs at; the strip's uv stretches so each part runs at its own speed.
     private const float RefSpeed = 2f;
     // The waterfall's sound: quiet, a backdrop to the farm rather than a roar.
     private const float SoundVolume = .12f;
     // The terrain patch the waterfall changes (and the backup holds).
-    private const float PatchMinX = 136f, PatchMaxX = 170f, PatchMinZ = Z0 - 13f, PatchMaxZ = Z0 + 13f;
+    private const float PatchMinX = 127f, PatchMaxX = 172f, PatchMinZ = -8f, PatchMaxZ = 47f;   // the whole rocky slope
     // The slope's rock layout outside the waterfall: from the fence up, along it.
     private const float FenceX = 129f, SlopeMinZ = -3f, SlopeMaxZ = 42f, WaterfallZone = 9f;
     // Ground layers (map terrain): earth and pebbles for the stream bed and pool bank.
-    private const int TroddenEarth = 4, OldEarth = 5, Pebbles = 6, WornMeadow = 7, StonyPath = 19;
+    private const int MainGrass = 1, TroddenEarth = 4, OldEarth = 5, Pebbles = 6, WornMeadow = 7, DryGrass = 11, StonyPath = 19;
     private static double nextPoll;
 
     static MapWaterfall() => EditorApplication.update += Poll;
@@ -135,7 +133,14 @@ public static class MapWaterfall
             Undo.DestroyObjectImmediate(old.gameObject);
             report.AppendLine($"removed the waterfall, {shown} objects switched back on");
         }
-        if (File.Exists(Backup)) { RestoreTerrain(terrain.terrainData); report.AppendLine("terrain patch restored from " + Backup); }
+        if (File.Exists(Backup)) { RestoreTerrain(terrain.terrainData, Backup); report.AppendLine("terrain patch restored from " + Backup); }
+        else if (File.Exists(OldBackup))
+        {
+            // The first version kept a smaller patch: put it back, then the next build backs up the whole slope.
+            RestoreTerrain(terrain.terrainData, OldBackup);
+            File.Delete(OldBackup);
+            report.AppendLine("terrain patch restored from " + OldBackup + " (replaced by " + Backup + ")");
+        }
     }
 
     // ---------------------------------------------------------------- build
@@ -159,8 +164,7 @@ public static class MapWaterfall
         float level = shore.Select(p => H0(p.x, p.y)).OrderBy(h => h).ElementAt(shore.Length / 5) - .05f;
         report.AppendLine($"pool water level {level:0.00}, shelf {ShelfY}, lip at x {LipX}");
 
-        // The cave floor: level with the shelf where the shelf reaches it, else the ground at its mouth.
-        caveFloor = Mathf.Max(H0(CaveMouth.x, CaveMouth.y), ShelfY + Mathf.Max(0f, CaveMouth.x - LipX) * .04f) - .03f;
+        springLevel = ShelfY + (SpringPool.x - LipX) * .04f + .06f;
         List<Vector3> stream = StreamPath();
         ShapeTerrain(terrain, shore, level, stream, report);
         float H(float x, float z) => terrain.SampleHeight(new Vector3(x, 0f, z)) + terrain.transform.position.y;
@@ -188,13 +192,13 @@ public static class MapWaterfall
         report.AppendLine($"switched off {hidden.Count} objects (the slope's rock rows and what stood in the water's way)");
 
         var rng = new System.Random(2210);
-        Material wet = WetRockMaterial();
+        kit = RockKit.Ensure(report);
         Transform rocks = new GameObject("Rocks").transform; rocks.SetParent(root, false);
         Transform plants = new GameObject("Plants").transform; plants.SetParent(root, false);
-        FrameTheFall(rocks, H, wet, rng, report);
-        Cave(rocks, plants, H, wet, rng, report);
-        RocksAlongTheWater(rocks, plants, shore, stream, H, wet, rng);
+        FrameTheFall(rocks, H, level, rng, report);
+        RocksAlongTheWater(rocks, plants, shore, stream, H, rng);
         SlopeRocks(rocks, plants, H, new System.Random(3115), report);
+        PaintUnderRocks(terrain, rocks, report);
 
         // The water: one strip from the spring down the slope, over the rock's edge and down into the pool (so there is
         // no seam where the stream turns into the fall), a thinner sheet in front of the fall, and foam where it lands.
@@ -202,7 +206,8 @@ public static class MapWaterfall
         Material water = WaterMaterial("M_Waterfall", m =>
         {
             m.SetFloat("_Opacity", .7f); m.SetFloat("_Speed", RefSpeed); m.SetVector("_StreakScale", new Vector4(7f, .9f, 0f, 0f)); m.SetFloat("_Streaks", .7f);
-            m.SetFloat("_StartFoam", .7f); m.SetFloat("_EndFoam", .8f); m.SetFloat("_FoamLength", .06f); m.SetFloat("_EdgeFoam", .55f); m.SetFloat("_Sparkle", 1.4f);
+            m.SetFloat("_StartFoam", 0f); m.SetFloat("_EndFoam", .8f); m.SetFloat("_FoamLength", .06f); m.SetFloat("_EdgeFoam", .55f); m.SetFloat("_Sparkle", 1.4f);
+            m.SetFloat("_FadeIn", .07f);   // out of the spring pool without a seam
         });
         Material front = WaterMaterial("M_WaterfallFront", m =>
         {
@@ -215,7 +220,13 @@ public static class MapWaterfall
             m.SetFloat("_StartFoam", 1f); m.SetFloat("_EndFoam", 0f); m.SetFloat("_FoamLength", .5f); m.SetFloat("_EdgeFade", 0f); m.SetFloat("_FadeOut", 1f);
             m.SetFloat("_Rings", 1f); m.SetFloat("_Sparkle", .8f);
         });
+        Material spout = WaterMaterial("M_WaterfallSpout", m =>
+        {
+            m.SetFloat("_Opacity", .55f); m.SetFloat("_Speed", 2.4f); m.SetVector("_StreakScale", new Vector4(8f, .9f, 0f, 0f)); m.SetFloat("_Streaks", .85f);
+            m.SetFloat("_StartFoam", .9f); m.SetFloat("_EndFoam", .8f); m.SetFloat("_FoamLength", .15f); m.SetFloat("_FadeIn", .08f); m.SetFloat("_Sparkle", 1f);
+        });
         Transform waterRoot = new GameObject("Water").transform; waterRoot.SetParent(root, false);
+        Spring(root, rocks, plants, waterRoot, terrain, H, spout, foam, rng, report);
 
         // The surface the water runs on: the ground, or the top of the rocks placed here (the wall it falls from).
         Physics.SyncTransforms();
@@ -229,13 +240,13 @@ public static class MapWaterfall
 
         // Down the slope: hugging the ground, slow, whiter where it runs steeper.
         var strip = new List<(Vector3 at, float width, float speed, float white)>();
-        for (int i = 0; i < stream.Count; i++)   // from the back of the cave
+        for (int i = 0; i < stream.Count; i++)   // from the spring's pool
         {
             Vector3 p = stream[i];
             float x = i == stream.Count - 1 ? LipX : p.x, z = i == stream.Count - 1 ? Z0 : p.z;
-            float y = Surface(x, z) + .06f;
+            float y = Mathf.Min(Surface(x, z) + .06f, springLevel + .006f);   // never above the pool it runs out of
             float slope = strip.Count > 0 ? Mathf.Abs(strip[strip.Count - 1].at.y - y) / Mathf.Max(.05f, Vector2.Distance(new Vector2(strip[strip.Count - 1].at.x, strip[strip.Count - 1].at.z), new Vector2(x, z))) : 0f;
-            strip.Add((new Vector3(x, y, z), Mathf.Lerp(.55f, 1.6f, Mathf.Pow(i / (float)(stream.Count - 1), .7f)), 1.3f + slope * 2f, Mathf.Clamp01((slope - .25f) * 1.5f) * .5f));
+            strip.Add((new Vector3(x, y, z), Mathf.Lerp(1.5f, 1.6f, i / (float)(stream.Count - 1)), 1.3f + slope * 2f, Mathf.Clamp01((slope - .25f) * 1.5f) * .5f));
         }
         // Across the rock's top: level with its highest bumps (so no bump pokes through) to the last point still near the
         // top, which is where it goes over; speeding up and whitening as it nears the edge.
@@ -308,16 +319,16 @@ public static class MapWaterfall
 
     private static List<Vector3> StreamPath()
     {
-        // From the back of the cave out of its mouth, then down the slope meandering a little, across the shelf to its edge.
+        // From the spring pool's low side, a short run across the shelf to the fall's edge.
         var pts = new List<Vector3>();
-        for (float x = CaveMouth.x + CaveDepth - .5f; x > CaveMouth.x + .1f; x -= .75f) pts.Add(new Vector3(x, 0f, CaveMouth.y));
+        Vector2 from = SpringPool - new Vector2(SpringRadius - .7f, 0f);   // from inside the pool, so the two run together
         Vector2 end = new Vector2(LipX, Z0);
-        int steps = 24;
+        int steps = 8;
         for (int i = 0; i <= steps; i++)
         {
             float t = i / (float)steps;
-            Vector2 p = Vector2.Lerp(CaveMouth, end, t);
-            p.y += Mathf.Sin(t * Mathf.PI * 2.2f) * .7f * (1f - t);
+            Vector2 p = Vector2.Lerp(from, end, t);
+            p.y += Mathf.Sin(t * Mathf.PI) * .12f;
             pts.Add(new Vector3(p.x, 0f, p.y));
         }
         return pts;
@@ -360,9 +371,7 @@ public static class MapWaterfall
             else { float w = Mathf.Clamp((bank - h) * 5f, .6f, 1.6f); h = Mathf.Lerp(bank, h, S(.55f, .55f + w, sd)); }
         }
 
-        // A shallow bed for the stream on the slope (not on the shelf or into the pool).
-        float d = DistanceToPath(stream, new Vector2(x, z));
-        if (x > LipX + .5f) h -= .12f * (1f - S(.3f, 1.1f, d));
+        h = SpringBasin(h, x, z);
         return h;
     }
 
@@ -397,15 +406,27 @@ public static class MapWaterfall
             {
                 float x = tp.x + (ax0 + ix + .5f) / ares * size.x, z = tp.z + (az0 + iz + .5f) / ares * size.z;
                 float sd = Signed(shore, x, z), d = DistanceToPath(stream, new Vector2(x, z)), n = Mathf.PerlinNoise(x * 1.7f + 5f, z * 1.7f + 9f);
+                // The slope's old stony paint (laid under the rows of rock walls, now gone) back to grass: the new rocks
+                // get their own pebbly ground below (PaintUnderRocks).
+                if (x > FenceX + 1f)
+                {
+                    float moved = 0f;
+                    foreach (int k in new[] { Pebbles, StonyPath, DryGrass, OldEarth })
+                    {
+                        float take = alpha[iz, ix, k] * .8f;
+                        alpha[iz, ix, k] -= take;
+                        moved += take;
+                    }
+                    alpha[iz, ix, MainGrass] += moved;
+                }
                 System.Array.Clear(target, 0, layers);
-                target[OldEarth] = .25f; target[Pebbles] = .3f + .25f * n; target[WornMeadow] = .35f - .15f * n; target[TroddenEarth] = .1f;
+                target[Pebbles] = .35f + .2f * n; target[StonyPath] = .25f; target[WornMeadow] = .4f - .2f * n;
                 float pool = 1f - S(-.05f, .8f, sd + (n - .5f) * .4f);
                 float bed = 1f - S(.5f, 1.4f, d + (n - .5f) * .5f);
                 float shelf = S(LipX - 1.5f, LipX, x) * S(ShelfHalfWidth + 1.5f, ShelfHalfWidth - .5f, Mathf.Abs(z - Z0)) * (1f - S(LipX + 5f, LipX + 7f, x));
-                float hill = S(HillRadius, HillRadius - 2.5f, Vector2.Distance(new Vector2(x, z), HillCentre)) * (.35f + .4f * n);
-                float floor = (1f - S(CaveHalfWidth, CaveHalfWidth + .8f, Mathf.Abs(z - CaveMouth.y))) * S(-1.5f, 0f, x - CaveMouth.x) * S(CaveDepth + 1f, CaveDepth, x - CaveMouth.x);
-                float blend = Mathf.Max(Mathf.Max(pool, Mathf.Max(bed * .85f, shelf * .45f)), Mathf.Max(hill, floor));
-                if (blend <= 0f) continue;
+                float hill = 0f;   // the knoll keeps its grass; its rocks make it rocky
+                float floor = S(SpringRadius + 1f, SpringRadius - .2f, Vector2.Distance(new Vector2(x, z), SpringPool)) * .8f;   // the spring's pebbly bank
+                float blend = Mathf.Max(Mathf.Max(pool, Mathf.Max(bed * .7f, shelf * .25f)), Mathf.Max(hill, floor));
                 float sum = 0f;
                 for (int k = 0; k < layers; k++) { alpha[iz, ix, k] = Mathf.Lerp(alpha[iz, ix, k], target[k], blend); sum += alpha[iz, ix, k]; }
                 for (int k = 0; k < layers; k++) alpha[iz, ix, k] /= Mathf.Max(sum, 1e-5f);
@@ -434,6 +455,47 @@ public static class MapWaterfall
         EditorUtility.SetDirty(data);
     }
 
+    // Pebbles and worn grass in a ring round the foot of every rock, uneven, fading out a metre or so from it, so the
+    // rocks sit in the hillside rather than on the grass.
+    private static void PaintUnderRocks(Terrain terrain, Transform rocks, StringBuilder report)
+    {
+        TerrainData data = terrain.terrainData;
+        Vector3 tp = terrain.transform.position, size = data.size;
+        int ares = data.alphamapResolution, layers = data.alphamapLayers;
+        (int ax0, int az0, int aw, int ah) = Patch(ares, tp, size, false);
+        float[,,] alpha = data.GetAlphamaps(ax0, az0, aw, ah);
+        var feet = new List<(Vector2 centre, float radius)>();
+        foreach (Transform t in rocks)
+        {
+            if (!t.name.StartsWith("Rock_")) continue;
+            Bounds b = BoundsOf(t.gameObject);
+            feet.Add((new Vector2(b.center.x, b.center.z), Mathf.Min(b.extents.x, b.extents.z) * .85f));
+        }
+        var target = new float[layers];
+        for (int iz = 0; iz < ah; iz++)
+            for (int ix = 0; ix < aw; ix++)
+            {
+                float x = tp.x + (ax0 + ix + .5f) / ares * size.x, z = tp.z + (az0 + iz + .5f) / ares * size.z;
+                var p = new Vector2(x, z);
+                float n = Mathf.PerlinNoise(x * 1.3f + 17f, z * 1.3f + 3f);
+                float w = 0f;
+                foreach (var (centre, radius) in feet)
+                {
+                    float d = Vector2.Distance(p, centre) - radius;
+                    if (d < 1.6f) w = Mathf.Max(w, 1f - S(-.2f, 1.1f + n * .5f, d));
+                }
+                if (w <= 0f) continue;
+                System.Array.Clear(target, 0, layers);
+                target[Pebbles] = .3f + .25f * n; target[WornMeadow] = .45f - .15f * n; target[StonyPath] = .25f - .1f * n;
+                w *= .75f;
+                float sum = 0f;
+                for (int k = 0; k < layers; k++) { alpha[iz, ix, k] = Mathf.Lerp(alpha[iz, ix, k], target[k], w); sum += alpha[iz, ix, k]; }
+                for (int k = 0; k < layers; k++) alpha[iz, ix, k] /= Mathf.Max(sum, 1e-5f);
+            }
+        data.SetAlphamaps(ax0, az0, alpha);
+        report.AppendLine($"pebbly ground painted round {feet.Count} rocks");
+    }
+
     private static (int x0, int z0, int w, int h) Patch(int res, Vector3 tp, Vector3 size, bool inclusive)
     {
         int x0 = Mathf.Max(0, Mathf.FloorToInt((PatchMinX - tp.x) / size.x * res));
@@ -459,7 +521,9 @@ public static class MapWaterfall
         Terrain terrain = Terrain.activeTerrains.First(t => t.terrainData == data);
         Vector3 tp = terrain.transform.position, size = data.size;
         Directory.CreateDirectory(Path.GetDirectoryName(Backup));
-        using var w = new BinaryWriter(File.Create(Backup));
+        using var file = File.Create(Backup);
+        using var zip = new System.IO.Compression.GZipStream(file, System.IO.Compression.CompressionLevel.Optimal);
+        using var w = new BinaryWriter(zip);
         (int x0, int z0, int hw, int hh) = Patch(data.heightmapResolution - 1, tp, size, true);
         float[,] heights = data.GetHeights(x0, z0, hw, hh);
         w.Write(x0); w.Write(z0); w.Write(hw); w.Write(hh);
@@ -474,10 +538,12 @@ public static class MapWaterfall
             foreach (int v in data.GetDetailLayer(dx0, dz0, dw, dh, layer)) w.Write(v);
     }
 
-    private static void RestoreTerrain(TerrainData data)
+    private static void RestoreTerrain(TerrainData data, string path)
     {
         Undo.RegisterCompleteObjectUndo(data, "Remove waterfall");
-        using var r = new BinaryReader(File.OpenRead(Backup));
+        using var file = File.OpenRead(path);
+        using Stream stream = path.EndsWith(".gz") ? new System.IO.Compression.GZipStream(file, System.IO.Compression.CompressionMode.Decompress) : (Stream)file;
+        using var r = new BinaryReader(stream);
         int x0 = r.ReadInt32(), z0 = r.ReadInt32(), hw = r.ReadInt32(), hh = r.ReadInt32();
         var heights = new float[hh, hw];
         for (int i = 0; i < hh; i++) for (int j = 0; j < hw; j++) heights[i, j] = r.ReadSingle();
@@ -496,147 +562,225 @@ public static class MapWaterfall
         EditorUtility.SetDirty(data);
     }
 
-    // The hill over the cave: the ground raised into a rounded mound, open in front of the mouth (a little ravine the
-    // stream runs out along) and hollowed under it to a flat floor the tunnel stands on.
+    // The knoll behind the fall: the ground raised into a rounded mound of rock, open where the spring's pool sits in it
+    // and along the short run from the pool to the fall's edge.
     private static float Hill(float h0, float x, float z)
     {
-        float dx = x - CaveMouth.x, dz = Mathf.Abs(z - CaveMouth.y);
         float d = Vector2.Distance(new Vector2(x, z), HillCentre);
         float raise = HillRise * S(HillRadius, 1.2f, d) * (.85f + .3f * Mathf.PerlinNoise(x * .35f + 4f, z * .35f + 7f));
-        raise *= Mathf.Lerp(S(CaveHalfWidth, CaveHalfWidth + 2f, dz), 1f, S(-1.5f, 0f, dx) * S(CaveHalfWidth, CaveHalfWidth + 1f, dz));
-        float h = h0 + raise;
-        float inside = (1f - S(CaveHalfWidth + .1f, CaveHalfWidth + 1.1f, dz)) * S(-.6f, -.1f, dx) * S(CaveDepth + .7f, CaveDepth + .1f, dx);
-        return Mathf.Lerp(h, caveFloor + Mathf.Max(0f, dx) * .025f, inside);
+        float dp = Vector2.Distance(new Vector2(x, z), SpringPool);
+        raise *= S(SpringRadius + .2f, SpringRadius + 1.6f, dp);                                       // the pool's hollow
+        raise *= Mathf.Lerp(1f, S(.7f, 1.8f, Mathf.Abs(z - Z0)), S(SpringPool.x + .5f, SpringPool.x - .5f, x));   // the run to the fall
+        return h0 + raise;
+    }
+
+    // The spring's pool, after the shelf: a rocky basin a little under the water, a bank rising out of it, a shallow run
+    // from its low side down to the fall's edge.
+    private static float SpringBasin(float h, float x, float z)
+    {
+        float dp = Vector2.Distance(new Vector2(x, z), SpringPool);
+        float bed = springLevel - .14f * S(SpringRadius, SpringRadius - .7f, dp);
+        float bank = Mathf.Lerp(springLevel + .06f, h, S(SpringRadius + .3f, SpringRadius + 1.4f, dp));
+        float basin = dp < SpringRadius ? bed : bank;
+        h = Mathf.Lerp(h, basin, S(SpringRadius + 1.5f, SpringRadius + .9f, dp));
+        // Inside the cleft the hill is cut back below the sill, so no grass shows in it.
+        float back = SpringPool.x + SpringRadius - .35f;
+        if (x > back - .3f && x < back + CleftDepth + .6f && Mathf.Abs(z - Z0) < .9f) h = Mathf.Min(h, springLevel + .9f);
+        // The run: from the pool's west edge down to the fall's edge, a touch below the bank either side.
+        if (x < SpringPool.x && x > LipX - .3f)
+        {
+            float run = S(.9f, .45f, Mathf.Abs(z - Z0));
+            float y = Mathf.Lerp(ShelfY + .02f, springLevel - .02f, Mathf.InverseLerp(LipX, SpringPool.x - SpringRadius, x));
+            h = Mathf.Lerp(h, Mathf.Min(h, y), run);
+        }
+        return h;
     }
 
     private static bool OnHill(float x, float z) => Vector2.Distance(new Vector2(x, z), HillCentre) < HillRadius + .5f ||
-                                                   (x < CaveMouth.x && x > CaveMouth.x - 3f && Mathf.Abs(z - CaveMouth.y) < 2.5f);
+                                                   Vector2.Distance(new Vector2(x, z), SpringPool) < SpringRadius + 2f;
 
-    // The cave: a tunnel of rough rock going back into the hill from the mouth, its rock darkening into the dark,
-    // closed at the back, with a collider so nothing walks through its walls; and the hill's rocks round and over it.
-    private static void Cave(Transform rocks, Transform plants, System.Func<float, float, float> H, Material wet, System.Random rng, StringBuilder report)
+    // The spring: a small rock-bound pool on the knoll behind the fall, filled by water spilling out of a cleft between two
+    // cliff blocks at its back (a short cascade into it, foam where it lands); from its low side the stream runs to the
+    // fall. The pool is a FarmPond like the one below, so the bird can wade and drink there too.
+    private static void Spring(Transform root, Transform rocks, Transform plants, Transform waterRoot, Terrain terrain, System.Func<float, float, float> H,
+                               Material spout, Material foam, System.Random rng, StringBuilder report)
     {
         float R() => (float)rng.NextDouble();
-        const int around = 14, along = 9;
-        var verts = new List<Vector3>(); var colours = new List<Color>(); var tris = new List<int>();
-        Color rock = new Color(.24f, .22f, .2f), dark = new Color(.015f, .015f, .02f);
-        for (int i = 0; i <= along; i++)
-        {
-            float dx = Mathf.Lerp(-.2f, CaveDepth, i / (float)along);
-            float narrowing = Mathf.Lerp(1f, .75f, i / (float)along);
-            for (int k = 0; k <= around; k++)
-            {
-                float a = Mathf.Lerp(-.12f, Mathf.PI + .12f, k / (float)around);
-                float wobble = 1f + (Mathf.PerlinNoise(dx * 1.7f + k * .9f, k * .37f) - .5f) * .35f;
-                float z = Mathf.Cos(a) * CaveHalfWidth * narrowing * wobble;
-                float y = Mathf.Sin(a) * CaveHeight * narrowing * wobble;
-                verts.Add(new Vector3(CaveMouth.x + dx, caveFloor - .25f + y + .25f * Mathf.Clamp01(Mathf.Sin(a) * 4f), CaveMouth.y + z));
-                colours.Add(Color.Lerp(rock, dark, S(-.4f, CaveDepth * .55f, dx)) * Mathf.Lerp(1f, .6f, Mathf.Sin(a)));
-            }
-        }
-        for (int i = 0; i < along; i++)
-            for (int k = 0; k < around; k++)
-            {
-                int a = i * (around + 1) + k, b = a + 1, c = a + around + 1, d = c + 1;
-                tris.AddRange(new[] { a, b, c, b, d, c });
-            }
-        int back = verts.Count;
-        verts.Add(new Vector3(CaveMouth.x + CaveDepth + .3f, caveFloor + CaveHeight * .3f, CaveMouth.y));
-        colours.Add(dark);
-        for (int k = 0; k < around; k++) tris.AddRange(new[] { along * (around + 1) + k, back, along * (around + 1) + k + 1 });
-        var mesh = new Mesh { name = "SM_WaterfallCave" };
-        mesh.SetVertices(verts); mesh.SetColors(colours); mesh.SetTriangles(tris, 0);
-        mesh.RecalculateNormals(); mesh.RecalculateBounds();
-        string path = Folder + "/SM_WaterfallCave.asset";
-        AssetDatabase.DeleteAsset(path);
-        AssetDatabase.CreateAsset(mesh, path);
-        string matPath = Folder + "/M_WaterfallCave.mat";
-        var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
-        if (mat == null) { mat = new Material(Shader.Find("Farm/Cave Interior")); AssetDatabase.CreateAsset(mat, matPath); }
-        var cave = new GameObject("Cave");
-        cave.transform.SetParent(rocks, false);
-        cave.AddComponent<MeshFilter>().sharedMesh = mesh;
-        var r = cave.AddComponent<MeshRenderer>();
-        r.sharedMaterial = mat;
-        r.shadowCastingMode = ShadowCastingMode.TwoSided;
-        r.lightProbeUsage = LightProbeUsage.Off;
-        r.reflectionProbeUsage = ReflectionProbeUsage.Off;
-        cave.AddComponent<MeshCollider>().sharedMesh = mesh;
-
-        // Round the mouth: a big wet boulder lying over it, walls flanking it, more boulders at its feet.
-        float top = caveFloor + CaveHeight;
-        var lintel = Place(GenericFolder + "SM_Gen_Env_Rock_05.prefab", rocks, new Vector3(CaveMouth.x + .5f, top, CaveMouth.y), Quaternion.Euler(0f, 90f, 0f), 1.35f);
-        if (lintel != null)
-        {
-            Bounds b = BoundsOf(lintel);
-            lintel.transform.position += new Vector3(CaveMouth.x + .1f - b.min.x, top - .15f - b.min.y, 0f);
-            Wet(lintel, wet);
-        }
+        float back = SpringPool.x + SpringRadius - .35f;   // the cliff's face at the pool's back
+        float spoutY = springLevel + 1.35f;
+        // The cleft: a cliff block either side of it, their inner faces .3 m from the middle; a third block behind closes it.
         foreach (float side in new[] { -1f, 1f })
         {
-            float z = CaveMouth.y + side * (CaveHalfWidth + 2.4f);
-            var wall = Place(WallFolder + "SM_RockWall_0" + (rng.Next(2) + 1) + ".prefab", rocks, new Vector3(CaveMouth.x, caveFloor, z), Quaternion.Euler(0f, 270f + side * 15f, 0f), .5f);
-            if (wall == null) continue;
-            Fit(wall, CaveMouth.x - .7f, top + 1.6f + R(), z);
-            Wet(wall, wet);
-            var foot = Place(GenericFolder + Boulders[rng.Next(Boulders.Length)] + ".prefab", rocks, new Vector3(CaveMouth.x - .6f, 0f, CaveMouth.y + side * (CaveHalfWidth + 1.4f)),
-                             Quaternion.Euler(0f, R() * 360f, 0f), Mathf.Lerp(.45f, .7f, R()));
-            if (foot != null) { var p = foot.transform.position; p.y = H(p.x, p.z) - .15f; foot.transform.position = p; Wet(foot, wet); }
+            var cliff = Rock(Kit("Big", side < 0 ? "BIG_1" : "Big_3"), rocks, new Vector3(back, springLevel - .5f, SpringPool.y), side < 0 ? 95f : 265f, side < 0 ? .56f : .6f, 0f);
+            Bounds b = BoundsOf(cliff);
+            float innerZ = side < 0 ? b.max.z : b.min.z;
+            cliff.transform.position += new Vector3(back + .2f - b.min.x, springLevel - .45f - b.min.y, SpringPool.y + side * 1f - innerZ);
         }
-        // The hill's crown: walls stood every way round it (not over the tunnel), boulders over the tunnel.
-        int crown = 0;
-        for (int k = 0; k < 14; k++)
+        // The cleft runs back CleftDepth into the rock: a ledge for its floor (the sill the water runs out along), a block at
+        // its end, a slab over it.
+        var sill = Rock(Kit("Mid", "Mid_4"), rocks, new Vector3(back, springLevel, SpringPool.y), 90f, .42f, 0f);
         {
-            float a = k * Mathf.PI * 2f / 14f + R() * .4f, dist = Mathf.Lerp(1.8f, 4.6f, R());
-            Vector2 q = HillCentre + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * dist;
-            bool overTunnel = q.x > CaveMouth.x - .5f && q.x < CaveMouth.x + CaveDepth + 1f && Mathf.Abs(q.y - CaveMouth.y) < CaveHalfWidth + 1.4f;
-            if (q.x < CaveMouth.x + 1f && Mathf.Abs(q.y - CaveMouth.y) < CaveHalfWidth + 2f) continue;   // the mouth stays open
-            if (overTunnel)
-            {
-                Place(GenericFolder + Boulders[rng.Next(Boulders.Length)] + ".prefab", rocks, new Vector3(q.x, H(q.x, q.y) - .2f, q.y), Quaternion.Euler(0f, R() * 360f, 0f), Mathf.Lerp(.6f, 1f, R()));
-                continue;
-            }
-            float size = Mathf.Lerp(.45f, .75f, R());
-            var wall = Place(WallFolder + "SM_RockWall_0" + (rng.Next(2) + 1) + ".prefab", rocks, Vector3.zero,
-                             Quaternion.Euler((R() - .5f) * 10f, a * Mathf.Rad2Deg + 90f + (R() - .5f) * 50f, (R() - .5f) * 8f), size);
-            if (wall == null) continue;
-            wall.transform.position = new Vector3(q.x, H(q.x, q.y) - 9.6f * size * Mathf.Lerp(.25f, .4f, R()), q.y);
-            crown++;
+            Bounds b = BoundsOf(sill);
+            sill.transform.position += new Vector3(back - .1f - b.min.x, spoutY - .04f - b.max.y, SpringPool.y - b.center.z);
         }
-        for (int k = 0; k < 6; k++)
+        // Its walls: mossy rock walls (SM_RockWall) either side, their faces .35 m from the middle, and one across its end,
+        // so the water comes out of a recess in the rock with rock all round it.
+        foreach (float side in new[] { -1f, 1f })
+        {
+            var wall = Rock(RockWall(side < 0 ? 1 : 2), rocks, new Vector3(back, springLevel, SpringPool.y), side < 0 ? 0f : 180f, .3f, 0f);
+            Mossy(wall);
+            Bounds b = BoundsOf(wall);
+            float innerZ = side < 0 ? b.max.z : b.min.z;
+            wall.transform.position += new Vector3(back - .2f - b.min.x, spoutY + 2.1f - b.max.y, SpringPool.y + side * .35f - innerZ);
+        }
+        var shut = Rock(RockWall(1), rocks, new Vector3(back + CleftDepth, springLevel, SpringPool.y), 270f, .4f, 0f);
+        Mossy(shut);
+        {
+            Bounds b = BoundsOf(shut);
+            shut.transform.position += new Vector3(back + CleftDepth - b.min.x, spoutY + 2.6f - b.max.y, SpringPool.y - b.center.z);
+        }
+        var cap = Rock(Kit("Big", "Big_5"), rocks, new Vector3(back + .6f, spoutY + 1f, SpringPool.y), 90f, .5f, 0f);
+        {
+            Bounds b = BoundsOf(cap);
+            cap.transform.position += new Vector3(back - .15f - b.min.x, spoutY + .55f - b.min.y, SpringPool.y - b.center.z);
+        }
+        // Round the pool's sides: boulders sunk into the bank; its low (west) side stays open.
+        int ring = 0;
+        for (int k = 0; k < 9; k++)
+        {
+            float a = Mathf.Lerp(-150f, 150f, k / 8f) * Mathf.Deg2Rad;   // 0 = east (the back), skipping the west side
+            if (Mathf.Abs(a) < .55f) continue;                           // the cleft
+            Vector2 dir = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
+            Vector2 q = SpringPool + dir * (SpringRadius + .35f + R() * .3f);
+            var go = Rock(Pick("Small", rng), rocks, new Vector3(q.x, H(q.x, q.y), q.y), R() * 360f, Mathf.Lerp(.38f, .55f, R()));
+            Sink(go, .3f);
+            ring++;
+        }
+        // The rest of the knoll behind and beside.
+        var behind = new[] { (Kit("Big", "BIG_1"), new Vector2(3.4f, -2.6f), 30f, .7f), (Kit("Big", "Big_2"), new Vector2(3.8f, 2.8f), 200f, .58f),
+                             (Kit("Mid", "Mid_1"), new Vector2(5f, -.2f), 120f, .7f), (Kit("Mid", "Mid_5"), new Vector2(1.6f, -3.6f), 60f, .55f),
+                             (Kit("Big", "Big_3"), new Vector2(1.8f, 3.9f), 300f, .5f) };
+        foreach (var (prefab, offset, yaw, scale) in behind)
+        {
+            Vector2 q = SpringPool + offset;
+            var go = Rock(prefab, rocks, new Vector3(q.x, H(q.x, q.y), q.y), yaw + R() * 20f, scale * Mathf.Lerp(.9f, 1.1f, R()));
+            Sink(go, .22f);
+        }
+        // The knoll itself: mossy rock walls (SM_RockWall) stood round it facing outward and sunk into it, among the painted
+        // rocks, so it reads as one rocky hill.
+        int walls = 0;
+        for (int k = 0; k < 8; k++)
+        {
+            float a = k / 8f * Mathf.PI * 2f + R() * .3f;
+            Vector2 dir = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
+            Vector2 q = HillCentre + dir * Mathf.Lerp(2.4f, 4.2f, R());
+            if (Vector2.Distance(q, SpringPool) < SpringRadius + 2.2f) continue;
+            var wall = Rock(RockWall(1 + k % 2), rocks, new Vector3(q.x, H(q.x, q.y), q.y), Mathf.Atan2(dir.x, dir.y) * Mathf.Rad2Deg + (R() - .5f) * 30f,
+                            Mathf.Lerp(.32f, .45f, R()), 5f);
+            Mossy(wall);
+            Sink(wall, .3f);
+            walls++;
+        }
+        foreach (int k in Enumerable.Range(0, 7))
         {
             float a = R() * Mathf.PI * 2f;
-            Vector2 q = HillCentre + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * Mathf.Lerp(3f, HillRadius, R());
-            if (q.x < CaveMouth.x && Mathf.Abs(q.y - CaveMouth.y) < 2f) continue;
-            Place(GenericFolder + Plants[rng.Next(Plants.Length)] + ".prefab", plants, new Vector3(q.x, H(q.x, q.y) - .03f, q.y), Quaternion.Euler(0f, R() * 360f, 0f), Mathf.Lerp(.8f, 1.2f, R()));
+            Vector2 q = SpringPool + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * Mathf.Lerp(SpringRadius + 1.1f, SpringRadius + 2.4f, R());
+            if (q.x < SpringPool.x + .5f && Mathf.Abs(q.y - Z0) < 2.2f) continue;   // the run
+            Place(GenericFolder + Plants[rng.Next(Plants.Length)] + ".prefab", plants, new Vector3(q.x, H(q.x, q.y) - .03f, q.y), Quaternion.Euler(0f, R() * 360f, 0f), Mathf.Lerp(.75f, 1.1f, R()));
         }
-        report.AppendLine($"cave: mouth at {CaveMouth}, floor {caveFloor:0.00}, {CaveDepth} m deep; hill of {crown} walls round it");
+
+        // The pool's water.
+        var shore = new Vector2[48];
+        for (int i = 0; i < shore.Length; i++)
+        {
+            float a = i * Mathf.PI * 2f / shore.Length;
+            float r = SpringRadius * (1f + (Mathf.PerlinNoise(Mathf.Cos(a) * 1.5f + 3f, Mathf.Sin(a) * 1.5f + 7f) - .5f) * .18f);
+            shore[i] = SpringPool + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * r;
+        }
+        Vector2 min = SpringPool - Vector2.one * SpringRadius * 1.2f, max = SpringPool + Vector2.one * SpringRadius * 1.2f;
+        var pool = new GameObject("Spring Pool");
+        pool.transform.SetParent(root, false);
+        pool.transform.position = new Vector3(SpringPool.x, springLevel, SpringPool.y);
+        var surface = new GameObject("Water Surface");
+        surface.transform.SetParent(pool.transform, false);
+        Mesh mesh = FarmReferenceTools.FarmPondV1.WaterMesh(shore, min, max, pool.transform.position);
+        mesh.name = "SM_WaterfallSpringPool";
+        string path = Folder + "/SM_WaterfallSpringPool.asset";
+        AssetDatabase.DeleteAsset(path);
+        AssetDatabase.CreateAsset(mesh, path);
+        surface.AddComponent<MeshFilter>().sharedMesh = mesh;
+        var r0 = surface.AddComponent<MeshRenderer>();
+        r0.sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(FarmReferenceTools.FarmPondV1.Folder + "/PondWater.mat");
+        r0.shadowCastingMode = ShadowCastingMode.Off;
+        r0.lightProbeUsage = LightProbeUsage.Off;
+        r0.reflectionProbeUsage = ReflectionProbeUsage.BlendProbes;
+        pool.AddComponent<FarmPond>().Configure(terrain, shore, ShoreMargin, AssetDatabase.LoadAssetAtPath<Material>(FarmReferenceTools.FarmPondV1.Folder + "/PondDroplet.mat"), new GameObject[0]);
+
+        // The cascade out of the cleft: water welling up at the cleft's far end, running out along its sill and falling into
+        // the pool.
+        var fall = new List<(Vector3 at, float width, float speed, float white)>();
+        Vector3 start = new Vector3(back - .1f, spoutY, SpringPool.y);   // the sill's front edge
+        float inside = (CleftDepth - .1f) / 1.2f;                          // seconds along the sill at 1.2 m/s
+        for (float t = -inside; ; t += .04f)
+        {
+            Vector3 p = t < 0f ? start + new Vector3(-t * 1.2f, 0f, 0f) : start + new Vector3(-.9f * t, -4.9f * t * t, 0f);
+            bool last = p.y <= springLevel + .02f;
+            if (last) p.y = springLevel + .02f;
+            float speed = t < 0f ? 1.2f : Mathf.Sqrt(.81f + 96f * t * t);
+            fall.Add((p, t < 0f ? .5f : Mathf.Lerp(.5f, .72f, Mathf.Clamp01(t / .5f)), speed, t > -.12f && t < .1f ? .4f : 0f));
+            if (last) break;
+        }
+        Ribbon(waterRoot, "Spring Cascade", fall, spout);
+        FoamRing(waterRoot, fall[fall.Count - 1].at + new Vector3(-.1f, .012f, 0f), .95f, foam);
+        report.AppendLine($"spring: pool at {SpringPool} (radius {SpringRadius}, water {springLevel:0.00}), fed from a cleft {spoutY - springLevel:0.0} m above it, {CleftDepth} m deep; {ring} rocks round it, {walls} rock walls on the knoll");
     }
 
     // ---------------------------------------------------------------- rocks and plants
 
-    private static Material WetRockMaterial()
+    private static Dictionary<string, List<GameObject>> kit;
+    private const string WallFolder = "Assets/BluBlu Games/Low Poly Forest Mini Pack/Prefabs/";
+    private static GameObject RockWall(int n) => AssetDatabase.LoadAssetAtPath<GameObject>(WallFolder + "SM_RockWall_0" + n + ".prefab");
+
+    // The rock walls in the darker, mossier stone of the waterfall (M_RocksCover_Wet), to sit with the painted rocks.
+    private static void Mossy(GameObject go)
     {
-        string path = Folder + "/M_RocksCover_Wet.mat";
-        var m = AssetDatabase.LoadAssetAtPath<Material>(path);
-        if (m == null)
-        {
-            m = new Material(AssetDatabase.LoadAssetAtPath<Material>(WallMaterials + "M_RocksCover_A.mat"));
-            AssetDatabase.CreateAsset(m, path);
-        }
-        // Darker, damp stone and thicker moss: the rocks the water runs over.
-        m.SetColor("_BaseColor", new Color(.45f, .45f, .42f));
-        m.SetColor("_ColorTint", new Color(.58f, .57f, .54f));
-        m.SetFloat("_CoverStr", 7f);
-        m.SetColor("_CoverTint", new Color(.22f, .38f, .17f));
-        EditorUtility.SetDirty(m);
-        return m;
+        var wet = AssetDatabase.LoadAssetAtPath<Material>(Folder + "/M_RocksCover_Wet.mat");
+        if (wet == null) return;
+        foreach (Renderer r in go.GetComponentsInChildren<Renderer>())
+            r.sharedMaterials = r.sharedMaterials.Select(m => m != null && m.name.StartsWith("M_RocksCover") ? wet : m).ToArray();
+    }
+    private static readonly string[] PebbleRocks =
+    {
+        "Assets/PolyOne/Rocks Stylized/Prefabs/SM_Rocks_01.prefab", "Assets/PolyOne/Rocks Stylized/Prefabs/SM_Rocks_02.prefab",
+        "Assets/PolyOne/Rocks Stylized/Prefabs/SM_Rocks_06.prefab", "Assets/PolyOne/Rocks Stylized/Prefabs/SM_Rocks_07.prefab",
+        "Assets/PolyOne/Rocks Stylized/Prefabs/SM_Rocks_10.prefab",
+    };
+
+    // A rock of the kit by name ("Big_3"), or the kind's first.
+    private static GameObject Kit(string kind, string name) =>
+        kit[kind].FirstOrDefault(p => p.name.EndsWith(name, System.StringComparison.OrdinalIgnoreCase)) ?? kit[kind][0];
+
+    private static GameObject Pick(string kind, System.Random rng) => kit[kind][rng.Next(kit[kind].Count)];
+
+    // A kit rock standing on `foot` (its pivot is its bottom middle), turned and a little tilted.
+    private static GameObject Rock(GameObject prefab, Transform parent, Vector3 foot, float yaw, float scale, float tilt = 4f)
+    {
+        var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
+        float t1 = Mathf.Sin(yaw * 1.7f) * tilt, t2 = Mathf.Cos(yaw * 2.3f) * tilt;
+        go.transform.SetPositionAndRotation(foot, Quaternion.Euler(t1, yaw, t2));
+        go.transform.localScale = Vector3.one * scale;
+        return go;
+    }
+
+    // Down into the ground by this share of its height, so it sits in the hillside rather than on it.
+    private static void Sink(GameObject go, float share)
+    {
+        Bounds b = BoundsOf(go);
+        go.transform.position += Vector3.down * b.size.y * share;
     }
 
     private static GameObject Place(string path, Transform parent, Vector3 at, Quaternion rot, float size)
     {
-        // Nothing small on the shelf's edge, where the water goes over.
-        if (!path.Contains("RockWall") && !path.Contains("Rock_") && at.x > WallFrontX - 1.2f && at.x < LipX + 1.5f && Mathf.Abs(at.z - Z0) < ShelfHalfWidth + 1f) return null;
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
         if (prefab == null) return null;
         var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
@@ -660,86 +804,99 @@ public static class MapWaterfall
         go.transform.position += new Vector3(front - b.min.x, top - b.max.y, z - b.center.z);
     }
 
-    private static void Wet(GameObject go, Material wet)
-    {
-        foreach (Renderer r in go.GetComponentsInChildren<Renderer>())
-        {
-            var mats = r.sharedMaterials;
-            for (int i = 0; i < mats.Length; i++) if (mats[i] != null && mats[i].name.StartsWith("M_RocksCover")) mats[i] = wet;
-            r.sharedMaterials = mats;
-        }
-    }
-
-    // The face under the shelf and the walls either side of the fall: wet, mossy rock walls, the one in front of the
-    // shelf's face level with it (the water falls from its front edge), the ones beside it standing higher and further
-    // forward so the fall sits in a notch.
-    private static void FrameTheFall(Transform parent, System.Func<float, float, float> H, Material wet, System.Random rng, StringBuilder report)
-    {
-        Quaternion facing = Quaternion.Euler(0f, 270f, 0f);
-        GameObject back = Place(WallFolder + "SM_RockWall_01.prefab", parent, new Vector3(LipX, ShelfY, Z0), facing, .44f);
-        Fit(back, WallFrontX, ShelfY, Z0);
-        Wet(back, wet);
-        var sides = new[] { (z: Z0 - 4.4f, size: .55f, top: ShelfY + 1.9f, front: WallFrontX - .6f, turn: 18f), (z: Z0 + 4.6f, size: .6f, top: ShelfY + 2.4f, front: WallFrontX - .8f, turn: -14f) };
-        foreach (var s in sides)
-        {
-            GameObject wall = Place(WallFolder + "SM_RockWall_0" + (rng.Next(2) + 1) + ".prefab", parent, new Vector3(LipX, ShelfY, s.z), Quaternion.Euler(0f, 270f + s.turn, 0f), s.size);
-            Fit(wall, s.front, s.top, s.z);
-            Wet(wall, wet);
-        }
-        // Close either side of the water, covering the rest of the face down to the pool.
-        foreach (float side in new[] { -1f, 1f })
-        {
-            float z = Z0 + side * 2.5f;
-            GameObject wall = Place(WallFolder + "SM_RockWall_0" + (rng.Next(2) + 1) + ".prefab", parent, new Vector3(LipX, ShelfY, z), Quaternion.Euler(0f, 270f + side * 12f, 0f), .42f);
-            Fit(wall, WallFrontX - .25f, ShelfY + .45f, z);
-            Wet(wall, wet);
-        }
-        // Boulders at the foot of the face either side of where the water lands.
-        foreach (var (dz, size) in new[] { (-1.9f, .75f), (-3.1f, .6f), (2f, .8f), (3.2f, .55f) })
-        {
-            float x = WallFrontX - .6f, z = Z0 + dz;
-            var boulder = Place(GenericFolder + Boulders[rng.Next(Boulders.Length)] + ".prefab", parent, new Vector3(x, H(x, z) - .15f, z),
-                                Quaternion.Euler(0f, (float)rng.NextDouble() * 360f, 0f), size);
-            if (boulder != null) Wet(boulder, wet);
-        }
-        // Behind them, up the shelf's sides, a second, higher tier, so the notch reads as a gorge in the hillside.
-        foreach (float side in new[] { -1f, 1f })
-        {
-            float z = Z0 + side * 6.8f, x = LipX + 2.5f;
-            GameObject wall = Place(WallFolder + "SM_RockWall_0" + (rng.Next(2) + 1) + ".prefab", parent, new Vector3(x, H(x, z), z), Quaternion.Euler(0f, 270f - side * 25f, 0f), .62f);
-            Fit(wall, x - 2.5f, H(x, z) + 3.6f, z);
-        }
-        report.AppendLine("rock frame round the fall: 1 wall behind the water, 2 beside it, 2 above");
-    }
-
-    // Boulders round the pool (not on the side facing the farm, nor where the water lands) and along the stream, a
-    // spring among boulders at the top, ferns and flowers between.
-    private static void RocksAlongTheWater(Transform rocks, Transform plants, Vector2[] shore, List<Vector3> stream, System.Func<float, float, float> H,
-                                          Material wet, System.Random rng)
+    // The fall's rock: two layered ledges stacked from the pool up to the shelf, the upper one's flat top the shelf the
+    // stream runs across and its front the edge the water falls from, in a notch between two tall cliff blocks standing
+    // in the pool's back; more ledges and boulders either side down to the water, and a second, higher tier of ledges up
+    // the shelf's sides so the notch reads as a gorge in the hillside. No earth shows behind the water.
+    private static void FrameTheFall(Transform parent, System.Func<float, float, float> H, float level, System.Random rng, StringBuilder report)
     {
         float R() => (float)rng.NextDouble();
-        Quaternion Turn() => Quaternion.Euler((R() - .5f) * 14f, R() * 360f, (R() - .5f) * 14f);
+        float foot = level - .35f;
+        var lower = Rock(Kit("Mid", "Mid_3"), parent, new Vector3(LipX, foot, Z0), 90f, 1.2f, 0f);
+        Fit(lower, WallFrontX + .15f, ShelfY - .9f, Z0);
+        var upper = Rock(Kit("Mid", "Mid_2"), parent, new Vector3(LipX, ShelfY, Z0), 90f, 1.15f, 0f);
+        Fit(upper, WallFrontX, ShelfY, Z0);
+        var sides = new[] { (z: -3.4f, name: "BIG_1", yaw: 20f, top: 2.3f), (z: 3.5f, name: "Big_3", yaw: 200f, top: 1.8f) };
+        foreach (var s in sides)
+        {
+            GameObject prefab = Kit("Big", s.name);
+            var cliff = Rock(prefab, parent, new Vector3(LipX, foot, Z0 + s.z), s.yaw, 1f, 0f);
+            float height = BoundsOf(cliff).size.y;
+            cliff.transform.localScale = Vector3.one * ((ShelfY + s.top - foot) / height);
+            Fit(cliff, WallFrontX - .55f, ShelfY + s.top, Z0 + s.z);
+        }
+        // Above the cliff blocks either side, set back: a mossy rock wall each, the hill's rock showing over the fall.
+        foreach (float side in new[] { -1f, 1f })
+        {
+            float z = Z0 + side * 4.6f;
+            var wall = Rock(RockWall(side < 0 ? 2 : 1), parent, new Vector3(LipX, ShelfY, z), 270f + side * 12f, .36f, 0f);
+            Mossy(wall);
+            Fit(wall, WallFrontX + .6f, ShelfY + 2.9f, z);
+        }
+        // Down to the water either side: a ledge each, then boulders at the foot.
+        foreach (var (dz, name, yaw) in new[] { (-5.6f, "Mid_5", 40f), (5.7f, "Mid_1", 230f) })
+        {
+            float x = WallFrontX - .2f, z = Z0 + dz;
+            var ledge = Rock(Kit("Mid", name), parent, new Vector3(x, Mathf.Min(H(x, z), level + .2f), z), yaw, .75f);
+            Sink(ledge, .15f);
+        }
+        foreach (var (dz, scale) in new[] { (-1.9f, .5f), (-2.7f, .62f), (2f, .55f), (2.9f, .66f), (-4.3f, .45f), (4.4f, .5f) })
+        {
+            float x = WallFrontX - Mathf.Lerp(.6f, 1.2f, R()), z = Z0 + dz;
+            var boulder = Rock(Pick("Small", rng), parent, new Vector3(x, H(x, z), z), R() * 360f, scale);
+            Sink(boulder, .25f);
+        }
+        // The knoll's face either side of the fall, from the water up to its top: a wall of layered ledges.
+        string[] faces = { "Mid_1", "Mid_3", "Mid_5", "Mid_2" };
+        int f = 0;
+        foreach (float dz in new[] { -2.4f, -4.1f, -5.9f, 2.4f, 4.1f, 5.9f })
+        {
+            float x = WallFrontX + .4f, z = Z0 + dz;
+            float baseY = Mathf.Max(level - .3f, H(x - .6f, z) - .4f), topY = H(x + 2.2f, z) + .5f;
+            if (topY - baseY < .8f) continue;
+            var face = Rock(Kit("Mid", faces[f++ % faces.Length]), parent, new Vector3(x, baseY, z), 90f + (R() - .5f) * 30f, 1f);
+            face.transform.localScale = Vector3.one * Mathf.Clamp((topY - baseY) / BoundsOf(face).size.y, .5f, 1.4f);
+            Fit(face, WallFrontX - .2f + R() * .4f, topY, z);
+        }
+        foreach (float side in new[] { -1f, 1f })
+        {
+            float z = Z0 + side * 7.4f, x = LipX + 2.2f;
+            var tier = Rock(Kit("Mid", side < 0 ? "Mid_3" : "Mid_1"), parent, new Vector3(x, H(x, z), z), 90f + side * 30f, .95f);
+            Sink(tier, .2f);
+        }
+        report.AppendLine("rock frame round the fall: two ledges under the water, 2 cliff blocks beside it from the pool up, ledges and boulders down to the water");
+    }
+
+    // Boulders round the pool (not on the side facing the farm, nor where the water lands) and along the stream, with
+    // pebbles and ferns and flowers between.
+    private static void RocksAlongTheWater(Transform rocks, Transform plants, Vector2[] shore, List<Vector3> stream, System.Func<float, float, float> H,
+                                          System.Random rng)
+    {
+        float R() => (float)rng.NextDouble();
         for (int i = 0; i < shore.Length; i += 5)
         {
             Vector2 p = shore[i];
             Vector2 out_ = (p - PoolCentre).normalized;
             if (out_.x < -.55f || (out_.x > .6f && Mathf.Abs(p.y - Z0) < 1.6f)) continue;   // open toward the farm; the fall
-            if (R() < .25f) continue;
-            Vector2 q = p + out_ * Mathf.Lerp(.15f, .6f, R());
-            var go = Place(GenericFolder + Boulders[rng.Next(Boulders.Length)] + ".prefab", rocks, new Vector3(q.x, H(q.x, q.y) - .15f, q.y), Turn(), Mathf.Lerp(.35f, .8f, R()));
-            if (go != null && R() < .6f) Wet(go, wet);
+            if (R() < .3f) continue;
+            Vector2 q = p + out_ * Mathf.Lerp(.25f, .7f, R());
+            var go = Rock(Pick("Small", rng), rocks, new Vector3(q.x, H(q.x, q.y), q.y), R() * 360f, Mathf.Lerp(.25f, .5f, R()));
+            Sink(go, .2f);
+            if (R() < .6f) Place(PebbleRocks[rng.Next(PebbleRocks.Length)], rocks, new Vector3(q.x + (R() - .5f), H(q.x, q.y) - .03f, q.y + (R() - .5f)), Quaternion.Euler(0f, R() * 360f, 0f), Mathf.Lerp(.8f, 1.4f, R()));
         }
         for (int i = 2; i < stream.Count - 3; i += 2)
         {
             Vector3 a = stream[i], b = stream[i + 1];
-            if (a.x > CaveMouth.x - 3.5f) continue;   // the cave's mouth stays open
+            if (a.x < LipX + 1f || a.x > SpringPool.x - SpringRadius - 1f) continue;   // the shelf and the spring's pool stay open
             Vector2 dir = new Vector2(b.x - a.x, b.z - a.z).normalized, side = new Vector2(-dir.y, dir.x) * (R() < .5f ? -1f : 1f);
-            if (R() < .3f) continue;
-            Vector2 q = new Vector2(a.x, a.z) + side * Mathf.Lerp(.95f, 1.5f, R());
-            Place(GenericFolder + Boulders[rng.Next(Boulders.Length)] + ".prefab", rocks, new Vector3(q.x, H(q.x, q.y) - .12f, q.y), Turn(), Mathf.Lerp(.3f, .65f, R()));
+            if (R() < .25f) continue;
+            Vector2 q = new Vector2(a.x, a.z) + side * Mathf.Lerp(1f, 1.5f, R());
+            var go = Rock(Pick("Small", rng), rocks, new Vector3(q.x, H(q.x, q.y), q.y), R() * 360f, Mathf.Lerp(.22f, .38f, R()));
+            Sink(go, .25f);
             if (R() < .55f)
             {
                 Vector2 f = new Vector2(a.x, a.z) - side * Mathf.Lerp(1.1f, 1.8f, R());
+                if (DistanceToPath(stream, f) < 1.1f) continue;
                 Place(GenericFolder + Plants[rng.Next(Plants.Length)] + ".prefab", plants, new Vector3(f.x, H(f.x, f.y) - .03f, f.y), Quaternion.Euler(0f, R() * 360f, 0f), Mathf.Lerp(.7f, 1.1f, R()));
             }
         }
@@ -749,43 +906,41 @@ public static class MapWaterfall
             Vector2 p = shore[i], out_ = (p - PoolCentre).normalized;
             if (out_.x < -.3f || R() < .35f) continue;
             Vector2 q = p + out_ * Mathf.Lerp(.9f, 1.8f, R());
+            if (DistanceToPath(stream, q) < 1.3f || (q.x > WallFrontX - 1.5f && Mathf.Abs(q.y - Z0) < 1.6f)) continue;   // not in the water
             Place(GenericFolder + Plants[rng.Next(Plants.Length)] + ".prefab", plants, new Vector3(q.x, H(q.x, q.y) - .03f, q.y), Quaternion.Euler(0f, R() * 360f, 0f), Mathf.Lerp(.7f, 1.15f, R()));
         }
     }
 
-    // The rest of the slope: instead of straight rows of walls, clusters of one big and one or two smaller walls,
-    // turned and tilted every way and set at different heights, boulders at their feet and ferns between.
+    // The rest of the slope: outcrops of one cliff block or layered ledge with a boulder or two at its foot, turned every
+    // way and set at different heights up the hill, sunk into it; pebbles and ferns between.
     private static void SlopeRocks(Transform rocks, Transform plants, System.Func<float, float, float> H, System.Random rng, StringBuilder report)
     {
         float R() => (float)rng.NextDouble();
-        Material bare = AssetDatabase.LoadAssetAtPath<Material>(WallMaterials + "M_RocksCover_B.mat");
-        int clusters = 0, walls = 0;
-        for (float z = SlopeMinZ; z <= SlopeMaxZ; z += Mathf.Lerp(4.5f, 6.5f, R()))
+        int clusters = 0, pieces = 0;
+        for (float z = SlopeMinZ; z <= SlopeMaxZ; z += Mathf.Lerp(3.8f, 5.5f, R()))
         {
             if (Mathf.Abs(z - Z0) < WaterfallZone) continue;
-            int perRow = R() < .4f ? 3 : 4;
+            int perRow = R() < .5f ? 3 : 4;
             for (int k = 0; k < perRow; k++)
             {
-                float rise = Mathf.Lerp(1.5f, 11f, (k + R()) / perRow), cz = z + (R() - .5f) * 4f;
+                float rise = Mathf.Lerp(1f, 12f, (k + R()) / perRow), cz = z + (R() - .5f) * 4f;
                 float x = FenceX + 4f;
                 while (x < FenceX + 60f && H(x, cz) - H(FenceX, cz) < rise) x += .5f;
-                int pieces = R() < .45f ? 1 : R() < .7f ? 2 : 3;
-                for (int p = 0; p < pieces; p++)
+                var main = Rock(R() < .55f ? Pick("Big", rng) : Pick("Mid", rng), rocks, new Vector3(x, H(x, cz), cz), R() * 360f, Mathf.Lerp(.5f, .85f, R()), 6f);
+                Sink(main, Mathf.Lerp(.15f, .3f, R()));
+                pieces++;
+                for (int b = 0; b < 1 + rng.Next(2); b++)
                 {
-                    float size = p == 0 ? Mathf.Lerp(.5f, .85f, R()) : Mathf.Lerp(.3f, .55f, R());
-                    Vector2 at = new Vector2(x + (p == 0 ? 0f : (R() - .3f) * 4f), cz + (p == 0 ? 0f : (R() - .5f) * 6f));
-                    var rot = Quaternion.Euler((R() - .5f) * 12f, 270f + (R() - .5f) * 80f, (R() - .5f) * 10f);
-                    var go = Place(WallFolder + "SM_RockWall_0" + (rng.Next(2) + 1) + ".prefab", rocks, new Vector3(at.x, H(at.x, at.y) - 9.6f * size * Mathf.Lerp(.2f, .4f, R()), at.y), rot, size);
-                    if (go == null) continue;
-                    walls++;
-                    if (R() < .35f && bare != null)
-                        foreach (Renderer r in go.GetComponentsInChildren<Renderer>()) r.sharedMaterials = r.sharedMaterials.Select(m => m != null && m.name.StartsWith("M_RocksCover") ? bare : m).ToArray();
+                    float a = R() * Mathf.PI * 2f, d = Mathf.Lerp(1.6f, 2.8f, R());
+                    Vector2 q = new Vector2(x + Mathf.Cos(a) * d, cz + Mathf.Sin(a) * d);
+                    var small = Rock(Pick("Small", rng), rocks, new Vector3(q.x, H(q.x, q.y), q.y), R() * 360f, Mathf.Lerp(.25f, .5f, R()), 8f);
+                    Sink(small, .2f);
+                    pieces++;
                 }
-                for (int b = 0; b < 2 + rng.Next(3); b++)
+                for (int p = 0; p < 2 + rng.Next(3); p++)
                 {
-                    Vector2 q = new Vector2(x - Mathf.Lerp(2f, 4.5f, R()), cz + (R() - .5f) * 7f);
-                    Place(GenericFolder + Boulders[rng.Next(Boulders.Length)] + ".prefab", rocks, new Vector3(q.x, H(q.x, q.y) - .12f, q.y),
-                          Quaternion.Euler((R() - .5f) * 14f, R() * 360f, (R() - .5f) * 14f), Mathf.Lerp(.3f, .9f, R()));
+                    Vector2 q = new Vector2(x - Mathf.Lerp(1.5f, 4f, R()), cz + (R() - .5f) * 5f);
+                    Place(PebbleRocks[rng.Next(PebbleRocks.Length)], rocks, new Vector3(q.x, H(q.x, q.y) - .03f, q.y), Quaternion.Euler(0f, R() * 360f, 0f), Mathf.Lerp(.8f, 1.5f, R()));
                 }
                 for (int f = 0; f < 1 + rng.Next(3); f++)
                 {
@@ -795,7 +950,7 @@ public static class MapWaterfall
                 clusters++;
             }
         }
-        report.AppendLine($"slope rocks: {clusters} clusters, {walls} walls");
+        report.AppendLine($"slope rocks: {clusters} outcrops, {pieces} rocks");
     }
 
     // ---------------------------------------------------------------- water
@@ -860,8 +1015,9 @@ public static class MapWaterfall
             Vector3 a = stream[i], b = stream[i + 1];
             Vector2 dir = new Vector2(b.x - a.x, b.z - a.z).normalized, across = new Vector2(-dir.y, dir.x);
             Vector2 q = new Vector2(a.x, a.z) + across * ((float)rng.NextDouble() - .5f) * .8f;
-            Place(GenericFolder + Boulders[rng.Next(Boulders.Length)] + ".prefab", parent, new Vector3(q.x, surface(q.x, q.y) - .12f, q.y),
-                  Quaternion.Euler(0f, (float)rng.NextDouble() * 360f, 0f), Mathf.Lerp(.12f, .22f, (float)rng.NextDouble()));
+            if (a.x > LipX - .5f) continue;   // nothing on the shelf the water goes over
+            Place(PebbleRocks[rng.Next(PebbleRocks.Length)], parent, new Vector3(q.x, surface(q.x, q.y) - .06f, q.y),
+                  Quaternion.Euler(0f, (float)rng.NextDouble() * 360f, 0f), Mathf.Lerp(.7f, 1.2f, (float)rng.NextDouble()));
         }
     }
 
@@ -1139,7 +1295,7 @@ public static class MapWaterfall
     private static void Look(StringBuilder report)
     {
         Terrain mainTerrain = Terrain.activeTerrains.OrderByDescending(t => t.terrainData.size.x * t.terrainData.size.z).First();
-        caveFloor = mainTerrain.SampleHeight(new Vector3(CaveMouth.x, 0f, CaveMouth.y)) + mainTerrain.transform.position.y;
+        springLevel = ShelfY + (SpringPool.x - LipX) * .04f + .06f;
         var b = new Bounds(new Vector3(155f, -6f, 20f), new Vector3(26f, 12f, 48f));
         Terrain main = Terrain.activeTerrains.OrderByDescending(t => t.terrainData.size.x * t.terrainData.size.z).First();
         float H(float x, float z) => main.SampleHeight(new Vector3(x, 0f, z)) + main.transform.position.y;
@@ -1167,10 +1323,13 @@ public static class MapWaterfall
         Vector3 landingAt = new Vector3(WallFrontX - 1.7f, H(PoolCentre.x, Z0), Z0);
         Vector3 near = new Vector3(PoolCentre.x - 5f, 0f, Z0 - 3.5f); near.y = H(near.x, near.z) + 1.2f;
         views.Add(("landing_close", near, landingAt + Vector3.up * .4f));
-        Vector3 cave = new Vector3(CaveMouth.x - 5.5f, 0f, CaveMouth.y - 1.2f); cave.y = H(cave.x, cave.z) + 1.1f;
-        views.Add(("cave", cave, new Vector3(CaveMouth.x + .8f, caveFloor + 1f, CaveMouth.y)));
-        Vector3 hill = new Vector3(CaveMouth.x - 22f, 0f, CaveMouth.y - 13f); hill.y = H(hill.x, hill.z) + 5f;
-        views.Add(("cave_hill", hill, new Vector3(HillCentre.x, caveFloor + 2f, HillCentre.y)));
+        views.Add(("fall_close", new Vector3(PoolCentre.x - 5f, H(PoolCentre.x - 5f, Z0) + 2.2f, Z0 - 1.5f), new Vector3(WallFrontX, ShelfY - 1.8f, Z0)));
+        Vector3 spring = new Vector3(SpringPool.x - 4.6f, springLevel + 2.2f, SpringPool.y - 2.6f);
+        views.Add(("spring", spring, new Vector3(SpringPool.x + .6f, springLevel + .6f, SpringPool.y)));
+        views.Add(("spring_run", new Vector3(SpringPool.x - 2.4f, springLevel + 1.1f, SpringPool.y - 3.2f), new Vector3(SpringPool.x - SpringRadius, springLevel, SpringPool.y)));
+        views.Add(("spring_cleft", new Vector3(SpringPool.x - 1.6f, springLevel + 1.6f, SpringPool.y - .9f), new Vector3(SpringPool.x + SpringRadius + .4f, springLevel + 1.2f, SpringPool.y)));
+        Vector3 hill = new Vector3(SpringPool.x - 16f, 0f, SpringPool.y + 13f); hill.y = H(hill.x, hill.z) + 6f;
+        views.Add(("spring_hill", hill, new Vector3(HillCentre.x, springLevel + 2f, HillCentre.y)));
         var sky = new GameViewCapture.SkyState();
         try
         {
@@ -1180,6 +1339,19 @@ public static class MapWaterfall
                 Texture2D tex = GameViewCapture.Shot(from, at);
                 File.WriteAllBytes(Path.Combine(Out, name + ".png"), tex.EncodeToPNG());
                 Object.DestroyImmediate(tex);
+            }
+            // The same few at a quarter past seven, when the low sun is behind the hill.
+            var clock = Object.FindFirstObjectByType<TimeOfDayVisualController>();
+            if (clock != null)
+            {
+                clock.Evaluate(.02f);
+                foreach (var (name, from, at) in views.Where(v => v.Item1 == "from_yard" || v.Item1 == "fall_front" || v.Item1 == "fall_low" || v.Item1 == "spring"))
+                {
+                    Texture2D tex = GameViewCapture.Shot(from, at);
+                    File.WriteAllBytes(Path.Combine(Out, name + "_morning.png"), tex.EncodeToPNG());
+                    Object.DestroyImmediate(tex);
+                }
+                clock.Evaluate(.35f);
             }
             Camera top = MapSurvey.TempCamera();
             try
@@ -1191,6 +1363,11 @@ public static class MapWaterfall
                 top.transform.SetPositionAndRotation(c + Vector3.up * 150f, Quaternion.Euler(90f, 0f, 0f));
                 Texture2D tex = MapSurvey.Render(top, 800, 800);
                 File.WriteAllBytes(Path.Combine(Out, "above.png"), tex.EncodeToPNG());
+                Object.DestroyImmediate(tex);
+                top.orthographicSize = 9f;
+                top.transform.position = new Vector3(LipX + 1f, 60f, Z0);
+                tex = MapSurvey.Render(top, 800, 800);
+                File.WriteAllBytes(Path.Combine(Out, "fall_top.png"), tex.EncodeToPNG());
                 Object.DestroyImmediate(tex);
             }
             finally { Object.DestroyImmediate(top.gameObject); }
