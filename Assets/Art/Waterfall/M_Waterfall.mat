@@ -29,14 +29,14 @@ Material:
     - _EdgeFoam: 0.55
     - _EdgeSoftness: 0.18
     - _EndFoam: 0.8
-    - _FadeIn: 0.07
+    - _FadeIn: 0
     - _FadeOut: 0
     - _FoamLength: 0.06
     - _Opacity: 0.7
     - _Rings: 0
     - _Sparkle: 1.4
     - _Speed: 2
-    - _StartFoam: 0
+    - _StartFoam: 0.7
     - _Streaks: 0.7
     m_Colors:
     - _DeepColor: {r: 0.19999996, g: 0.54999995, b: 0.6, a: 1}

@@ -132,22 +132,32 @@ public partial class SprintStaminaGauge : VisualElement
         Circle(p, c, outer - 1f, 2.5f, Rim);
         Circle(p, c, mid, RingWidth - 2f, Track);
 
-        if (fill > .001f)
+        // Full: closed rings, with no seam or separator at the top, so a full gauge reads as full.
+        bool full = fill >= .999f;
+        if (full)
+        {
+            Circle(p, c, mid, RingWidth - 2f, Green);
+            Circle(p, c, mid - RingWidth * .22f, 2.5f, GreenLight);
+        }
+        else if (fill > .001f)
         {
             float end = -90f + 360f * fill;
             Arc(p, c, mid, RingWidth - 2f, -90f, end, Green);
             Arc(p, c, mid - RingWidth * .22f, 2.5f, -90f, end, GreenLight);
         }
 
-        // Ink outlines and the small separator at twelve o'clock.
+        // Ink outlines and, while not full, the small separator at twelve o'clock where the stamina starts.
         Circle(p, c, outer - 2.5f, 2f, Ink);
         Circle(p, c, outer - RingWidth - 1.5f, 3f, Ink);
-        p.strokeColor = Ink;
-        p.lineWidth = 2.5f;
-        p.BeginPath();
-        p.MoveTo(new Vector2(c.x, c.y - outer + 2f));
-        p.LineTo(new Vector2(c.x, c.y - outer + RingWidth + 1f));
-        p.Stroke();
+        if (!full)
+        {
+            p.strokeColor = Ink;
+            p.lineWidth = 2.5f;
+            p.BeginPath();
+            p.MoveTo(new Vector2(c.x, c.y - outer + 2f));
+            p.LineTo(new Vector2(c.x, c.y - outer + RingWidth + 1f));
+            p.Stroke();
+        }
 
         if (sparkle > .01f)
         {
@@ -167,8 +177,16 @@ public partial class SprintStaminaGauge : VisualElement
         }
     }
 
-    private static void Circle(Painter2D p, Vector2 c, float radius, float width, Color color) =>
-        Arc(p, c, radius, width, 0f, 360f, color);
+    // A closed ring (joined all round, so no seam where it starts and ends).
+    private static void Circle(Painter2D p, Vector2 c, float radius, float width, Color color)
+    {
+        p.strokeColor = color;
+        p.lineWidth = width;
+        p.BeginPath();
+        p.Arc(c, radius, Angle.Degrees(0f), Angle.Degrees(360f));
+        p.ClosePath();
+        p.Stroke();
+    }
 
     private static void Arc(Painter2D p, Vector2 c, float radius, float width, float from, float to, Color color)
     {
