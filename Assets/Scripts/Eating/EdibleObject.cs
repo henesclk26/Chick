@@ -71,6 +71,13 @@ public sealed class EdibleObject : MonoBehaviour
     public Func<bool> BiteHandler { get; set; }
 
     /// <summary>
+    /// Food eaten over several pecks: false while the coming peck will not finish it, so the beak reaches it where it
+    /// lies instead of drawing it to the beak (the fallen fruit keeps still under the first bite); the finishing peck
+    /// draws it as usual. Unset: always drawn.
+    /// </summary>
+    public Func<bool> DrawnToBeak { get; set; }
+
+    /// <summary>
     /// Food only the player may peck (e.g. walking ants): a helper chick picks its feeding spot once and cannot follow
     /// a moving target, so it leaves such food alone.
     /// </summary>

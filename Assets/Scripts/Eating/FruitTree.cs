@@ -9,6 +9,9 @@ using UnityEngine;
 /// Apples left on the ground too long get a caterpillar: it crawls out of the apple and eats it (AppleCaterpillar);
 /// an apple finished by a caterpillar is gone without counting as eaten by the player. One caterpillar per fallen
 /// fruit: if the chick eats it, no other comes out of that fruit.
+/// A fallen fruit takes two bites: the first leaves it smaller, with the mushrooms' little hop on the spot (it springs
+/// up taller and thinner, shrinks to its new size with a small overshoot and settles a touch flatter, never leaving
+/// the ground), and the second eats it.
 /// Added to the fruit tree models on import (FruitTreeSamples), so every placed tree gets it.
 /// </summary>
 [DisallowMultipleComponent]
@@ -32,6 +35,10 @@ public sealed class FruitTree : MonoBehaviour
     [Tooltip("A caterpillar comes out of fruit left on the ground this long (apples).")]
     [SerializeField] private bool caterpillars;
     [SerializeField, Min(1f)] private float caterpillarAfter = 75f;
+
+    private const int Bites = 2;
+    private const float BittenSize = .6f;    // of the fruit's size before the bite
+    private const float HopTime = .4f, HopStretch = .14f, HopSquash = .1f;
 
     public void Configure(string key, string displayName, bool withCaterpillars)
     {
@@ -58,6 +65,10 @@ public sealed class FruitTree : MonoBehaviour
         public bool solidPending;
         public AppleCaterpillar caterpillar;
         public bool hadCaterpillar;
+        // bites: how many taken; the hop runs while hopT < 1, from the scale and height it had when bitten
+        public int bites;
+        public float groundY, hopT = 1f, hopFrom, hopTo, hopLift;
+        public Vector3 hopAt;
     }
 
     private readonly List<Fruit> fruits = new List<Fruit>();
@@ -96,12 +107,15 @@ public sealed class FruitTree : MonoBehaviour
             edible.ConfigureRuntime(treeId + "-" + mesh.name, EdibleCategory.Other, foodKey, foodName, bite, mesh, 1.35f, .08f);
             edible.enabled = false;
 
-            fruits.Add(new Fruit
+            var fruit = new Fruit
             {
                 pickup = pickup.transform, mesh = mesh, bite = bite, edible = edible, trigger = trigger, solid = solid,
                 radius = radius, hangLocal = pickup.transform.localPosition, meshLocal = mesh.localPosition,
                 meshRotation = mesh.localRotation, meshScale = mesh.localScale
-            });
+            };
+            edible.BiteHandler = () => Bite(fruit);
+            edible.DrawnToBeak = () => fruit.bites + 1 >= Bites;   // still under the first bite, to the beak on the last
+            fruits.Add(fruit);
         }
         nextDrop = Random.Range(firstDrop.x, firstDrop.y);
         if (caterpillars) caterpillarPrefab = Resources.Load<GameObject>(CaterpillarResource);
@@ -159,6 +173,7 @@ public sealed class FruitTree : MonoBehaviour
 
             case State.Grounded:
                 if (fruit.edible.IsConsumed) { GoneNow(fruit); break; }
+                if (fruit.hopT < 1f) Hop(fruit, dt);
                 if (fruit.solidPending && !OverlapsCharacter(fruit))
                 {
                     fruit.solidPending = false;
@@ -190,7 +205,9 @@ public sealed class FruitTree : MonoBehaviour
                 fruit.solidPending = false;
                 fruit.pickup.localPosition = fruit.hangLocal;
                 fruit.pickup.localRotation = Quaternion.identity;
-                fruit.pickup.localScale = Vector3.one;           // a caterpillar may have nibbled it small
+                fruit.pickup.localScale = Vector3.one;           // a caterpillar or a bite may have made it small
+                fruit.bites = 0;
+                fruit.hopT = 1f;
                 fruit.mesh.localPosition = fruit.meshLocal;
                 fruit.mesh.localRotation = fruit.meshRotation;
                 fruit.mesh.localScale = Vector3.zero;
@@ -225,12 +242,49 @@ public sealed class FruitTree : MonoBehaviour
         Vector3 trunk = transform.position;
         fruit.rollFrom = fruit.mesh.rotation;
         fruit.rollTo = Quaternion.Euler(Random.Range(-40f, 40f), Random.Range(0f, 360f), Random.Range(-40f, 40f)) * fruit.mesh.rotation;
-        Vector3 landing = LandingSpot(fruit, start, trunk, RestHeight(fruit, fruit.rollTo));
+        float rest = RestHeight(fruit, fruit.rollTo);
+        Vector3 landing = LandingSpot(fruit, start, trunk, rest);
         fruit.from = start;
         fruit.to = landing;
+        fruit.groundY = landing.y - rest;
         fruit.duration = Mathf.Clamp(Mathf.Sqrt(2f * Mathf.Max(.1f, start.y - landing.y) / 9.81f) / .8f, .45f, 1.6f);
         fruit.t = 0f;
         fruit.state = State.Falling;
+    }
+
+    // One peck on a fallen fruit. True when it finishes the fruit (the eater then eats it).
+    private bool Bite(Fruit fruit)
+    {
+        if (fruit.hopT < 1f) Pose(fruit, fruit.hopTo, 1f);
+        if (++fruit.bites >= Bites) return true;
+        fruit.hopAt = fruit.pickup.position;
+        fruit.hopFrom = fruit.pickup.localScale.y;    // a caterpillar may have nibbled it already
+        fruit.hopTo = fruit.hopFrom * BittenSize;
+        fruit.hopLift = (fruit.hopAt.y - fruit.groundY) / Mathf.Max(fruit.hopFrom, 1e-4f);
+        fruit.hopT = 0f;
+        return false;
+    }
+
+    // the mushrooms' hop on the spot: taller and thinner, then the new size with a little overshoot, a touch flatter, at rest
+    private static void Hop(Fruit fruit, float dt)
+    {
+        fruit.hopT = Mathf.Min(1f, fruit.hopT + dt / HopTime);
+        float t = fruit.hopT;
+        const float back = 1.6f;
+        float e = t - 1f;
+        float size = Mathf.LerpUnclamped(fruit.hopFrom, fruit.hopTo, 1f + e * e * ((back + 1f) * e + back));
+        float shape = 1f;
+        if (t < .35f) shape += HopStretch * Mathf.Sin(t / .35f * Mathf.PI);
+        else if (t < .85f) shape -= HopSquash * Mathf.Sin((t - .35f) / .5f * Mathf.PI);
+        Pose(fruit, t >= 1f ? fruit.hopTo : size, t >= 1f ? 1f : shape);
+    }
+
+    // the fruit at this scale, its bottom kept on the ground; shape > 1 taller and thinner, < 1 flatter and wider
+    private static void Pose(Fruit fruit, float size, float shape)
+    {
+        float wide = size * (1f + (1f - shape) * .5f), tall = size * shape;
+        fruit.pickup.localScale = new Vector3(wide, tall, wide);
+        fruit.pickup.position = new Vector3(fruit.hopAt.x, fruit.groundY + fruit.hopLift * tall, fruit.hopAt.z);
     }
 
     // Under the fruit, scattered a little; never into the pond or another low hollow (more than a step below the

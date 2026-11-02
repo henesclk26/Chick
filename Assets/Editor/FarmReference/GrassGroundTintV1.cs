@@ -21,7 +21,9 @@ namespace FarmReferenceTools
         const string MapPath = "Assets/Art/Grass/GroundTint.png";
         const string GrassMaterial = "Assets/Art/Grass/Chick_Grass_Green.mat";
         const string DryMaterial = "Assets/Art/Grass/Chick_Grass_Dry.mat";
-        const float DryAmount = 1f;
+        // The dry grass takes the ground's colour fully (the global strength is .85): what the strength leaves of its
+        // own golden colour made it lime-yellow on green ground. The green grass keeps a little of its own green.
+        const float DryAmount = 1.18f;
         const int Res = 1024;
         static readonly int[] Earth = { 4, 5, 6, 8, 13, 14, 15, 19 };   // the earth-type ground layers
 

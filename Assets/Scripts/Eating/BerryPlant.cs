@@ -7,6 +7,9 @@ using UnityEngine;
 /// be eaten there — or, on a plant whose pieces are eaten where they hang (the grape vine), that peck eats it.
 /// Added to the plant models on import (BerryPlantImporter), so every placed plant (model or prefab) gets it.
 /// Unripe berries ("*_Unripe_*") stay decoration.
+/// A bunch eaten where it hangs (the grape vine) takes three pecks: the first two leave it smaller where it hangs, big
+/// to medium to small, shrinking up towards its stem with the mushrooms' little hop on the spot (it springs longer
+/// and thinner, takes its new size with a small overshoot and settles a touch rounder); the third eats it.
 /// </summary>
 [DisallowMultipleComponent]
 public sealed class BerryPlant : MonoBehaviour
@@ -49,6 +52,9 @@ public sealed class BerryPlant : MonoBehaviour
 
     // When, in a plant peck's head bob, the beak reaches a piece eaten where it hangs.
     private const float EatOnPlantDelay = .14f;
+    // A piece eaten where it hangs: its size after each peck that does not finish it (the last peck eats it).
+    private static readonly float[] NibbledSizes = { 1f, .74f, .5f };
+    private const float HopTime = .4f, HopStretch = .14f, HopSquash = .1f;
 
     public string FoodKey => foodKey;
 
@@ -93,9 +99,14 @@ public sealed class BerryPlant : MonoBehaviour
         public bool lying;
         public Vector3 restFar, restToward;
         public float restSlope;
-        // Pecked where it hangs (eatOnPlant): eaten once the head bob reaches it.
+        // Pecked where it hangs (eatOnPlant): eaten (or nibbled smaller) once the head bob reaches it.
         public bool eating;
         public float eatAt;
+        // nibbles taken where it hangs; its stem's point and half its height at full size, which it shrinks towards;
+        // the hop runs while hopT < 1
+        public int nibbles;
+        public Vector3 stem;
+        public float hangHalf, hopT = 1f, hopFrom, hopTo;
     }
 
     private readonly List<Berry> berries = new List<Berry>();
@@ -181,7 +192,7 @@ public sealed class BerryPlant : MonoBehaviour
                 hangingSolid = mesh.GetComponent<SphereCollider>(), groundSolid = groundSolid, halfHeight = ground.y,
                 stub = stub != null ? stub.gameObject : null,
                 half = half != null && half.TryGetComponent(out MeshFilter halfFilter) ? halfFilter.sharedMesh : null,
-                bite = bite
+                bite = bite, stem = bounds.center + Vector3.up * bounds.extents.y, hangHalf = bounds.extents.y
             };
             if (piece.half != null)
             {
@@ -471,11 +482,23 @@ public sealed class BerryPlant : MonoBehaviour
             }
             if (berry.eating && Time.time >= berry.eatAt)
             {
-                // Eaten where it hangs: counted like any food eaten (statistics, growth, save).
                 berry.eating = false;
-                berry.edible.enabled = true;
-                if (!berry.edible.Consume()) berry.edible.enabled = false;
+                if (berry.nibbles < NibbledSizes.Length - 1)
+                {
+                    // not the last peck: smaller where it hangs, with a hop
+                    if (berry.hopT < 1f) PoseHanging(berry, berry.hopTo, 1f);
+                    berry.hopFrom = NibbledSizes[berry.nibbles];
+                    berry.hopTo = NibbledSizes[++berry.nibbles];
+                    berry.hopT = 0f;
+                }
+                else
+                {
+                    // Eaten where it hangs: counted like any food eaten (statistics, growth, save).
+                    berry.edible.enabled = true;
+                    if (!berry.edible.Consume()) berry.edible.enabled = false;
+                }
             }
+            if (berry.hopT < 1f) HopHanging(berry, dt);
             if (!berry.falling) continue;
             berry.t = Mathf.Min(1f, berry.t + dt / fallSeconds);
             float t = berry.t;
@@ -494,6 +517,30 @@ public sealed class BerryPlant : MonoBehaviour
             berry.solidPending = !layFlat;
             berry.edible.enabled = true;
         }
+    }
+
+    // the mushrooms' hop on the spot, hanging: longer and thinner, then the new size with a little overshoot, a touch
+    // rounder, at rest
+    private static void HopHanging(Berry berry, float dt)
+    {
+        berry.hopT = Mathf.Min(1f, berry.hopT + dt / HopTime);
+        float t = berry.hopT;
+        if (t >= 1f) { PoseHanging(berry, berry.hopTo, 1f); return; }
+        const float back = 1.6f;
+        float e = t - 1f;
+        float size = Mathf.LerpUnclamped(berry.hopFrom, berry.hopTo, 1f + e * e * ((back + 1f) * e + back));
+        float shape = 1f;
+        if (t < .35f) shape += HopStretch * Mathf.Sin(t / .35f * Mathf.PI);
+        else if (t < .85f) shape -= HopSquash * Mathf.Sin((t - .35f) / .5f * Mathf.PI);
+        PoseHanging(berry, size, shape);
+    }
+
+    // the piece at this share of its full size, its top kept at its stem; shape > 1 longer and thinner, < 1 rounder
+    private static void PoseHanging(Berry berry, float size, float shape)
+    {
+        float wide = size * (1f + (1f - shape) * .5f), tall = size * shape;
+        berry.pickup.localScale = new Vector3(wide, tall, wide);
+        berry.pickup.position = berry.stem - Vector3.up * berry.hangHalf * tall;
     }
 
     // Any chick, chicken or helper capsule inside where the ground box would be.

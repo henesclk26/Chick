@@ -368,7 +368,9 @@ public sealed class ChickEatingController : MonoBehaviour
             maxContactAssistDistance * target.InteractionAssistMultiplier);
         float blend = Mathf.SmoothStep(0f, 1f, progress);
         Vector3 visualStart = targetVisual.parent.TransformPoint(originalVisualLocalPosition);
-        targetVisual.position = visualStart + correction * blend;
+        // a peck that will not finish multi-bite food leaves it where it lies (the contact is still measured)
+        if (target.DrawnToBeak == null || target.DrawnToBeak()) targetVisual.position = visualStart + correction * blend;
+        else targetVisual.localPosition = originalVisualLocalPosition;
         // Never eat remotely if an unexpected pose change puts the beak outside contact reach.
         if (progress >= 1f)
             LastContactError = Vector3.Distance(originalBitePosition + correction, beakEatPoint.position);

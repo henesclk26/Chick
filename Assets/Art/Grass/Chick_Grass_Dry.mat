@@ -143,7 +143,7 @@ Material:
     - _ClearCoatSmoothness: 0
     - _Cull: 0
     - _Cutoff: 0.5
-    - _DetailAlbedoMapScale: 1
+    - _DetailAlbedoMapScale: 1.18
     - _DetailNormalMapScale: 1
     - _DirectionNoise: 1
     - _DirectionSpeed: 10
