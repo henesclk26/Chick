@@ -7,6 +7,8 @@ using System.Collections;
 public sealed class MainMenuGameplayGate : MonoBehaviour
 {
     [SerializeField] private GameTimeManager timeManager;
+    [Tooltip("Where Camera.main sits while the live scene is the menu backdrop.")]
+    [SerializeField] private Transform menuCameraPose;
     private bool released;
     public bool IsReleased => released;
     private void Awake()
@@ -18,8 +20,15 @@ public sealed class MainMenuGameplayGate : MonoBehaviour
         if (timeManager != null) timeManager.enabled = false;
         HideDayTransitionOverlay();
     }
+    private void Update()
+    {
+        if (!released && timeManager != null) timeManager.AdvanceMenuClock(Time.deltaTime);
+    }
     private IEnumerator Start()
     {
+        // In Start, after the orbit camera's Awake placed it; GameTimeManager.Start snaps it back to the bird on release.
+        if (menuCameraPose != null && Camera.main != null)
+            Camera.main.transform.SetPositionAndRotation(menuCameraPose.position, menuCameraPose.rotation);
         // UIDocument builds its visual tree after component Awake; retry once the tree exists.
         yield return null;
         if (!released) HideDayTransitionOverlay();

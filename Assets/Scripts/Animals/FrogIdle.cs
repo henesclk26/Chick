@@ -63,6 +63,9 @@ public sealed class FrogIdle : MonoBehaviour
 
     private void FindPads()
     {
+        // The lists are static: a scene reload (save and exit to the menu) leaves destroyed pads behind.
+        Pads.RemoveAll(c => c == null);
+        Taken.RemoveWhere(c => c == null);
         foreach (Collider c in Physics.OverlapSphere(transform.position, padReach * 3f, ~0, QueryTriggerInteraction.Ignore))
         {
             if (Pads.Contains(c) || !(c is MeshCollider)) continue;

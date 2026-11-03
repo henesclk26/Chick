@@ -63,6 +63,7 @@ public sealed class GameTimeManager : MonoBehaviour
             WatermelonSliceBites.RestoreAll(data.foodBites);
             EdibleMushroom.RestoreAll(data.foodBites);
         }
+        else CurrentMinutes = dayStartHour * 60; // Drop the menu backdrop's clock.
         Publish();
         yield return transition.InitialHold();
         yield return transition.Morning(CurrentDay, PrepareHudForReveal);
@@ -71,10 +72,16 @@ public sealed class GameTimeManager : MonoBehaviour
     private void Update()
     {
         if (IsTransitioning || IsPaused) return;
-        CurrentMinutes = Mathf.Min(DayEndMinutes, CurrentMinutes + Time.deltaTime *
-            (DayEndMinutes - dayStartHour * 60) / (Mathf.Max(0.01f, realMinutesPerGameDay) * 60));
+        CurrentMinutes = Mathf.Min(DayEndMinutes, CurrentMinutes + Time.deltaTime * MinutesPerSecond);
         Publish();
         if (CurrentMinutes >= DayEndMinutes) StartCoroutine(EndDay());
+    }
+    private float MinutesPerSecond => (DayEndMinutes - dayStartHour * 60) / (Mathf.Max(0.01f, realMinutesPerGameDay) * 60);
+    // Main menu backdrop: runs only the light from the day start while this component is disabled.
+    public void AdvanceMenuClock(float deltaTime)
+    {
+        CurrentMinutes = Mathf.Min(DayEndMinutes, CurrentMinutes + deltaTime * MinutesPerSecond);
+        RefreshVisuals();
     }
     private void Publish()
     {
