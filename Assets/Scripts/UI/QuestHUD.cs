@@ -88,7 +88,7 @@ public sealed class QuestHUD : MonoBehaviour
     private readonly HashSet<string> done = new HashSet<string>();
     private readonly Dictionary<string, Row> rows = new Dictionary<string, Row>();
     private VisualElement panel, list;
-    private MainMenuController menu;
+    private MainMenuGameplayGate gameplayGate;
     private VisualElement regionBanner;
     private Label regionName, regionHint;
     private IVisualElementScheduledItem hideBanner;
@@ -155,12 +155,11 @@ public sealed class QuestHUD : MonoBehaviour
         data.openRegions = FarmRegions.Capture();
     }
 
+    // Not the menu's visibility: the pause menu shares that UIDocument, so "Kaydet ve Çık" would look like the menu.
     private bool AtMenu()
     {
-        if (menu == null) menu = FindFirstObjectByType<MainMenuController>();
-        if (menu == null || !menu.isActiveAndEnabled) return false;
-        var root = menu.GetComponent<UIDocument>()?.rootVisualElement;
-        return root != null && root.style.display.value != DisplayStyle.None;
+        if (gameplayGate == null) gameplayGate = FindFirstObjectByType<MainMenuGameplayGate>();
+        return gameplayGate != null && !gameplayGate.IsReleased;
     }
 
     private void Restore(FarmSaveData data)
