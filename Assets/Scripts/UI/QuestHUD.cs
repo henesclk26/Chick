@@ -38,24 +38,26 @@ public sealed class QuestHUD : MonoBehaviour
         public string opens;     // a region (FarmRegions) this quest opens when done
     }
 
-    private const int StageSeeds = GrowthProgressController.StageSeeds;
+    // A growth stage's share of the bar: from the stage before it up to its own threshold.
+    private static int StageStart(int stage) => stage <= 1 ? 0 : GrowthProgressController.StageThresholds[stage - 2];
+    private static int StageWidth(int stage) => GrowthProgressController.StageThresholds[stage - 1] - StageStart(stage);
 
     private static readonly Quest[] Quests =
     {
         new Quest { id = "first-seed", title = "İlk tohumu ye", description = "Yerdeki tohumlardan birini gagala.", goal = Goal.EatSeeds, count = 1 },
-        new Quest { id = "seed-kinds", title = "Farklı tohumlar tat", description = "3 farklı tohum türü ye: buğday, mısır, ay çekirdeği...",
+        new Quest { id = "seed-kinds", title = "Farklı tohumlar tat", description = "3 farklı tohum türü ye: buğday, mısır, kızıl buğday...",
             goal = Goal.SeedKinds, count = 3, after = new[] { "first-seed" } },
         // the stages' rewards as GrowthProgressController.StageUpDetails gives them
         new Quest { id = "first-stage", title = "İlk büyüme aşaması", description = "Büyüme çubuğunun 1. bölmesini doldur.\nKazanç: Gagalama hızı 0.5x → 1x",
-            goal = Goal.GrowthStage, stage = 1, count = StageSeeds, after = new[] { "seed-kinds" } },
+            goal = Goal.GrowthStage, stage = 1, count = StageWidth(1), after = new[] { "seed-kinds" } },
         new Quest { id = "stage-2", title = "2. büyüme aşaması", description = "Büyüme çubuğunun 2. bölmesini doldur.\nKazanç: Koşma süresi 0.5x → 1x",
-            goal = Goal.GrowthStage, stage = 2, count = StageSeeds, after = new[] { "first-stage" } },
+            goal = Goal.GrowthStage, stage = 2, count = StageWidth(2), after = new[] { "first-stage" } },
         new Quest { id = "stage-3", title = "3. büyüme aşaması", description = "Büyüme çubuğunun 3. bölmesini doldur.\nKazanç: Yeme menzili 0.5x → 1x",
-            goal = Goal.GrowthStage, stage = 3, count = StageSeeds, after = new[] { "stage-2" } },
+            goal = Goal.GrowthStage, stage = 3, count = StageWidth(3), after = new[] { "stage-2" } },
         new Quest { id = "stage-4", title = "4. büyüme aşaması", description = "Büyüme çubuğunun 4. bölmesini doldur.\nKazanç: Yürüme hızı 0.75x → 1.5x",
-            goal = Goal.GrowthStage, stage = 4, count = StageSeeds, after = new[] { "stage-3" } },
+            goal = Goal.GrowthStage, stage = 4, count = StageWidth(4), after = new[] { "stage-3" } },
         new Quest { id = "become-chicken", title = "Kümesin Yeni Tavuğu", description = "Son bölmeyi doldur, kanatlarını aç ve tavuğa dönüş!",
-            goal = Goal.BecomeChicken, stage = 5, count = StageSeeds, after = new[] { "stage-4" }, opens = FarmRegions.Woods },
+            goal = Goal.BecomeChicken, stage = 5, count = StageWidth(5), after = new[] { "stage-4" }, opens = FarmRegions.Woods },
         new Quest { id = "first-ant", title = "Protein Bar", description = "İlk karıncanı ye. Yuvaların çevresine bak.",
             goal = Goal.EatFood, food = "ant", count = 1, after = new[] { "seed-kinds" } },
         new Quest { id = "mushrooms", title = "Mantarları Tanı", description = "Bir mantar ye. Ağaçların ve kayaların dibinde bulunur.",
@@ -227,7 +229,7 @@ public sealed class QuestHUD : MonoBehaviour
         if (growth == null) return;
         bool chicken = form != null && form.CurrentForm == PlayerGrowthController.Form.Chicken;
         // this stage's share of the bar
-        int progress = chicken ? q.count : Mathf.Clamp(growth.EatenSeedCount - (q.stage - 1)*StageSeeds, 0, q.count);
+        int progress = chicken ? q.count : Mathf.Clamp(growth.EatenSeedCount - StageStart(q.stage), 0, q.count);
         bool finished = q.goal == Goal.BecomeChicken ? chicken : progress >= q.count;
         if (progress == row.progress && !finished) return;
         row.progress = progress;

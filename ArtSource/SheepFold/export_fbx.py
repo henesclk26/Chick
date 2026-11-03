@@ -15,7 +15,7 @@ from mathutils import Matrix
 
 # The repository's Unity models folder, found relative to this script (ArtSource/SheepFold).
 MODELS = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "Assets", "Art", "SheepFold", "Models"))
-PROPS = ("FoldShelter", "FoldWaterTrough", "FoldHayRack", "HayBale", "HayBaleStack", "PastureGate_Posts", "EggBasket",
+PROPS = ("FoldShelter", "FoldWaterTrough", "FoldHayRack", "CoopHayFeeder", "HayBale", "HayBaleStack", "PastureGate_Posts", "EggBasket",
          "Wheelbarrow", "Rake", "FarmBucket", "StrawPatch", "PickupTruck")
 
 

@@ -17,6 +17,7 @@ public sealed class GameAudio : MonoBehaviour
     private PlayerGrowthController growth;
     private ChickEatingController eater;
     private float nextChickenCall;
+    private readonly System.Collections.Generic.List<IPanel> clickPanels = new System.Collections.Generic.List<IPanel>();
 
     private void Awake()
     {
@@ -34,12 +35,20 @@ public sealed class GameAudio : MonoBehaviour
     private void Start()
     {
         // One callback per UI panel catches every Button click, including documents enabled later on that panel.
-        var panels = new System.Collections.Generic.HashSet<IPanel>();
         foreach (var document in FindObjectsByType<UIDocument>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             var panel = document.rootVisualElement?.panel;
-            if (panel != null && panels.Add(panel)) panel.visualTree.RegisterCallback<ClickEvent>(OnClick, TrickleDown.TrickleDown);
+            if (panel == null || clickPanels.Contains(panel)) continue;
+            clickPanels.Add(panel);
+            panel.visualTree.RegisterCallback<ClickEvent>(OnClick, TrickleDown.TrickleDown);
         }
+    }
+
+    // Panels outlive this object (scene reloads keep them), so a click must not reach a destroyed sound source.
+    private void OnDestroy()
+    {
+        foreach (var panel in clickPanels) panel?.visualTree?.UnregisterCallback<ClickEvent>(OnClick, TrickleDown.TrickleDown);
+        clickPanels.Clear();
     }
 
     private void Update()

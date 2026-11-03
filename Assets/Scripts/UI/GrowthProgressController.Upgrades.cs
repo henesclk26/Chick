@@ -79,7 +79,9 @@ public sealed partial class GrowthProgressController
         ChangeUpgradeState(ActiveBarReady
             ? UpgradeState.WaitingForUpgrade : UpgradeState.Progressing);
         hud.EnableInClassList("egg-laying", presentedAsChicken);
-        bar.Segments = presentedAsChicken ? 1 : StageCount;
+        var dividers = new float[presentedAsChicken ? 0 : StageCount - 1];
+        for (int i = 0; i < dividers.Length; i++) dividers[i] = StageThresholds[i] / (float)SeedGoal;
+        bar.Dividers = dividers;
         fromProgress = DisplayProgress;
         bar.Progress = DisplayProgress;
         changeTime = Time.unscaledTime;

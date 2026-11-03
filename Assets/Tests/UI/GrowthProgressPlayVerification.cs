@@ -95,12 +95,12 @@ public sealed class GrowthProgressPlayVerification : MonoBehaviour
         }
         else
         {
-            // A previous 85/250 save must not leak into New Game's fresh snapshot.
-            var old = saves.SaveAsync(new FarmSaveData { eatenSeedCount = 85 });
+            // A previous 272/800 save must not leak into New Game's fresh snapshot.
+            var old = saves.SaveAsync(new FarmSaveData { eatenSeedCount = 272 });
             while (!old.IsCompleted) yield return null;
             if (old.IsFaulted) throw old.Exception;
             menu.RefreshSave();
-            Check(growth.EatenSeedCount == 85, "Existing save preview restores 85/250");
+            Check(growth.EatenSeedCount == 272, "Existing save preview restores 272/800");
             menu.ConfirmNew();
         }
         float deadline = Time.realtimeSinceStartup + 20f;
@@ -113,8 +113,8 @@ public sealed class GrowthProgressPlayVerification : MonoBehaviour
 
         if (ContinuePhase)
         {
-            Check(growth.EatenSeedCount == 85 && Mathf.Abs(bar.Progress - .34f) < .001f,
-                "Actual Continue restores 85/250 and 34 percent");
+            Check(growth.EatenSeedCount == 272 && Mathf.Abs(bar.Progress - .34f) < .001f,
+                "Actual Continue restores 272/800 and 34 percent");
             Check(seeds.All(x => x.GetComponent<EdibleObject>().IsConsumed && !x.activeSelf),
                 "Continue hides saved consumed seeds without counting them again");
             Check(completions == 0, "Loading does not fire the completion reward event");
@@ -126,7 +126,7 @@ public sealed class GrowthProgressPlayVerification : MonoBehaviour
         }
         else
         {
-            Check(growth.EatenSeedCount == 0 && bar.Progress == 0f, "New Game resets a prior 85/250 save to empty red 0/250");
+            Check(growth.EatenSeedCount == 0 && bar.Progress == 0f, "New Game resets a prior 272/800 save to empty red 0/800");
             ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
             ground.name = "GrowthHUDTestGround_TEMP";
             ground.transform.position = TestAreaLayout.Origin + new Vector3(20, -.05f, 20);
@@ -146,8 +146,8 @@ public sealed class GrowthProgressPlayVerification : MonoBehaviour
             Check(growth.EatenSeedCount == 0, "Click/eat start does not advance progress before impact");
             // Stage 0 pecks at half speed.
             yield return new WaitForSecondsRealtime(1.6f);
-            Check(seed.IsConsumed && growth.EatenSeedCount == 1 && Mathf.Abs(bar.Progress - .004f) < .0001f,
-                "Real beak impact consumes seed and advances to 1/250 (0.4 percent)");
+            Check(seed.IsConsumed && growth.EatenSeedCount == 1 && Mathf.Abs(bar.Progress - .00125f) < .0001f,
+                "Real beak impact consumes seed and advances to 1/800 (0.125 percent)");
             Check(!seed.Consume() && growth.EatenSeedCount == 1, "The same consumed seed cannot count twice");
             var other = new GameObject("GrowthOther_Test");
             seeds.Add(other);
@@ -155,38 +155,38 @@ public sealed class GrowthProgressPlayVerification : MonoBehaviour
             Check(growth.EatenSeedCount == 1, "Non-seed food does not advance progress");
             // Keep deterministic seed names for the independent Continue phase.
             seeds.Remove(other); Destroy(other);
-            EatTo(50);
+            EatTo(160);
             yield return new WaitForSecondsRealtime(.09f);
-            Check(bar.Progress > .004f && bar.Progress < .2f, "Fill interpolates instead of jumping to its target");
+            Check(bar.Progress > .00125f && bar.Progress < .2f, "Fill interpolates instead of jumping to its target");
             yield return new WaitForSecondsRealtime(.3f);
-            Check(growth.EatenSeedCount == 50 && Mathf.Abs(bar.Progress - .2f) < .001f, "50 seeds = 20 percent");
-            EatTo(85);
+            Check(growth.EatenSeedCount == 160 && Mathf.Abs(bar.Progress - .2f) < .001f, "160 seeds = 20 percent");
+            EatTo(272);
             var snapshot = new FarmSaveData { playerPosition = player.transform.position,
                 playerRotation = player.transform.rotation, consumedEdibleIds = EdibleObject.CaptureConsumedIds() };
             var save = saves.SaveAsync(snapshot);
             while (!save.IsCompleted) yield return null;
             if (save.IsFaulted) throw save.Exception;
-            Check(snapshot.eatenSeedCount == 85, "Existing SaveAsync captures progress automatically");
-            EatTo(86);
+            Check(snapshot.eatenSeedCount == 272, "Existing SaveAsync captures progress automatically");
+            EatTo(273);
             var loaded = saves.Load();
-            Check(loaded.eatenSeedCount == 85 && growth.EatenSeedCount == 85, "Disk save/load restores the saved count");
+            Check(loaded.eatenSeedCount == 272 && growth.EatenSeedCount == 272, "Disk save/load restores the saved count");
             seed.ResetForReuse(); EdibleObject.RestoreConsumedIds(loaded.consumedEdibleIds);
-            Check(seed.IsConsumed && growth.EatenSeedCount == 85, "Consumed-food restore does not increment the counter");
-            EatTo(125); yield return new WaitForSecondsRealtime(.35f);
-            Check(Mathf.Abs(bar.Progress - .5f) < .001f, "125 seeds = 50 percent");
+            Check(seed.IsConsumed && growth.EatenSeedCount == 272, "Consumed-food restore does not increment the counter");
+            EatTo(400); yield return new WaitForSecondsRealtime(.35f);
+            Check(Mathf.Abs(bar.Progress - .5f) < .001f, "400 seeds = 50 percent");
             Vector2 edge = GrowthProgressBarElement.FillEdge(594, 42, bar.Progress);
             Check(Mathf.Abs(edge.x - 297f) < .001f && Mathf.Abs(edge.y - 297f) < .001f &&
                 Mathf.Abs(bar.FillWidth - bar.TrackWidth * .5f) < .2f &&
                 Mathf.Abs(bar.CursorPosition - bar.TrackWidth * .5f) < .2f,
                 "50 percent fills half the continuous oval track and places the cursor at its midpoint");
-            EatTo(245); yield return new WaitForSecondsRealtime(.35f);
-            Check(Mathf.Abs(bar.Progress - .98f) < .001f, "245 seeds = 98 percent");
-            EatTo(250); yield return new WaitForSecondsRealtime(.35f);
+            EatTo(784); yield return new WaitForSecondsRealtime(.35f);
+            Check(Mathf.Abs(bar.Progress - .98f) < .001f, "784 seeds = 98 percent");
+            EatTo(800); yield return new WaitForSecondsRealtime(.35f);
             Check(bar.Progress == 1f && GrowthProgressBarElement.FillEdge(594, 42, 1f) == new Vector2(594, 594) &&
                 Mathf.Abs(bar.FillWidth - bar.TrackWidth) < .2f && Mathf.Abs(bar.CursorPosition - bar.TrackWidth) < .2f,
-                "250 seeds = 100 percent; gold fill and cursor reach the track end");
+                "800 seeds = 100 percent; gold fill and cursor reach the track end");
             Seed(seeds.Count + 1, TestAreaLayout.Origin + new Vector3(20, 0, 21)).Consume();
-            Check(growth.EatenSeedCount == 250 && completions == 1, "251st seed stays clamped; completion fires once");
+            Check(growth.EatenSeedCount == 800 && completions == 1, "801st seed stays clamped; completion fires once");
             Check(player.GetComponent<PlayerGrowthController>().CurrentForm == PlayerGrowthController.Form.Chick,
                 "Completing the bar does not transform the player");
             Check(JsonUtility.FromJson<FarmSaveData>("{\"version\":1}").eatenSeedCount == 0,

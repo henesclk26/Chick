@@ -86,7 +86,7 @@ public sealed class GrowthUpgradePlayVerification : MonoBehaviour
     }
     private IEnumerator StateChecks()
     {
-        Restore(new FarmSaveData { growthUpgradeVersion = 1, currentGrowthProgress = .996f });
+        Restore(new FarmSaveData { growthUpgradeVersion = 1, currentGrowthProgress = .9988f });
         Tick(.01f);
         Check(growth.CurrentUpgradeState == GrowthProgressController.UpgradeState.Progressing && PromptHidden(),
             "Below 100% has no upgrade prompt (99% save cannot round up)");
@@ -136,12 +136,12 @@ public sealed class GrowthUpgradePlayVerification : MonoBehaviour
 
         Restore(new FarmSaveData { growthUpgradeVersion = 1, currentGrowthProgress = .34f });
         Eat(); Eat();
-        Check(growth.EatenSeedCount == 85 && growth.EggSeedCount == 2 && HudVisible(), "Chicken food fills only the separate egg bar");
+        Check(growth.EatenSeedCount == 272 && growth.EggSeedCount == 2 && HudVisible(), "Chicken food fills only the separate egg bar");
 
         // Developer panel path: switching back to the chick shows the bar and counts again.
         form.SetForm(PlayerGrowthController.Form.Chick);
         Eat();
-        Check(HudVisible() && growth.EatenSeedCount == 86, "Developer switch back to chick shows the bar and counts seeds");
+        Check(HudVisible() && growth.EatenSeedCount == 273, "Developer switch back to chick shows the bar and counts seeds");
         for (int i = 0; i < GrowthProgressController.SeedGoal; i++) Eat();
         form.SetForm(PlayerGrowthController.Form.Chicken);
         Tick(.01f);
@@ -153,7 +153,7 @@ public sealed class GrowthUpgradePlayVerification : MonoBehaviour
 
         Restore(JsonUtility.FromJson<FarmSaveData>(
             "{\"version\":1,\"growthUpgradeVersion\":1,\"doubleJumpUnlocked\":true,\"currentGrowthStage\":1,\"currentGrowthProgress\":0.34}"));
-        Check(growth.EatenSeedCount == 85, "Save from the old double jump build still loads its growth progress");
+        Check(growth.EatenSeedCount == 272, "Save from the old double jump build still loads its growth progress");
         Restore(JsonUtility.FromJson<FarmSaveData>("{\"version\":1,\"eatenSeedCount\":17}"));
         Check(growth.EatenSeedCount == 17, "Oldest save format remains compatible");
         Check(root.Q<UpgradeHoldIndicator>() != null && growth.GetComponent<UIDocument>().visualTreeAsset != null &&

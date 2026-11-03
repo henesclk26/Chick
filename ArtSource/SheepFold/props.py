@@ -149,8 +149,9 @@ def hay_bales(collection, material, location):
     return out
 
 
-def shingle_roof(b, half_w, half_d, eave, ridge, over_x, over_y):
-    """Gable roof (ridge along X): rafters, laths, staggered wooden shingles, ridge cap and barge boards."""
+def shingle_roof(b, half_w, half_d, eave, ridge, over_x, over_y, moss=True):
+    """Gable roof (ridge along X): rafters, laths, staggered wooden shingles, ridge cap and barge boards.
+    moss=False keeps every shingle wooden; the default leaves the existing roofs' shingles exactly as they were."""
     rng = b.rng
     k = (ridge - eave) / half_d
     for sign in (-1, 1):
@@ -175,7 +176,8 @@ def shingle_roof(b, half_w, half_d, eave, ridge, over_x, over_y):
             while x < half_w + over_x - .02:
                 w = min(rng.uniform(.13, .21), half_w + over_x - x)
                 if w > .06:
-                    swatch = "moss" if (row < 3 and sign > 0 and rng.random() < .1) else rng.choice(SHINGLES)
+                    mossy = row < 3 and sign > 0 and rng.random() < .1
+                    swatch = "moss" if mossy and moss else rng.choice(SHINGLES)
                     centre = start + up_slope * min(s + shingle_len / 2, slope_len - shingle_len / 2 + .02) + \
                         normal * lift + Vector((x + w / 2, 0, 0))
                     rot = frame((1, 0, 0), normal) @ Matrix.Rotation(sign * -.06 + rng.uniform(-.02, .02), 3, "X")
@@ -433,6 +435,39 @@ def hay_rack(collection, material, location):
     return b.finish("FoldHayRack", collection, material, location)
 
 
+def coop_hay_feeder(collection, material, location):
+    """Chicken yard hay feeder: a plank trough on short legs with a slatted hay rack over it, under a small shingled
+    roof. Chick scale (rim at .3 m, 2.2 x .7 m footprint). Wood only: the hay is the coop's hand-painted hay, laid in
+    by ArtSource/ChickenCoop/feeder_hay.py (CoopHayFeeder_Hay.fbx)."""
+    b = L.Builder(73)
+    rng = b.rng
+    hl, hw, post = 1.0, .32, .95
+    for x in (-hl, hl):
+        for y in (-hw, hw):
+            b.box((x, y, post / 2), (.08, .08, post), "wood_mid", bevel=.01, jitter=.004)
+    for y in (-hw, hw):
+        b.plank((-hl - .1, y, post), (hl + .1, y, post), .08, .08, "wood_dark", up=(0, 1, 0))
+    # Trough; its floor is hay coloured so no gap between the hay tufts laid in it reads as bare wood.
+    b.box((0, 0, .12), (2 * hl - .08, 2 * hw - .02, .04), "hay_dark", bevel=.006)
+    for s in (-1, 1):
+        b.plank((-hl + .04, s * (hw - .02), .21), (hl - .04, s * (hw - .02), .21), .18, .035, rng.choice(WOODS),
+                up=(0, 1, 0))
+        b.box((s * (hl - .05), 0, .21), (.035, 2 * hw - .06, .18), rng.choice(WOODS), bevel=.006)
+    # Slatted rack.
+    top, bottom = .78, .42
+    for s in (-1, 1):
+        b.plank((-hl, s * (hw - .05), top), (hl, s * (hw - .05), top), .05, .05, "wood_light", up=(0, 0, 1), bevel=0)
+    b.plank((-hl, 0, bottom), (hl, 0, bottom), .06, .05, "wood_dark", up=(0, 0, 1), bevel=0)
+    x = -hl + .14
+    while x < hl - .08:
+        for s in (-1, 1):
+            b.plank((x, s * (hw - .06), top - .02), (x, s * .03, bottom + .03), .025, .025, "wood_grey", up=(1, 0, 0),
+                    bevel=0)
+        x += .2
+    shingle_roof(b, hl, hw, post + .06, post + .34, .12, .16, moss=False)
+    return b.finish("CoopHayFeeder", collection, material, location)
+
+
 def gate(collection, material, location, opening=2.8):
     """Pasture gate for one farm fence bay: two capped posts, and a five-bar leaf (child, origin on the hinge)."""
     posts = L.Builder(71)
@@ -472,6 +507,7 @@ def build_all(collection, material, origin=(3.2, 0, 0)):
     made = [shelter(collection, material, o + Vector((3.2, 1.5, 0)))]
     made.append(water_trough(collection, material, o + Vector((8.0, -.8, 0))))
     made.append(hay_rack(collection, material, o + Vector((8.0, 1.8, 0))))
+    made.append(coop_hay_feeder(collection, material, o + Vector((8.0, 4.2, 0))))
     made += hay_bales(collection, material, o + Vector((10.6, -.6, 0)))
     made += gate(collection, material, o + Vector((13.6, .4, 0)))
     made.append(egg_basket(collection, material, o + Vector((16.4, -.4, 0))))

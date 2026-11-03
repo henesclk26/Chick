@@ -29,23 +29,23 @@ public partial class GrowthProgressBarElement : VisualElement
     private float eatingHighlight;
     private float trackWidth;
     private float cursorPosition;
-    private int segments = 1;
+    private float[] dividerAt = new float[0];
 
-    /// <summary>Equal stages marked by thin dividers across the track (1 = a plain bar).</summary>
-    public int Segments
+    /// <summary>Stage boundaries along the track (fractions 0..1), each marked by a thin divider; empty = a plain bar.</summary>
+    public float[] Dividers
     {
-        get => segments;
+        get => dividerAt;
         set
         {
-            int next = Mathf.Max(1, value);
-            if (segments == next) return;
-            segments = next;
+            var next = value ?? new float[0];
+            if (System.Linq.Enumerable.SequenceEqual(dividerAt, next)) return;
+            dividerAt = (float[])next.Clone();
             dividers.Clear();
-            for (int i = 1; i < segments; i++)
+            foreach (float at in dividerAt)
             {
                 var divider = new VisualElement { pickingMode = PickingMode.Ignore };
                 divider.style.position = Position.Absolute;
-                divider.style.left = Length.Percent(100f * i / segments);
+                divider.style.left = Length.Percent(100f * Sanitize01(at));
                 divider.style.top = 0;
                 divider.style.bottom = 0;
                 divider.style.width = 2;

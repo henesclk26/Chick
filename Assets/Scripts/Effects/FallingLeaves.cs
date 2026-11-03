@@ -69,7 +69,8 @@ public sealed class FallingLeaves : MonoBehaviour
             force.x = wind.x;
             force.z = wind.z;
         }
-        if (near.Count == 0) return;
+        // nothing comes off while the camera is indoors (IndoorArea), and nothing is saved up for when it steps out
+        if (near.Count == 0 || IndoorArea.Contains(eye)) { owed = owedBlown = 0f; return; }
 
         // in a gust: leaves torn from the crowns upwind and tossed downwind, as many as there are trees to give them
         owedBlown += blownPerSecond*gust*gust*Mathf.Clamp01(upwindSum/3f)*Time.deltaTime;

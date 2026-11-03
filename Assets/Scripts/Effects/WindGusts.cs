@@ -83,7 +83,7 @@ public sealed class WindGusts : MonoBehaviour
         wisps.transform.position = cam.transform.position + ahead*10f - Direction*3f + Vector3.up*.8f;
         wisps.transform.rotation = Quaternion.LookRotation(ahead);
         var emission = wisps.emission;
-        emission.rateOverTime = wispsPerSecond*s;
+        emission.rateOverTime = IndoorArea.Contains(cam.transform.position) ? 0f : wispsPerSecond*s;   // no wind indoors
         var velocity = wisps.velocityOverLifetime;
         velocity.x = Direction.x*wispSpeed*Mathf.Max(s, .4f);
         velocity.z = Direction.z*wispSpeed*Mathf.Max(s, .4f);

@@ -5,12 +5,21 @@ using UnityEngine.UIElements;
 [RequireComponent(typeof(UIDocument)), DisallowMultipleComponent, DefaultExecutionOrder(100)]
 public sealed partial class GrowthProgressController : MonoBehaviour
 {
-    public const int SeedGoal = 250;
-    // Every StageSeeds seeds the chick gains one passive stage; the last stage is reached with the growth goal.
-    public const int StageSeeds = 50;
-    public const int StageCount = SeedGoal / StageSeeds;
+    // About three quarters of the coop's seeds: the chick has to roam most of the coop, and what it leaves there still
+    // feeds the chicken's first egg (the barn only opens with that egg).
+    public const int SeedGoal = 800;
+    // The chick's passive stages: stage n is reached at StageThresholds[n - 1] points, the last at the goal. The gaps
+    // widen as the chick speeds up, so each stage takes about as long as the one before.
+    public static readonly int[] StageThresholds = { 100, 220, 360, 540, SeedGoal };
+    public static int StageCount => StageThresholds.Length;
+    public static int StageAt(int points)
+    {
+        int stage = 0;
+        while (stage < StageThresholds.Length && points >= StageThresholds[stage]) stage++;
+        return stage;
+    }
     public int EatenSeedCount { get; private set; }
-    public int ChickStage => EatenSeedCount / StageSeeds;
+    public int ChickStage => StageAt(EatenSeedCount);
     // Chick-only passive stages; the chicken always uses 1x.
     public float PeckSpeedMultiplier => !IsChickForm ? 1f : ChickStage >= 5 ? 1.5f : ChickStage >= 1 ? 1f : .5f;
     public float StaminaMultiplier => !IsChickForm ? 1f : ChickStage >= 2 ? 1f : .5f;
@@ -119,7 +128,7 @@ public sealed partial class GrowthProgressController : MonoBehaviour
     private void GrowChick(int points)
     {
         if (points <= 0 || EatenSeedCount >= SeedGoal) return;
-        int stageBefore = EatenSeedCount / StageSeeds;
+        int stageBefore = ChickStage;
         SetCount(Mathf.Min(EatenSeedCount + points, SeedGoal), false);
         // Extend the existing light instead of restarting a flash for every seed.
         glowUntil = Time.unscaledTime + GlowHoldSeconds;
@@ -128,7 +137,7 @@ public sealed partial class GrowthProgressController : MonoBehaviour
             BeginGrowthReadyMessage();
             OnGrowthProgressComplete?.Invoke();
         }
-        else if (EatenSeedCount / StageSeeds > stageBefore) BeginStageUpMessage();
+        else if (ChickStage > stageBefore) BeginStageUpMessage();
     }
 
     private void Restore(FarmSaveData data)
