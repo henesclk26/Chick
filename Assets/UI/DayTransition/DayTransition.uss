@@ -5,3 +5,47 @@
 }
 #DayLabel { font-size: 52px; letter-spacing: 6px; color: rgb(255,242,214); -unity-font-style: bold; opacity: 0; }
 #SavingLabel { position: absolute; bottom: 70px; left: 40px; right: 40px; font-size: 23px; color: rgb(234,225,208); display: none; white-space: normal; -unity-text-align: middle-center; }
+
+/* End of the day: the evening dimmed behind a card of what was done today (DaySummary). */
+#DaySummary {
+    position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+    background-color: rgba(18, 14, 30, .55); display: none; opacity: 0;
+    align-items: center; justify-content: center;
+}
+#DaySummaryCard {
+    width: 460px; padding: 22px 30px 18px 30px;
+    background-color: rgba(255, 245, 211, .98);
+    border-color: rgb(39, 43, 30); border-width: 3px; border-bottom-width: 6px; border-bottom-color: rgb(196, 132, 32);
+    border-radius: 18px; align-items: stretch;
+}
+#DaySummaryTitle {
+    margin: 0; padding: 0; font-size: 34px; letter-spacing: 3px; -unity-text-align: middle-center;
+    color: rgb(38, 74, 30); -unity-font-style: bold;
+    -unity-font-definition: url("../Fonts/Fredoka-SemiBold.ttf");
+}
+#DaySummarySubtitle {
+    margin: 0 0 14px 0; padding: 0; font-size: 16px; -unity-text-align: middle-center; color: rgb(140, 92, 22);
+    -unity-font-definition: url("../Fonts/Fredoka-SemiBold.ttf");
+}
+.day-summary-row {
+    flex-direction: row; align-items: center; justify-content: space-between;
+    padding: 6px 4px; border-bottom-width: 1px; border-bottom-color: rgba(39, 43, 30, .15);
+}
+.day-summary-label {
+    margin: 0; padding: 0; font-size: 18px; color: rgb(60, 52, 36);
+    -unity-font-definition: url("../Fonts/Fredoka-SemiBold.ttf");
+}
+.day-summary-value {
+    margin: 0 0 0 16px; padding: 0; font-size: 19px; color: rgb(38, 74, 30); -unity-font-style: bold; -unity-text-align: middle-right;
+    white-space: normal; flex-shrink: 1;
+    -unity-font-definition: url("../Fonts/Fredoka-SemiBold.ttf");
+}
+.day-summary-value--gold { color: rgb(176, 112, 10); }
+.day-summary-note {
+    margin: 0; padding: 2px 4px 0 18px; font-size: 15px; color: rgb(90, 80, 60); white-space: normal;
+    -unity-font-definition: url("../Fonts/Fredoka-SemiBold.ttf");
+}
+#DaySummaryContinue {
+    margin: 14px 0 0 0; padding: 0; font-size: 14px; -unity-text-align: middle-center; color: rgba(60, 52, 36, .7);
+    -unity-font-definition: url("../Fonts/Fredoka-SemiBold.ttf");
+}

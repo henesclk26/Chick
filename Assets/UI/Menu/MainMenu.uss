@@ -53,9 +53,7 @@ Slider { flex-grow: 1; margin-right: 15px; }
 .pause-title { margin-top: 8px; font-size: 32px; color: rgb(255, 249, 224); -unity-font-style: bold; -unity-text-outline-width: 1px; -unity-text-outline-color: rgba(18, 36, 24, 0.58); }
 .pause-copy { margin-top: 8px; font-size: 15px; color: rgba(255, 249, 224, 0.84); }
 .pause-divider { height: 1px; margin-top: 20px; margin-bottom: 15px; background-color: rgba(255, 222, 119, 0.30); }
-.pause-card Button { width: 100%; margin: 5px 0; }
-.pause-card Button.pause-exit { background-color: rgba(104, 61, 44, 0.94); border-color: rgba(255, 204, 102, 0.72); }
-.pause-card Button.pause-exit:hover { background-color: rgba(132, 75, 51, 0.96); }
+.pause-card Button { width: 100%; margin: 2px 0; }
 .pause-status { min-height: 18px; margin-top: 8px; font-size: 12px; color: rgb(255, 222, 119); -unity-text-align: middle-center; white-space: normal; }
 .pause-hint { margin-top: 14px; font-size: 11px; color: rgba(255, 241, 194, 0.74); -unity-text-align: middle-center; }
 #credits-page { flex-grow: 1; align-items: center; justify-content: center; background-color: rgba(235, 234, 210, 0.6); }
@@ -67,3 +65,30 @@ Slider { flex-grow: 1; margin-right: 15px; }
 .credit { margin-bottom: 9px; }
 .credit-title { font-size: 15px; -unity-font-style: bold; color: rgb(80, 85, 56); white-space: normal; }
 .credit-detail { font-size: 12px; color: rgb(134, 133, 99); white-space: normal; margin-top: 1px; }
+
+/* Home page and pause menu: the game's own font (as on the HUD), and the menu as words rather than buttons:
+   bold cream text on the scene, lit gold and nudged right under the pointer (or keyboard focus), pressed down a touch when clicked. */
+#home, .pause-card { -unity-font-definition: url("../Fonts/Fredoka-SemiBold.ttf"); }
+#game-title { letter-spacing: 2px; }
+#navigation { margin-top: 30px; }
+#navigation Button, .pause-card Button {
+    height: auto; margin: 2px 0; padding: 6px 0 6px 2px; border-width: 0; border-radius: 0;
+    background-color: rgba(0, 0, 0, 0);
+    font-size: 30px; letter-spacing: 1px; -unity-font-style: bold; -unity-text-align: middle-left;
+    color: rgb(255, 249, 224);
+    -unity-text-outline-width: 1.5px; -unity-text-outline-color: rgba(22, 40, 27, 0.85);
+    text-shadow: 0px 3px 0px rgba(12, 25, 18, 0.55);
+    transition-property: color, translate, scale; transition-duration: 0.12s; transition-timing-function: ease-out-back;
+    transform-origin: left center;
+}
+#navigation Button:hover, #navigation Button:focus, .pause-card Button:hover, .pause-card Button:focus {
+    background-color: rgba(0, 0, 0, 0); color: rgb(255, 214, 92); translate: 12px 0; scale: 1.06 1.06;
+}
+#navigation Button:active, .pause-card Button:active { color: rgb(240, 186, 52); translate: 12px 2px; scale: 0.97 0.97; }
+#navigation Button:disabled, .pause-card Button:disabled { background-color: rgba(0, 0, 0, 0); opacity: 0.45; color: rgb(255, 249, 224); translate: 0 0; scale: 1 1; }
+#navigation Button.primary, .pause-card Button.primary { color: rgb(255, 222, 119); }
+#navigation Button.primary:hover, #navigation Button.primary:focus, .pause-card Button.primary:hover, .pause-card Button.primary:focus { color: rgb(255, 236, 150); }
+/* On the pause card the words are a little smaller; leaving the game is a warm red, brighter under the pointer. */
+.pause-card Button { font-size: 26px; }
+.pause-card Button.pause-exit { color: rgb(255, 176, 140); }
+.pause-card Button.pause-exit:hover, .pause-card Button.pause-exit:focus { color: rgb(255, 140, 104); }

@@ -166710,6 +166710,7 @@ MonoBehaviour:
   saves: {fileID: 422831954}
   hud: {fileID: 1656662688}
   transition: {fileID: 1240522953}
+  summary: {fileID: 1240522956}
   visuals: {fileID: 422831952}
 --- !u!114 &422831954
 MonoBehaviour:
@@ -519498,6 +519499,10 @@ MonoBehaviour:
   footstepVolume: 0.65
   chickenVolume: 0.8
   chickenCallInterval: {x: 8, y: 20}
+  morningCall: {fileID: 8300000, guid: df781881067df464d8a72dc7b4a57c9e, type: 3}
+  morningCallVolume: 0.5
+  morningCallAfterTitle: 0.5
+  transition: {fileID: 1240522953}
   gate: {fileID: 422831956}
   player: {fileID: 1338091221}
 --- !u!4 &1238664559
@@ -520335,6 +520340,7 @@ GameObject:
   - component: {fileID: 1240522955}
   - component: {fileID: 1240522954}
   - component: {fileID: 1240522953}
+  - component: {fileID: 1240522956}
   m_Layer: 0
   m_Name: Day Transition
   m_TagString: Untagged
@@ -520397,6 +520403,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 422831955}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1240522956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1240522952}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e4fa533046445946bd9cb20e965d913, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DaySummary
+  document: {fileID: 1240522954}
+  fadeSeconds: 0.35
+  minimumSeconds: 1.2
+  autoContinueSeconds: 20
 --- !u!4 &1240795321 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4114601195094862, guid: 495eb46654887ae49b14c48d1b44996b, type: 3}
@@ -567610,6 +567632,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 431101310992122308, guid: b2a74f22c77eb47f7849ca7b589432c0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1338091244}
+    - targetCorrespondingSourceObject: {fileID: 431101310992122308, guid: b2a74f22c77eb47f7849ca7b589432c0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1338091245}
   m_SourcePrefab: {fileID: 100100000, guid: b2a74f22c77eb47f7849ca7b589432c0, type: 3}
 --- !u!4 &1338091220 stripped
 Transform:
@@ -567806,6 +567831,28 @@ MonoBehaviour:
   biteSound: {fileID: 0}
   finishSound: {fileID: 0}
   volume: 0.7
+--- !u!114 &1338091245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1274078722}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6f3fe488006fc448985a939a41ea177, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UpgradeCelebration
+  downMaterial: {fileID: 2100000, guid: 1d25e5b22579d2a449fa44112c50e5c5, type: 2}
+  puffMaterial: {fileID: 2100000, guid: 05f29ef6f75d99549bba6424b6e6a05a, type: 2}
+  chickDown: {r: 1, g: 0.9, b: 0.22, a: 1}
+  chickenDown: {r: 1, g: 0.98, b: 0.93, a: 1}
+  dustColor: {r: 0.95, g: 0.9, b: 0.8, a: 1}
+  downCount: 30
+  puffCount: 26
+  flapSeconds: 0.8
+  sound: {fileID: 0}
+  soundVolume: 0.7
 --- !u!1001 &1338159717
 PrefabInstance:
   m_ObjectHideFlags: 0

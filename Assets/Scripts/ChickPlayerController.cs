@@ -131,6 +131,18 @@ public sealed class ChickPlayerController : MonoBehaviour
         (eatingController == null || !eatingController.IsBusy) && !IsDrinking && peckTimer <= 0f &&
         peepTimer <= 0f && damageTimer <= 0f && downTimer <= 0f && flapTimer <= 0f;
 
+    /// <summary>Standing free (no other action going on), so a celebration flap would not cut into anything.</summary>
+    public bool CanCelebrate => CanChangeForm;
+
+    /// <summary>A happy wing flap (UpgradeCelebration), only while the bird stands free.</summary>
+    public bool TryCelebrateFlap(float seconds)
+    {
+        if (!CanCelebrate) return false;
+        flapTimer = Mathf.Max(flapTimer, seconds);
+        idleTimer = 0f;
+        return true;
+    }
+
     public bool TryBeginEggLaying()
     {
         if (!chickenForm || !isActiveAndEnabled || !CanChangeForm) return false;

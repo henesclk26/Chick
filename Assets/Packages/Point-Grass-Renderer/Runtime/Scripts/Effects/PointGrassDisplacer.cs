@@ -25,6 +25,7 @@ namespace MicahW.PointGrass {
         }
         private void OnDisable() {
             if (PGDM.instance != null) { PGDM.instance.RemoveDisplacer(this); }
+            PGDM.OnInitialize -= Initialize; // Chick: never left waiting on a manager after it is gone
         }
         // Called by the displacement manager instance after it has been initialized
         private void Initialize(PGDM manager) {

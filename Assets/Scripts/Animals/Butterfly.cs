@@ -68,6 +68,9 @@ public sealed class Butterfly : MonoBehaviour
 
             case State.Approach:
             {
+                // Its perch is gone (it was switched off on the way and let the perch go, or the perches were found
+                // again for a new scene): back to wandering.
+                if (perches == null || perch < 0 || perch >= perches.Count) { TakeOff(); break; }
                 Vector3 spot = perches[perch];
                 // Swoop in: level with the perch a little before it, slowing down as it arrives.
                 float distance = Vector3.Distance(transform.position, spot);

@@ -28,6 +28,8 @@ public sealed partial class GrowthProgressController : MonoBehaviour
     public float Progress => EatenSeedCount / (float)SeedGoal;
     public float DisplayProgress => IsChickForm ? Progress : EggProgress;
     public event Action OnGrowthProgressComplete;
+    /// <summary>A passive chick stage reached by eating (not on load), with the new stage's number.</summary>
+    public event Action<int> OnStageReached;
 
     [SerializeField] private FarmSaveSystem saves;
     [SerializeField] private MainMenuGameplayGate gameplayGate;
@@ -137,7 +139,11 @@ public sealed partial class GrowthProgressController : MonoBehaviour
             BeginGrowthReadyMessage();
             OnGrowthProgressComplete?.Invoke();
         }
-        else if (ChickStage > stageBefore) BeginStageUpMessage();
+        else if (ChickStage > stageBefore)
+        {
+            BeginStageUpMessage();
+            OnStageReached?.Invoke(ChickStage);
+        }
     }
 
     private void Restore(FarmSaveData data)

@@ -89,6 +89,11 @@ public sealed class QuestHUD : MonoBehaviour
 
     private readonly HashSet<string> done = new HashSet<string>();
     private readonly Dictionary<string, Row> rows = new Dictionary<string, Row>();
+
+    /// <summary>A quest finished while playing, with its title (the day's summary lists them).</summary>
+    public static event System.Action<string> QuestFinished;
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetQuestFinished() => QuestFinished = null;
     private VisualElement panel, list;
     private MainMenuGameplayGate gameplayGate;
     private VisualElement regionBanner;
@@ -322,6 +327,7 @@ public sealed class QuestHUD : MonoBehaviour
     {
         done.Add(id);
         foreach (var q in Quests) if (q.id == id && q.opens != null) FarmRegions.Open(q.opens);
+        foreach (var q in Quests) if (q.id == id) QuestFinished?.Invoke(q.title);
         row.finishing = true;
         row.root.AddToClassList("done");
         // what this one opens comes in at once, while it is still being struck through

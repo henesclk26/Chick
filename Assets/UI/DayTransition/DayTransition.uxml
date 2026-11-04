@@ -1,5 +1,13 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="DayTransition.uss" />
+    <ui:VisualElement name="DaySummary" picking-mode="Ignore">
+        <ui:VisualElement name="DaySummaryCard" picking-mode="Ignore">
+            <ui:Label name="DaySummaryTitle" text="1. GÜN BİTTİ" picking-mode="Ignore" />
+            <ui:Label name="DaySummarySubtitle" text="Bugün neler yaptın?" picking-mode="Ignore" />
+            <ui:VisualElement name="DaySummaryRows" picking-mode="Ignore" />
+            <ui:Label name="DaySummaryContinue" text="Devam etmek için bir tuşa bas" picking-mode="Ignore" />
+        </ui:VisualElement>
+    </ui:VisualElement>
     <ui:VisualElement name="FullScreenBlackOverlay">
         <ui:Label name="DayLabel" text="DAY 1" />
         <ui:Label name="SavingLabel" text="Saving..." />

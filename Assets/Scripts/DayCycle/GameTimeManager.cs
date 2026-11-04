@@ -13,6 +13,8 @@ public sealed class GameTimeManager : MonoBehaviour
     [SerializeField] private FarmSaveSystem saves;
     [SerializeField] private ClockHUDController hud;
     [SerializeField] private DayTransitionController transition;
+    [Tooltip("The card of what the day brought, shown before the screen goes black. Found in the scene if left empty.")]
+    [SerializeField] private DaySummary summary;
     [SerializeField] private TimeOfDayVisualController visuals;
     public const int DayEndMinutes = 19 * 60;
     public int CurrentDay { get; private set; } = 1;
@@ -107,6 +109,8 @@ public sealed class GameTimeManager : MonoBehaviour
         player.enabled = false; orbit.enabled = false;
         hud.SetVisible(false);
         OnDayEnding?.Invoke(CurrentDay);
+        if (summary == null) summary = FindFirstObjectByType<DaySummary>();
+        if (summary != null) yield return summary.Show(CurrentDay);
         yield return transition.Blackout();
         transition.Saving();
         yield return null; // Paint the saving state before dispatching I/O.

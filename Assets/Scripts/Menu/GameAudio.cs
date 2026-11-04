@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-// Menu/gameplay music, ambience, UI clicks, footsteps and idle chicken calls.
+// Menu/gameplay music, ambience, UI clicks, footsteps, idle chicken calls and a rooster's crow as each day begins.
 // The settings Music slider drives only gameplay music for now; menu music and ambience follow just the master volume.
 public sealed class GameAudio : MonoBehaviour
 {
@@ -10,6 +10,12 @@ public sealed class GameAudio : MonoBehaviour
     [SerializeField, Range(0f, 1f), UnityEngine.Serialization.FormerlySerializedAs("musicVolume")] private float gameplayMusicVolume = .5f;
     [SerializeField, Range(0f, 1f)] private float ambienceVolume = .6f, clickVolume = .8f, footstepVolume = .5f, chickenVolume = .7f;
     [SerializeField] private Vector2 chickenCallInterval = new Vector2(8f, 20f);
+    [Tooltip("Crowed once as each day begins (the first day of a game or a load too), with the day's title, on the effects channel.")]
+    [SerializeField] private AudioClip morningCall;
+    [SerializeField, Range(0f, 1f)] private float morningCallVolume = .5f;
+    [Tooltip("The crow starts with the day's title and ends this many seconds after the title has gone.")]
+    [SerializeField, Min(0f)] private float morningCallAfterTitle = .5f;
+    [SerializeField] private DayTransitionController transition;
     [SerializeField] private MainMenuGameplayGate gate;
     [SerializeField] private ChickPlayerController player;
     private AudioSource menuSource, gameplaySource, ambient, sfx, steps;
@@ -30,6 +36,22 @@ public sealed class GameAudio : MonoBehaviour
         sfx = CreateSource("Sfx", MenuAudioChannel.Bus.Sfx, 1f, false);
         steps = CreateSource("Footsteps", MenuAudioChannel.Bus.Sfx, footstepVolume, true);
         steps.clip = footsteps;
+        if (transition == null) transition = FindFirstObjectByType<DayTransitionController>();
+        if (transition != null) transition.TitleShowing += TitleShowing;
+    }
+
+    // Timed so the crow ends `morningCallAfterTitle` after the title; a crow longer than that starts with the title.
+    private void TitleShowing()
+    {
+        if (morningCall == null) return;
+        StopCoroutine(nameof(Crow));
+        StartCoroutine(nameof(Crow), Mathf.Max(0f, transition.TitleSeconds + morningCallAfterTitle - morningCall.length));
+    }
+
+    private System.Collections.IEnumerator Crow(float delay)
+    {
+        if (delay > 0f) yield return new WaitForSecondsRealtime(delay);
+        if (morningCall != null && sfx != null && (gate == null || gate.IsReleased)) sfx.PlayOneShot(morningCall, morningCallVolume);
     }
 
     private void Start()
@@ -47,6 +69,7 @@ public sealed class GameAudio : MonoBehaviour
     // Panels outlive this object (scene reloads keep them), so a click must not reach a destroyed sound source.
     private void OnDestroy()
     {
+        if (transition != null) transition.TitleShowing -= TitleShowing;
         foreach (var panel in clickPanels) panel?.visualTree?.UnregisterCallback<ClickEvent>(OnClick, TrickleDown.TrickleDown);
         clickPanels.Clear();
     }

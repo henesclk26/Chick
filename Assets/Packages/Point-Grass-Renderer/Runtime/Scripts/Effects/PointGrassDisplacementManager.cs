@@ -19,6 +19,11 @@ namespace MicahW.PointGrass {
         public delegate void DisplacementDelegate(PointGrassDisplacementManager manager);
         public static event DisplacementDelegate OnInitialize;
 
+        // Chick: Play Mode starts without a domain reload, so the static manager and the displacers still waiting on
+        // OnInitialize from the last run (destroyed with its scene) would carry over; start clean each time.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() { instance = null; OnInitialize = null; }
+
         private void Awake() {
             if (instance != null) { Destroy(this); }
             else {
@@ -43,6 +48,9 @@ namespace MicahW.PointGrass {
 
         // Update the compute buffer with the displacers' data
         private void UpdateBuffer() {
+            if (objectsBuffer == null || displacers == null) return;
+            // Chick: drop displacers destroyed without being switched off first (a scene reloaded from the menu).
+            displacers.RemoveAll(a => a == null);
             var objectData = displacers.Select(a => a.GetObjectData()).ToArray();
             objectsBuffer.SetData(objectData, 0, 0, DisplacerCount);
         }

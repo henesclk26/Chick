@@ -116,7 +116,7 @@ public static class TimeShot
                               : float.Parse(token, CultureInfo.InvariantCulture);
 
     // The ground (or whatever solid stands there: a rock, the bridge) at x, z.
-    private static float Ground(float x, float z)
+    internal static float Ground(float x, float z)
     {
         float best = float.NegativeInfinity;
         foreach (Terrain t in Terrain.activeTerrains)
@@ -129,7 +129,7 @@ public static class TimeShot
         return float.IsInfinity(best) ? 0f : best;
     }
 
-    private static GameObject Bird(string kind, float x, float z, float yaw, string clipName, float second, float scale, StringBuilder report)
+    internal static GameObject Bird(string kind, float x, float z, float yaw, string clipName, float second, float scale, StringBuilder report)
     {
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(Birds + "Resources/Prefabs/" + kind + ".prefab");
         var go = (GameObject)Object.Instantiate(prefab);
@@ -146,7 +146,7 @@ public static class TimeShot
         return go;
     }
 
-    private static Texture2D Shot(Vector3 from, Vector3 at, float fov, int width, int height, int super)
+    internal static Texture2D Shot(Vector3 from, Vector3 at, float fov, int width, int height, int super)
     {
         Camera camera = MapSurvey.TempCamera();
         try

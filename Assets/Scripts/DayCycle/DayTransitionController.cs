@@ -11,6 +11,9 @@ public sealed class DayTransitionController : MonoBehaviour
     [SerializeField] private float screenFade = 0.9f;
     private VisualElement overlay;
     private Label title, saving;
+    /// <summary>The day's title ("DAY 2") is starting to fade in; it is on screen for TitleSeconds.</summary>
+    public event System.Action TitleShowing;
+    public float TitleSeconds => titleFade * 2f + titleHold;
     public void Bind()
     {
         overlay = document.rootVisualElement.Q("FullScreenBlackOverlay");
@@ -51,6 +54,7 @@ public sealed class DayTransitionController : MonoBehaviour
     {
         saving.style.display = DisplayStyle.None;
         title.text = "DAY " + day;
+        TitleShowing?.Invoke();
         yield return Fade(title, 0, 1, titleFade);
         yield return new WaitForSecondsRealtime(titleHold);
         yield return Fade(title, 1, 0, titleFade);
