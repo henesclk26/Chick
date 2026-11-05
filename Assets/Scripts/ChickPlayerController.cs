@@ -254,6 +254,13 @@ public void TeleportTo(Vector3 position, Quaternion rotation)
         }
     }
 
+    // Day end, pause and the developer panel switch this off mid-stride; without this the bird keeps walking in place.
+    private void OnDisable()
+    {
+        IsRunning = false;
+        if (animator != null && animator.isActiveAndEnabled && animator.isInitialized) UpdateAnimationStates(false, false, EggLayingPose, true, false, false, false, false, false, false);
+    }
+
     private void Update()
     {
         if (animator == null)

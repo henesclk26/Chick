@@ -83,7 +83,8 @@ public sealed class GameAudio : MonoBehaviour
         if (!playing || player == null) { steps.Stop(); return; }
 
         Vector3 velocity = body.velocity; velocity.y = 0f;
-        bool walking = body.isGrounded && velocity.sqrMagnitude > .04f && Time.timeScale > 0f;
+        // a disabled controller keeps its last velocity, so it would sound like walking through the day summary
+        bool walking = player.enabled && body.isGrounded && velocity.sqrMagnitude > .04f && Time.timeScale > 0f;
         steps.pitch = player.IsRunning ? 1.3f : 1f;
         if (walking && !steps.isPlaying) steps.Play();
         else if (!walking && steps.isPlaying) steps.Pause();

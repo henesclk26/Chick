@@ -51,14 +51,18 @@
     margin: 0; padding: 0;
     text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.45);
 }
-#QuestHeader { font-size: 15px; letter-spacing: 1.5px; color: rgb(255, 214, 102); margin-bottom: 6px; }
+#QuestHeader { font-size: 15px; letter-spacing: 1.5px; color: rgb(255, 159, 107); margin-bottom: 6px; }
 .quest {
     margin-bottom: 8px;
     transition-property: opacity, translate; transition-duration: 0.4s; transition-timing-function: ease-in-cubic;
 }
 .quest.gone { opacity: 0; translate: 14px 0; }
 .quest-line { flex-direction: row; align-items: center; }
-.quest-bullet { width: 6px; height: 6px; margin-right: 8px; border-radius: 1px; background-color: rgb(255, 249, 232); }
+.quest-bullet {
+    width: 7px; height: 7px; margin-right: 7px; border-radius: 4px;
+    border-width: 1.5px; border-color: rgb(255, 249, 232);
+    transition-property: background-color, border-color; transition-duration: 0.35s;
+}
 .quest-name { flex-direction: row; }
 .quest-gap { flex-grow: 1; }
 .quest-title { font-size: 18px; color: rgb(255, 255, 255); transition-property: color; transition-duration: 0.35s; }
@@ -67,11 +71,18 @@
 /* the strike: a line drawn across the title */
 .quest-strike {
     position: absolute; left: -2px; top: 52%; height: 2.5px; width: 0%; border-radius: 1px;
-    background-color: rgb(255, 214, 102);
+    background-color: rgb(255, 159, 107);
     transition-property: width; transition-duration: 0.45s; transition-timing-function: ease-out-cubic;
 }
 .quest.done .quest-strike { width: 104%; }
 .quest.done .quest-title { color: rgba(255, 255, 255, 0.6); }
+.quest.done .quest-bullet { background-color: rgb(255, 159, 107); border-color: rgb(255, 159, 107); }
+/* under a quest of more than one step: how far along it is */
+.quest-bar { height: 4px; margin: 5px 0 2px 14px; border-radius: 2px; background-color: rgba(255, 255, 255, 0.18); }
+.quest-bar-fill {
+    height: 100%; width: 0%; border-radius: 2px; background-color: rgb(255, 159, 107);
+    transition-property: width; transition-duration: 0.3s; transition-timing-function: ease-out-cubic;
+}
 
 /* Under the quests: the eggs the chicken carries (CarriedEggHUD), one slot per egg it can carry: a white or golden
    egg where one is carried, a faint egg where there is room, and "carried / room"; pops in, fades out. */

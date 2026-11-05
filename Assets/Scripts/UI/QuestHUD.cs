@@ -82,6 +82,7 @@ public sealed class QuestHUD : MonoBehaviour
     {
         public VisualElement root;
         public Label count;
+        public VisualElement fill;   // the progress line, absent for one-step quests
         public int progress;
         public bool finishing;
         public readonly HashSet<string> kinds = new HashSet<string>();
@@ -238,7 +239,7 @@ public sealed class QuestHUD : MonoBehaviour
         bool finished = q.goal == Goal.BecomeChicken ? chicken : progress >= q.count;
         if (progress == row.progress && !finished) return;
         row.progress = progress;
-        row.count.text = $"{row.progress} / {q.count}";
+        ShowProgress(q, row);
         if (finished) Finish(q.id, row);
     }
 
@@ -270,7 +271,25 @@ public sealed class QuestHUD : MonoBehaviour
         text.AddToClassList("quest-text");
         root.Add(line);
         root.Add(text);
-        return new Row { root = root, count = count };
+        var row = new Row { root = root, count = count };
+        // a one-step quest's bar would only ever be empty or full; the count says that already
+        if (q.count > 1)
+        {
+            var bar = new VisualElement { pickingMode = PickingMode.Ignore };
+            bar.AddToClassList("quest-bar");
+            row.fill = new VisualElement { pickingMode = PickingMode.Ignore };
+            row.fill.AddToClassList("quest-bar-fill");
+            bar.Add(row.fill);
+            root.Add(bar);
+        }
+        ShowProgress(q, row);
+        return row;
+    }
+
+    private static void ShowProgress(Quest q, Row row)
+    {
+        row.count.text = $"{row.progress} / {q.count}";
+        if (row.fill != null) row.fill.style.width = Length.Percent(100f * row.progress / q.count);
     }
 
     private void Eaten(EdibleObject food)
@@ -289,7 +308,7 @@ public sealed class QuestHUD : MonoBehaviour
                 default: continue;
             }
             row.progress = Mathf.Min(row.progress, q.count);
-            row.count.text = $"{row.progress} / {q.count}";
+            ShowProgress(q, row);
             if (row.progress >= q.count) Finish(q.id, row);
         }
     }
@@ -306,7 +325,7 @@ public sealed class QuestHUD : MonoBehaviour
         {
             if (q.goal != goal || done.Contains(q.id) || !rows.TryGetValue(q.id, out var row) || row.finishing) continue;
             row.progress = Mathf.Min(row.progress + amount, q.count);
-            row.count.text = $"{row.progress} / {q.count}";
+            ShowProgress(q, row);
             if (row.progress >= q.count) Finish(q.id, row);
         }
     }
